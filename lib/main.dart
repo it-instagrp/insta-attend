@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
+import 'package:insta_attend/View/pages/onboarding_one.dart';
 
 Future<void> main() async{
   runApp(MyApp());

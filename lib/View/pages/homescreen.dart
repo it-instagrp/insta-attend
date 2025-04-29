@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:insta_attend/Component/Button/custom_button.dart';
+import 'package:insta_attend/Component/Cards/expense_card.dart';
+import 'package:insta_attend/Component/Cards/leave_card.dart';
+import 'package:insta_attend/Component/Cards/status_bar.dart';
+import 'package:insta_attend/Component/Cards/task_card.dart';
+import 'package:insta_attend/Component/Cards/user_map_pin.dart';
 
 class Homescreen extends StatelessWidget {
   const Homescreen({super.key});
@@ -9,7 +13,7 @@ class Homescreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: CustomButton(label: "Next", onPressed: (){ }, size: ButtonSize.sm, state: ButtonState.focused, hierarchy: ButtonHierarchy.primary, destructive: true,),
+        child: TaskCard(),
       ),
     );
   }
