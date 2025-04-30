@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:insta_attend/Component/Cards/expense_card.dart';
 import 'package:insta_attend/Component/Cards/leave_card.dart';
+import 'package:insta_attend/Component/Cards/message_bar.dart';
 import 'package:insta_attend/Component/Cards/status_bar.dart';
 import 'package:insta_attend/Component/Cards/task_card.dart';
 import 'package:insta_attend/Component/Cards/user_map_pin.dart';
@@ -13,7 +14,7 @@ class Homescreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: TaskCard(),
+        child: MessageBar(controller: TextEditingController(), onPickFile: (){}, onPickImage: (){}, onSend: (){}, onRecord: (){}),
       ),
     );
   }

@@ -20,19 +20,21 @@ class OnboardingOne extends StatelessWidget {
             ]
         )
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(kaOnboardingOne, fit: BoxFit.scaleDown, height: 375, width: 315),
-            Align(alignment: Alignment.center, child: Text("Welcome to Workmate!", style: kfHeadlineSmall.copyWith(color: Colors.black))),
-            SizedBox(
-              height: 20,
-            ),
-            Text("data")
-          ],
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(kaOnboardingOne, fit: BoxFit.scaleDown, height: 375, width: 315),
+              Align(alignment: Alignment.center, child: Text("Welcome to Workmate!", style: kfHeadlineSmall.copyWith(color: Colors.black))),
+              SizedBox(
+                height: 20,
+              ),
+              Text("data")
+            ],
+          ),
         ),
       ),
     );

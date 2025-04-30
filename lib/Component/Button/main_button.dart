@@ -52,19 +52,22 @@ class MainButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      height: _getHeight(),
-      width: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: _getColors(),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        height: _getHeight(),
+        width: 120,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: _getColors(),
+          ),
         ),
+        child: Text(label, style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold),),
       ),
-      child: Text(label, style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold),),
     );
   }
 }
