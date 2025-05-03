@@ -146,7 +146,11 @@ class RegisterPage extends StatelessWidget {
                           : MainButton(
                             label: "Register",
                             onTap: () {
-                              controller.validateRegisterForm(context);
+                              if(controller.validateRegisterForm(context)){
+                                controller.register(context);
+                              } else {
+                                return;
+                              }
                             },
                             buttonSize: ButtonSize.xl,
                           ),

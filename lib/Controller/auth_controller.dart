@@ -1,7 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
+import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
 import 'package:insta_attend/API/Repository/auth_repository.dart';
+import 'package:insta_attend/Model/User.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
+import 'package:insta_attend/View/pages/homescreen.dart';
 
 class AuthController extends GetxController{
 
@@ -53,6 +60,76 @@ class AuthController extends GetxController{
     } else {
       return true;
     }
+  }
+
+  Future<void> register(BuildContext context) async{
+    try{
+      final RegisterRequestDTO request = RegisterRequestDTO(
+        username: usernameController.text.trim(),
+        email: emailController.text.trim(),
+        phoneNumber: phoneController.text.trim(),
+        circle: selectedDepartment.value,
+        password: passwordController.text.trim(),
+        role: "user"
+      );
+
+      Response response = await authRepo.register(request);
+      if(response.statusCode == 201){
+        showSuccess(context, "Registered Successfully");
+        final User user = User.fromJson(response.body['data']['user']);
+        final String token = response.body['data']['token'];
+        authRepo.apiClient.updateHeader(token);
+        await authRepo.sharedPreferences.setString("token", token);
+        await authRepo.sharedPreferences.setString("user", jsonEncode(user.toJson()));
+        Get.offAll(()=>Homescreen(), transition: Transition.fadeIn);
+      } else {
+        showError(context, response.body['message']);
+      }
+    }catch(err){
+      showError(context, "Something went wrong");
+      print("Internal Exception: ${err.toString()}");
+    }finally{
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> login(BuildContext context) async{
+    isLoading.value = true;
+    try{
+      if(emailController.text.isEmpty) {
+        showError(context, "Please enter email");
+      }else if(passwordController.text.isEmpty) {
+        showError(context, "Please enter password");
+      } else {
+        final LoginRequestDTO request = LoginRequestDTO(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim()
+        );
+
+        Response response = await authRepo.login(request);
+        var responseBody = response.body;
+        if(response.statusCode == 200){
+          showSuccess(context, "Login Successful");
+          final String userToken = responseBody['data']['token'];
+          final String user = jsonEncode(responseBody['data']['user']);
+          authRepo.apiClient.updateHeader(userToken);
+          await authRepo.sharedPreferences.setString("token", userToken);
+          await authRepo.sharedPreferences.setString("user", user);
+          Get.offAll(()=>Homescreen(), transition: Transition.fadeIn);
+        } else {
+          showError(context, responseBody['message']);
+        }
+      }
+    }catch(err){
+      showError(context, "Somethings went wrong");
+      if(kDebugMode)print("Exception in Login: ${err.toString()}");
+    }finally{
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> forgotPassword(BuildContext context) async{
+    //To be implemented in backend
   }
 
 }

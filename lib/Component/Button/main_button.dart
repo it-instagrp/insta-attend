@@ -54,6 +54,7 @@ class MainButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      splashColor: Colors.transparent,
       child: Container(
         alignment: Alignment.center,
         height: _getHeight(),

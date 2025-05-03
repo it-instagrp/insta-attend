@@ -2,6 +2,7 @@ final String kaOnboardingOne = "assets/Images/onboarding1.png";
 final String kaOnboardingTwo = "assets/Images/onboarding2.png";
 final String kaOnboardingThree = "assets/Images/onboarding3.png";
 final String kaOnboardingFour = "assets/Images/onboarding4.png";
+final String kaProfile = "assets/Images/profile.png";
 
 
 
@@ -24,3 +25,4 @@ final String kaPhone = "assets/svg/phone.svg";
 final String kaPassword = "assets/svg/password.svg";
 final String kaVisible = "assets/svg/visible.svg";
 final String kaNotVisible = "assets/svg/notVisible.svg";
+final String kaForgotPasswordTop = "assets/svg/forgotPasswordTop.svg";

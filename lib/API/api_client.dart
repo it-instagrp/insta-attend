@@ -17,25 +17,21 @@ class ApiClient extends GetxService {
   final int timeoutInSeconds = 40;
 
   String liveToken = token;
-  String userId = uid;
   late Map<String, String> _mainHeaders;
 
   ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
     liveToken = sharedPreferences.getString(token) ?? "";
-    userId = sharedPreferences.getString(uid) ?? "";
     if (kDebugMode) {
       print('Token: $token');
-      print('UserId: $userId');
     }
-    updateHeader(token, userId);
+    updateHeader(token);
   }
 
-  void updateHeader(String token, String userId) {
+  void updateHeader(String token) {
     _mainHeaders = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     };
-    this.userId = userId;
     if (kDebugMode) {
       print('Updated Headers: $_mainHeaders');
       log('Updated Headers: $_mainHeaders');

@@ -4,6 +4,7 @@ import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
+import 'package:insta_attend/View/pages/login_page.dart';
 import 'package:insta_attend/View/pages/onboarding_one.dart';
 import 'package:insta_attend/View/pages/register_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,13 +23,12 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     Future.delayed(Duration(seconds: 3), () async{
-      final String uid = await sharedPreferences.getString("uid") ?? "";
-      final String token = await sharedPreferences.getString("token") ?? "";
-      if(uid.isNotEmpty && token.isNotEmpty){
-        apiClient.updateHeader(token, uid);
+      final String userToken = await sharedPreferences.getString("token") ?? "";
+      if(userToken.isNotEmpty){
+        apiClient.updateHeader(userToken);
         Get.offAll(()=>Homescreen(), transition: Transition.fadeIn);
       } else {
-        Get.offAll(RegisterPage(), transition: Transition.fadeIn);
+        Get.offAll(()=>LoginPage(), transition: Transition.fadeIn);
       }
     });
     super.initState();
