@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "InstaAttend",
+      title: "Insta Attend",
       theme: ThemeData(
         primaryColor: Colors.lightBlueAccent,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),

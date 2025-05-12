@@ -17,7 +17,8 @@ final String changePasswordUrl = "auth/change-password";
 /**** Attendance URLs ****/
 final String checkInUrl = "attendance/check-in";
 final String checkOutUrl = "attendance/check-out";
-final String attendanceByIdUrl = "attendance";
+String attendanceByIdUrl(String id) => "attendance/${id}";
+
 
 /**** Circle URLs ****/
 final String getAllCircles = "circle";

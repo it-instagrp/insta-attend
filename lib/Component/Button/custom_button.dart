@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 
-enum ButtonSize { sm, md, lg, xl, xxl }
+enum ButtonSize { xs, sm, md, lg, xl, xxl }
 enum ButtonHierarchy { primary, secondary }
 enum ButtonState { defaultState, focused, hover, disabled }
 
@@ -130,6 +130,8 @@ class CustomButton extends StatelessWidget {
           return Size(275, 48);
         case ButtonSize.xxl:
           return Size(148, 60);
+        case ButtonSize.xs:
+          return Size(45, 12);
       }
     } else {
       switch (size) {
@@ -143,6 +145,8 @@ class CustomButton extends StatelessWidget {
           return Size(120, 48);
         case ButtonSize.xxl:
           return Size(120, 60);
+        case ButtonSize.xs:
+          return Size(45, 12);
       }
     }
   }
@@ -159,6 +163,8 @@ class CustomButton extends StatelessWidget {
         return 18;
       case ButtonSize.xxl:
         return 20;
+      case ButtonSize.xs:
+        return 10;
     }
   }
 

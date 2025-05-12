@@ -9,6 +9,7 @@ import 'package:insta_attend/API/Repository/auth_repository.dart';
 import 'package:insta_attend/Model/User.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
+import 'package:insta_attend/View/pages/login_page.dart';
 
 class AuthController extends GetxController{
 
@@ -115,6 +116,7 @@ class AuthController extends GetxController{
           authRepo.apiClient.updateHeader(userToken);
           await authRepo.sharedPreferences.setString("token", userToken);
           await authRepo.sharedPreferences.setString("user", user);
+          await authRepo.sharedPreferences.setString("uid", responseBody['data']['user']['id']);
           Get.offAll(()=>Homescreen(), transition: Transition.fadeIn);
         } else {
           showError(context, responseBody['message']);
@@ -130,6 +132,20 @@ class AuthController extends GetxController{
 
   Future<void> forgotPassword(BuildContext context) async{
     //To be implemented in backend
+  }
+
+
+  Future<void> logout(BuildContext context) async{
+    try{
+      authRepo.sharedPreferences.clear();
+      Get.offAll(()=>LoginPage(), transition: Transition.fadeIn);
+      showSuccess(context, "logged out");
+    }catch(err){
+      showError(context, "Something went wrong");
+      if(kDebugMode) print("Exception: ${err.toString()}");
+    }finally{
+
+    }
   }
 
 }

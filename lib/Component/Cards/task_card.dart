@@ -15,7 +15,6 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 366,
       padding: EdgeInsets.all(15.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
@@ -52,7 +51,7 @@ class TaskCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12.0),
       height: 80,
-      width: 110,
+      width: 100,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8.0),
           color: kcGrey25,
@@ -71,7 +70,7 @@ class TaskCard extends StatelessWidget {
             children: [
               SvgPicture.asset(_getTaskIcon(type), fit: BoxFit.scaleDown, height: 15, width: 15,),
               SizedBox(width: 5,),
-              Text(_getTaskTitle(type), style: kfLabelMedium,),
+              Text(_getTaskTitle(type), style: kfLabelMedium.copyWith(fontSize: 10),),
             ],
           ),
           SizedBox(

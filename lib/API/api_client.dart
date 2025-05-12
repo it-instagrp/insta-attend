@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../View/pages/login_page.dart';
 import 'app_constants.dart';
 import 'error_response.dart';
 
@@ -203,6 +204,17 @@ class ApiClient extends GetxService {
       print('====> Response Status Text: ${response0.statusText}');
       print('====> Response Headers: ${response0.headers}');
       print('====> Response Body: ${response0.bodyString}');
+    }
+
+    if (response0.statusCode == 401) {
+      // Clear token or user info if needed
+      sharedPreferences.clear();
+
+      // Navigate to login screen
+      Future.delayed(Duration.zero, () {
+        Get.offAll(() => LoginPage(), transition: Transition.fadeIn);
+      });
+      return Response(statusCode: 401, statusText: "Unauthorized: Redirected to Login");
     }
 
     if (response0.statusCode != 200 && response0.body != null && response0.body is! String) {

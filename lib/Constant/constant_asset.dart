@@ -3,6 +3,9 @@ final String kaOnboardingTwo = "assets/Images/onboarding2.png";
 final String kaOnboardingThree = "assets/Images/onboarding3.png";
 final String kaOnboardingFour = "assets/Images/onboarding4.png";
 final String kaProfile = "assets/Images/profile.png";
+final String kaExploreCamera = "assets/Images/camera.png";
+final String kaClockIn = "assets/Images/clockIn.png";
+final String kaTask = "assets/Images/task.png";
 
 
 
@@ -26,3 +29,24 @@ final String kaPassword = "assets/svg/password.svg";
 final String kaVisible = "assets/svg/visible.svg";
 final String kaNotVisible = "assets/svg/notVisible.svg";
 final String kaForgotPasswordTop = "assets/svg/forgotPasswordTop.svg";
+final String kaHomeHollow = "assets/svg/homeHollow.svg";
+final String kaAttendanceHollow = "assets/svg/attendanceHollow.svg";
+final String kaTaskHollow = "assets/svg/taskHollow.svg";
+final String kaExpenseHollow = "assets/svg/expenseHollow.svg";
+final String kaLeaveHollow = "assets/svg/leaveHollow.svg";
+final String kaHomeFilled = "assets/svg/homeFilled.svg";
+final String kaAttendanceFilled = "assets/svg/attendanceFilled.svg";
+final String kaTaskFilled = "assets/svg/taskFilled.svg";
+final String kaExpenseFilled = "assets/svg/expenseFilled.svg";
+final String kaLeaveFilled = "assets/svg/leaveFilled.svg";
+final String kaTopMessage = "assets/svg/topMessage.svg";
+final String kaTopNotification = "assets/svg/topNotification.svg";
+final String kaMeet = "assets/svg/meet.svg";
+final String kaNoMeeting = "assets/svg/noMeeting.svg";
+final String kaNoTask = "assets/svg/noTask.svg";
+final String kaNoExpense = "assets/svg/noExpense.svg";
+final String kaNoAttendance = "assets/svg/noAttendance.svg";
+final String kaNoLeave = "assets/svg/noLeave.svg";
+final String kaTaskIcon = "assets/svg/taskIcon.svg";
+final String kaCalender = "assets/svg/calender.svg";
+final String kaComment = "assets/svg/comment.svg";
