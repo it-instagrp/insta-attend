@@ -26,9 +26,9 @@ class _SplashScreenState extends State<SplashScreen> {
       final String userToken = await sharedPreferences.getString("token") ?? "";
       if(userToken.isNotEmpty){
         apiClient.updateHeader(userToken);
-        Get.offAll(()=>Homescreen(), transition: Transition.fadeIn);
+        Get.offAll(()=>Homescreen());
       } else {
-        Get.offAll(()=>LoginPage(), transition: Transition.fadeIn);
+        Get.offAll(()=>LoginPage());
       }
     });
     super.initState();

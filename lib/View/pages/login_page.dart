@@ -8,6 +8,7 @@ import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/View/pages/register_page.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -112,7 +113,10 @@ class LoginPage extends StatelessWidget {
               children: [
                 Text("Don't Have Account? ", style: kfTitleSmall,),
                 InkWell(
-                  onTap: (){},
+                  onTap: ()
+                  {
+                    Get.off(() => RegisterPage());
+                  },
                   child: Text("Sign up", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
                 ),
               ],

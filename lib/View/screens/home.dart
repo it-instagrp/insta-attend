@@ -67,15 +67,15 @@ class Home extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Tonald Drump",
+              Obx(()=>Text(
+                controller.currentUser.value.username ?? "NA",
                 style: kfTitleMedium.copyWith(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                "Fullstack Developer",
+              )),
+              Obx(()=>Text(
+                controller.currentUser.value.designation?.designationName ?? "User",
                 style: kfTitleSmall.copyWith(
                     fontWeight: FontWeight.w500, color: Color(0xFF6E62FF)),
-              )
+              ))
             ],
           ),
           Spacer(),

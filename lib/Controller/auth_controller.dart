@@ -17,6 +17,7 @@ class AuthController extends GetxController{
   AuthController({required this.authRepo});
 
   RxBool isLoading = false.obs;
+  var currentUser = User().obs;
 
 
   final TextEditingController usernameController = TextEditingController();
@@ -134,7 +135,6 @@ class AuthController extends GetxController{
     //To be implemented in backend
   }
 
-
   Future<void> logout(BuildContext context) async{
     try{
       authRepo.sharedPreferences.clear();
@@ -144,8 +144,19 @@ class AuthController extends GetxController{
       showError(context, "Something went wrong");
       if(kDebugMode) print("Exception: ${err.toString()}");
     }finally{
-
+      isLoading.value = false;
     }
+  }
+
+  @override
+  void onInit() {
+    final String user = authRepo.sharedPreferences.getString("user") ?? "{}";
+    if(user == "{}" || user.isEmpty){
+      Get.offAll(LoginPage(), transition: Transition.fadeIn);
+    }else{
+      currentUser.value = User.fromJson(jsonDecode(user));
+    }
+    super.onInit();
   }
 
 }

@@ -83,8 +83,10 @@ class AttendanceScreen extends StatelessWidget {
                               alignment: Alignment.center,
                               child: SizedBox(
                                   width: double.maxFinite,
-                                  child: Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(color: kcPurple600, strokeCap: StrokeCap.round,),) : MainButton(label: "Clock In", onTap: (){
+                                  child: Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(color: kcPurple600, strokeCap: StrokeCap.round,),) : controller.isCheckIn.value ? MainButton(label: "Clock In", onTap: (){
                                     controller.clockIn(context);
+                                  }, buttonSize: ButtonSize.xl,) : MainButton(label: "Clock Out", onTap: (){
+                                    controller.clockOut(context);
                                   }, buttonSize: ButtonSize.xl,)))),
                         ],
                       ),
