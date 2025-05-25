@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1079581401900",
+    "project_id": "insta-attend",
+    "storage_bucket": "insta-attend.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1079581401900:android:947ec5901dcf8da16d0289",
+        "android_client_info": {
+          "package_name": "com.nextechvision.insta_attend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBi42k1_nndowecVL4ykYMaE-UXOYtZZoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

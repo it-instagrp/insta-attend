@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
+import 'package:insta_attend/API/DTO/Request/change_password_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
+import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api_client.dart';
@@ -22,6 +24,14 @@ class AuthRepository {
 
   Future<Response> me(LoginRequestDTO request) async{
     return await apiClient.getData(meUrl);
+  }
+
+  Future<Response> updateProfile(UpdateProfileRequestDTO request, String userId) async{
+    return await apiClient.putData(updateProfileUrl, request.toJson(), id: userId);
+  }
+
+  Future<Response> changePassword(ChangePasswordRequestDTO request) async{
+    return await apiClient.postData(changePasswordUrl, request.toJson());
   }
 
 }

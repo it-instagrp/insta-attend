@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Model/Attendance.dart';
-import 'package:insta_attend/Model/attendance_history.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceHistoryCard extends StatelessWidget {

@@ -7,6 +7,7 @@ import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/View/pages/profile_page.dart';
 
 class Home extends StatelessWidget {
   Home({super.key});
@@ -53,12 +54,12 @@ class Home extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(
-            onTap: ()=>controller.logout(context),
+            onTap: ()=>Get.to(()=>ProfilePage(), transition: Transition.fadeIn),
             child: CircleAvatar(
               backgroundColor: kcPurple200,
               radius: 25,
               child: ClipOval(
-                child: SvgPicture.asset(kaPerson),
+                child: Image.asset(kaProfile),
               ),
             ),
           ),

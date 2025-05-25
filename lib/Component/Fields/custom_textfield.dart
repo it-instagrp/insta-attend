@@ -4,8 +4,10 @@ import 'package:insta_attend/Constant/constant_color.dart';
 
 class CustomTextfield extends StatelessWidget {
   final String title, hintText, icon;
+  final bool isDisabled;
+  final VoidCallback? onTap;
   final TextEditingController controller;
-  const CustomTextfield({super.key, required this.title, required this.hintText, required this.icon, required this.controller});
+  const CustomTextfield({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +26,8 @@ class CustomTextfield extends StatelessWidget {
           ),
           SizedBox(height: 5,),
           TextFormField(
+            onTap: onTap,
+            readOnly: isDisabled,
             controller: controller,
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(

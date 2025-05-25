@@ -4,9 +4,15 @@ import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 
-enum LeaveType{
-  available, used
+enum LeaveType {
+  available('Available'),
+  used('Leave Used');
+
+  final String description;
+
+  const LeaveType(this.description);
 }
+
 
 class LeaveCard extends StatelessWidget {
   final String periodOfLeave;
@@ -52,7 +58,7 @@ class LeaveCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12.0),
       height: 80,
-      width: 160,
+      width: 140,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8.0),
           color: kcGrey25,
@@ -71,7 +77,7 @@ class LeaveCard extends StatelessWidget {
             children: [
               SvgPicture.asset(_getLeaveIcon(type), fit: BoxFit.scaleDown, height: 15, width: 15,),
               SizedBox(width: 5,),
-              Text(_getLeaveTitle(type), style: kfLabelMedium,),
+              Text(type.description, style: kfLabelMedium,),
             ],
           ),
           SizedBox(
@@ -81,15 +87,6 @@ class LeaveCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getLeaveTitle(LeaveType type){
-    switch(type){
-      case LeaveType.available:
-        return "Available";
-      case LeaveType.used:
-        return "Used";
-    }
   }
 
   String _getLeaveIcon(LeaveType type){
