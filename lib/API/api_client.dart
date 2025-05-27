@@ -212,7 +212,7 @@ class ApiClient extends GetxService {
 
       // Navigate to login screen
       Future.delayed(Duration.zero, () {
-        Get.offAll(() => LoginPage(), transition: Transition.fadeIn);
+        Get.offAll(() => LoginPage(), transition: Transition.fade);
       });
       return Response(statusCode: 401, statusText: "Unauthorized: Redirected to Login");
     }

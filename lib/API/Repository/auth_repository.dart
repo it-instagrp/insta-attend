@@ -34,4 +34,12 @@ class AuthRepository {
     return await apiClient.postData(changePasswordUrl, request.toJson());
   }
 
+  Future<Response> getDepartments() async{
+    return await apiClient.getData(getDepartmentUrl);
+  }
+
+  Future<Response> getDesignations() async{
+    return await apiClient.getData(getDesignationUrl);
+  }
+
 }

@@ -8,6 +8,8 @@ import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/Model/department.dart';
+import 'package:insta_attend/Model/designation.dart';
 
 class RegisterPage extends StatelessWidget {
   RegisterPage({super.key});
@@ -16,6 +18,10 @@ class RegisterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    controller.getDepartment();
+    controller.getDesignation();
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -78,14 +84,33 @@ class RegisterPage extends StatelessWidget {
                   controller: controller.phoneController,
                 ),
                 SizedBox(height: 15),
-                CustomDropDown(
-                  options: ["Corporate Office", "Erricson JIO"],
-                  onChanged:
-                      (value) => controller.selectedDepartment.value = value,
-                  hintText: 'Select Circle',
-                  title: 'Circle',
-                  isField: true,
-                ),
+              Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : CustomDropDown(
+                options: controller.departmentList.value.map((dept) => dept.departmentName ?? '').toList(),
+                onChanged: (selectedName) {
+                  final selectedDept = controller.departmentList.firstWhere(
+                        (dept) => dept.departmentName == selectedName,
+                    orElse: () => Department(id: '', departmentName: ''),
+                  );
+                  controller.selectedDepartment.value = selectedDept.id ?? '';
+                },
+                hintText: 'Select Department',
+                title: 'Department',
+                isField: true,
+              )),
+                SizedBox(height: 15),
+              Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : CustomDropDown(
+                options: controller.designationList.value.map((role) => role.designationName ?? '').toList(),
+                onChanged: (selectedName) {
+                  final selectedRole = controller.designationList.firstWhere(
+                        (role) => role.designationName == selectedName,
+                    orElse: () => Designation(id: '', designationName: ''),
+                  );
+                  controller.selectedDesignation.value = selectedRole.id ?? '';
+                },
+                hintText: 'Select Designation',
+                title: 'Designation',
+                isField: true,
+              )),
                 SizedBox(height: 15),
                 CustomPasswordField(
                   title: "Password",

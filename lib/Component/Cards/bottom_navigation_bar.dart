@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:insta_attend/View/pages/homescreen.dart';
+import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Constant/constant_asset.dart';
+import '../../Controller/homescreen_controller.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
   final Function(int index) onSelectIndex;
@@ -11,14 +12,15 @@ class CustomBottomNavigationBar extends StatefulWidget {
 
   CustomBottomNavigationBar({super.key, required this.onSelectIndex, required this.context});
 
+
   @override
   State<CustomBottomNavigationBar> createState() => _CustomBottomNavigationBarState();
 }
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
-
-  final Homescreen homescreen = Homescreen();
+  final HomescreenController controller = Get.find<HomescreenController>();
+  final user = Get.find<AuthController>().currentUser.value;
 
   final List<String> icons = [
     kaHomeHollow,
@@ -37,35 +39,37 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isRigger = user.designation?.designationName?.toLowerCase() == "rigger";
+
+    // Define the visible indexes
+    final visibleIndexes = isRigger ? [0, 1, 4] : [0, 1, 2, 3, 4];
+
     return Container(
       height: 95,
       padding: EdgeInsets.only(bottom: 20),
       width: MediaQuery.of(context).size.width,
       color: const Color(0xFF1C2020),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: List.generate(icons.length, (index) {
-          return GestureDetector(
+      child: Obx(() => Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: visibleIndexes.map((index) {
+        final isSelected = controller.selectedIndex.value == index;
+        return GestureDetector(
+          onTap: () {
+            controller.selectedIndex.value = index;
+            widget.onSelectIndex(index);
+          },
+          child: BottomBarItem(
+            index: index,
+            iconPath: isSelected ? selectedIcons[index] : icons[index],
+            isSelected: isSelected,
             onTap: () {
-              setState(() {
-                homescreen.selectedIndex.value = index;
-              });
+              controller.selectedIndex.value = index;
               widget.onSelectIndex(index);
             },
-            child: BottomBarItem(
-              index: index,
-              iconPath: homescreen.selectedIndex.value == index ? selectedIcons[index] : icons[index],
-              isSelected: homescreen.selectedIndex.value == index,
-              onTap: () {
-                setState(() {
-                  homescreen.selectedIndex.value = index;
-                });
-                widget.onSelectIndex(index);
-              },
-            ),
-          );
-        }),
-      ),
+          ),
+        );
+      }).toList(),
+    )),
     );
   }
 }

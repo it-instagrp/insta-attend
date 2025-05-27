@@ -88,7 +88,7 @@ class OfficeAssetPage extends StatelessWidget {
                       : controller.assets.isEmpty
                       ? Center(
                     child: Text(
-                      "No Assets Found",
+                      "No Assets Allocated to you",
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black,
@@ -100,6 +100,7 @@ class OfficeAssetPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final asset = controller.assets[index];
                       return AssetSection(asset: asset);
+
                     },
                     separatorBuilder: (context, index) =>
                         SizedBox(height: 15.0),

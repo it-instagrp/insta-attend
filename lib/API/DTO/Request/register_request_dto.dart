@@ -3,24 +3,24 @@ class RegisterRequestDTO {
   String? email;
   String? phoneNumber;
   String? password;
-  String? circle;
-  String? role;
+  String? department_id;
+  String? designation_id;
 
   RegisterRequestDTO(
       {this.username,
         this.email,
         this.phoneNumber,
         this.password,
-        this.circle,
-        this.role});
+        this.department_id,
+        this.designation_id});
 
   RegisterRequestDTO.fromJson(Map<String, dynamic> json) {
     username = json['username'];
     email = json['email'];
     phoneNumber = json['phone_number'];
     password = json['password'];
-    circle = json['circle'];
-    role = json['role'];
+    department_id = json['department_id'];
+    designation_id = json['designation_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -29,8 +29,8 @@ class RegisterRequestDTO {
     data['email'] = this.email;
     data['phone_number'] = this.phoneNumber;
     data['password'] = this.password;
-    data['circle'] = this.circle;
-    data['role'] = this.role;
+    data['department_id'] = this.department_id;
+    data['designation_id'] = this.designation_id;
     return data;
   }
 }

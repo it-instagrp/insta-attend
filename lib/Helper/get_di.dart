@@ -7,6 +7,7 @@ import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/Controller/asset_controller.dart';
 import 'package:insta_attend/Controller/attendance_controller.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
+import 'package:insta_attend/Controller/homescreen_controller.dart';
 import 'package:insta_attend/Controller/leave_controller.dart';
 import 'package:insta_attend/Controller/version_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +29,7 @@ Future<void> init() async{
 
   /**** GetXController Injection ****/
   Get.lazyPut(()=>AuthController(authRepo: Get.find<AuthRepository>()), fenix: true);
+  Get.lazyPut(()=>HomescreenController(), fenix: true);
   Get.lazyPut(()=>AttendanceController(attendanceRepo: Get.find<AttendanceRepository>()), fenix: true);
   Get.lazyPut(()=>LeaveController(leaveRepository: Get.find<LeaveRepository>()), fenix: true);
   Get.lazyPut(()=>VersionController(versionRepo: Get.find<VersionRepository>()), fenix: true);

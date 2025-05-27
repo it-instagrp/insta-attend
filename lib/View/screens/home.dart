@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:insta_attend/Component/Button/main_button.dart';
 import 'package:insta_attend/Component/Cards/meeting_card.dart';
 import 'package:insta_attend/Component/Cards/no_content.dart';
 import 'package:insta_attend/Constant/constant_asset.dart';
@@ -8,11 +9,14 @@ import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/View/pages/profile_page.dart';
+import 'package:popover/popover.dart';
+import '../../Controller/homescreen_controller.dart';
 
 class Home extends StatelessWidget {
   Home({super.key});
 
   final AuthController controller = Get.find<AuthController>();
+  final HomescreenController homescreen = Get.find<HomescreenController>();
 
   final List<Map<String, dynamic>> meetings = [
     {
@@ -31,6 +35,7 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRigger = controller.currentUser.value.designation?.designationName?.toLowerCase() == "rigger";
     return Container(
       child: ListView(
         padding: EdgeInsets.all(20.0),
@@ -39,7 +44,14 @@ class Home extends StatelessWidget {
           SizedBox(height: 20),
           _buildWorkSummarySection(),
           SizedBox(height: 15),
-          _buildMeetingsSection(),
+          isRigger
+              ? SizedBox(
+                height: 50,
+                child: MainButton(label: "Mark Your Attendance", onTap: (){
+                  homescreen.selectedIndex.value = 1;
+                          }),
+              )
+              : _buildMeetingsSection(),
         ],
       ),
     );
@@ -54,7 +66,7 @@ class Home extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(
-            onTap: ()=>Get.to(()=>ProfilePage(), transition: Transition.fadeIn),
+            onTap: () => Get.to(() => ProfilePage(), transition: Transition.fade),
             child: CircleAvatar(
               backgroundColor: kcPurple200,
               radius: 25,
@@ -64,47 +76,68 @@ class Home extends StatelessWidget {
             ),
           ),
           SizedBox(width: 10),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Obx(()=>Text(
-                controller.currentUser.value.username ?? "NA",
-                style: kfTitleMedium.copyWith(fontWeight: FontWeight.w600),
-              )),
-              Obx(()=>Text(
-                controller.currentUser.value.designation?.designationName ?? "User",
-                style: kfTitleSmall.copyWith(
-                    fontWeight: FontWeight.w500, color: Color(0xFF6E62FF)),
-              ))
-            ],
+
+          /// 🔧 Wrap in Expanded to take available space
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Obx(() => Text(
+                  controller.currentUser.value.username ?? "NA",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: kfTitleMedium.copyWith(fontWeight: FontWeight.w600),
+                )),
+                Obx(() => Text(
+                  controller.currentUser.value.designation?.designationName ?? "User",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: kfTitleSmall.copyWith(
+                      fontWeight: FontWeight.w500, color: Color(0xFF6E62FF)),
+                )),
+              ],
+            ),
           ),
-          Spacer(),
-          _buildTopIcons(),
+
+          /// Push icons to the end
+          _buildTopIcons(context),
         ],
       ),
     );
   }
 
-  Widget _buildTopIcons() {
+  Widget _buildTopIcons(BuildContext context) {
     return Row(
       children: [
-        InkWell(
-          onTap: () {},
-          child: CircleAvatar(
-            radius: 20,
-            backgroundColor: kcPurple100,
-            child: SvgPicture.asset(kaTopMessage),
-          ),
+        Builder(
+          builder: (context) {
+            return InkWell(
+              onTap: () {
+                showMessages(context);
+              },
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: kcPurple100,
+                child: SvgPicture.asset(kaTopMessage),
+              ),
+            );
+          }
         ),
         SizedBox(width: 20),
-        InkWell(
-          onTap: () {},
-          child: CircleAvatar(
-            radius: 20,
-            backgroundColor: kcPurple100,
-            child: SvgPicture.asset(kaTopNotification),
-          ),
+        Builder(
+          builder: (context) {
+            return InkWell(
+              onTap: () {
+                showNotifications(context);
+              },
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: kcPurple100,
+                child: SvgPicture.asset(kaTopNotification),
+              ),
+            );
+          }
         ),
       ],
     );
@@ -225,5 +258,37 @@ class Home extends StatelessWidget {
             fontSize: 12, fontWeight: FontWeight.w600, color: kcPurple500),
       ),
     );
+  }
+
+  void showNotifications(BuildContext context){
+    showPopover(
+      arrowHeight: 0,
+        arrowWidth: 0,
+        context: context,
+        bodyBuilder: (context){
+      return Container(
+        height: 100,
+        width: 200,
+        child: Center(
+          child: Text("No new notifications"),
+        ),
+      );
+    });
+  }
+
+  void showMessages(BuildContext context){
+    showPopover(
+      arrowHeight: 0,
+        arrowWidth: 0,
+        context: context,
+        bodyBuilder: (context){
+      return Container(
+        height: 100,
+        width: 200,
+        child: Center(
+          child: Text("No new messages"),
+        ),
+      );
+    });
   }
 }

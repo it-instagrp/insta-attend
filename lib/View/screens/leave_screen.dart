@@ -56,7 +56,7 @@ class LeaveScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20.0
                       ),
-                      child: LeaveCard(),
+                      child: Obx(()=>LeaveCard(usedLeave: controller.approvedLeaves.value.length, availableLeave: (11 - (controller.approvedLeaves.value.length)),)),
                     ),
                     SizedBox(
                       height: 10,
@@ -103,7 +103,7 @@ class LeaveScreen extends StatelessWidget {
                 padding: EdgeInsets.all(10.0),
                 color: Colors.white,
                 child: MainButton(label: "Submit Leave", onTap: (){
-                  Get.to(()=>SubmitLeave(), transition: Transition.fadeIn);
+                  Get.to(()=>SubmitLeave(), transition: Transition.fade);
                 }, buttonSize: ButtonSize.sm,),
               )
           )

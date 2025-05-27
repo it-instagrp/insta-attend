@@ -164,7 +164,7 @@ class ProfilePage extends StatelessWidget {
                               /**** Personal Data ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>PersonalDataPage(), transition: Transition.fadeIn);
+                                  Get.to(()=>PersonalDataPage(), transition: Transition.fade);
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -194,7 +194,7 @@ class ProfilePage extends StatelessWidget {
                               /**** Office Assets ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>OfficeAssetPage(), transition: Transition.fadeIn);
+                                  Get.to(()=>OfficeAssetPage(), transition: Transition.fade);
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -244,7 +244,7 @@ class ProfilePage extends StatelessWidget {
                               /**** Change Password ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>ChangePasswordPage(), transition: Transition.fadeIn);
+                                  Get.to(()=>ChangePasswordPage(), transition: Transition.fade);
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -274,7 +274,7 @@ class ProfilePage extends StatelessWidget {
                               /**** Versioning ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>VersioningPage(), transition: Transition.fadeIn);
+                                  Get.to(()=>VersioningPage(), transition: Transition.fade);
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,

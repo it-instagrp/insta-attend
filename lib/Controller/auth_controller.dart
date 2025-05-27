@@ -13,12 +13,21 @@ import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
 
+import '../Model/department.dart';
+import '../Model/designation.dart';
+
 class AuthController extends GetxController {
   final AuthRepository authRepo;
   AuthController({required this.authRepo});
 
   RxBool isLoading = false.obs;
+  RxBool isDropDownLoading = false.obs;
   var currentUser = User().obs;
+  var selectedDepartment = ''.obs;
+  var selectedDesignation = ''.obs;
+  RxBool isConsentGiven = false.obs;
+  RxList<Department> departmentList = <Department>[].obs;
+  RxList<Designation> designationList = <Designation>[].obs;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
@@ -26,24 +35,7 @@ class AuthController extends GetxController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  var selectedDepartment = ''.obs;
-  RxBool isConsentGiven = false.obs;
-
-  /**** Initialization of Controller ****/
-  @override
-  void onInit() {
-    super.onInit();
-    final String user = authRepo.sharedPreferences.getString("user") ?? "{}";
-    Future.microtask(() {
-      if (user == "{}" || user.isEmpty) {
-        Get.offAll(() => LoginPage(), transition: Transition.fadeIn);
-      } else {
-        currentUser.value = User.fromJson(jsonDecode(user));
-      }
-    });
-  }
+  final TextEditingController confirmPasswordController = TextEditingController();
 
   bool validateRegisterForm(BuildContext context) {
     isLoading.value = true;
@@ -87,15 +79,16 @@ class AuthController extends GetxController {
         username: usernameController.text.trim(),
         email: emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
-        circle: selectedDepartment.value,
+        department_id: selectedDepartment.value,
         password: passwordController.text.trim(),
-        role: "user",
+        designation_id: selectedDesignation.value,
       );
 
       Response response = await authRepo.register(request);
       if (response.statusCode == 201) {
         showSuccess(context, "Registered Successfully");
         final User user = User.fromJson(response.body['data']['user']);
+        currentUser.value = user;
         final String token = response.body['data']['token'];
         authRepo.apiClient.updateHeader(token);
         await authRepo.sharedPreferences.setString("token", token);
@@ -103,7 +96,7 @@ class AuthController extends GetxController {
           "user",
           jsonEncode(user.toJson()),
         );
-        Get.offAll(() => Homescreen(), transition: Transition.fadeIn);
+        Get.offAll(() => Homescreen(), transition: Transition.fade);
       } else {
         showError(context, response.body['message']);
       }
@@ -134,6 +127,7 @@ class AuthController extends GetxController {
           showSuccess(context, "Login Successful");
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
+          currentUser.value = User.fromJson(responseBody['data']['user']);
           authRepo.apiClient.updateHeader(userToken);
           await authRepo.sharedPreferences.setString("token", userToken);
           await authRepo.sharedPreferences.setString("user", user);
@@ -141,7 +135,7 @@ class AuthController extends GetxController {
             "uid",
             responseBody['data']['user']['id'],
           );
-          Get.offAll(() => Homescreen(), transition: Transition.fadeIn);
+          Get.offAll(() => Homescreen(), transition: Transition.fade);
         } else {
           showError(context, responseBody['message']);
         }
@@ -161,7 +155,7 @@ class AuthController extends GetxController {
   Future<void> logout(BuildContext context) async {
     try {
       authRepo.sharedPreferences.clear();
-      Get.offAll(() => LoginPage(), transition: Transition.fadeIn);
+      Get.offAll(() => LoginPage(), transition: Transition.fade);
       showSuccess(context, "logged out");
     } catch (err) {
       showError(context, "Something went wrong");
@@ -225,6 +219,40 @@ class AuthController extends GetxController {
       print("Exception: " + err.toString());
     }finally{
       isLoading.value = false;
+    }
+  }
+
+  Future<void> getDepartment() async {
+    try{
+      Response response = await authRepo.getDepartments();
+      isDropDownLoading.value = true;
+      if(response.statusCode == 200){
+        List<dynamic> dataList = response.body['data'] as List<dynamic>;
+        List<Department> departments = dataList.map((json) => Department.fromJson(json)).toList();
+        departmentList.assignAll(departments);
+      }
+    }catch (err){
+      if (kDebugMode) print("Exception: ${err.toString()}");
+      showError(Get.context!, "Something went wrong");
+    }finally{
+      isDropDownLoading.value = false;
+    }
+  }
+
+  Future<void> getDesignation() async {
+    isDropDownLoading.value = true;
+    try{
+      Response response = await authRepo.getDesignations();
+      if(response.statusCode == 200){
+        List<dynamic> dataList = response.body['data'] as List<dynamic>;
+        List<Designation> designations = dataList.map((json) => Designation.fromJson(json)).toList();
+        designationList.assignAll(designations);
+      }
+    }catch (err){
+      if (kDebugMode) print("Exception: ${err.toString()}");
+      showError(Get.context!, "Something went wrong");
+    }finally{
+      isDropDownLoading.value = false;
     }
   }
 }

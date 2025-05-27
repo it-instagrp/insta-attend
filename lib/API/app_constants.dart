@@ -12,6 +12,8 @@ final String meUrl = "auth/me";
 final String profileUrl = "auth/profile";
 final String forgotPasswordUrl = "auth/forgot-password";
 final String changePasswordUrl = "auth/change-password";
+final String getDesignationUrl = "designation";
+final String getDepartmentUrl = "department";
 final String updateProfileUrl = "users";
 
 
