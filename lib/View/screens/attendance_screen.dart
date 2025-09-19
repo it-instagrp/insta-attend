@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:insta_attend/Component/Button/main_button.dart';
-import 'package:insta_attend/Component/Cards/no_content.dart';
+import 'package:insta_attend/Component/Cards/map_card.dart';
 import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Controller/attendance_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
-
-import '../../Component/Cards/attendance_history_card.dart';
 
 class AttendanceScreen extends StatelessWidget {
   AttendanceScreen({super.key});
@@ -98,14 +96,15 @@ class AttendanceScreen extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8.0)
                       ),
-                      child: Obx(()=> controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : controller.attendance.isNotEmpty ? ListView.separated(
-                          separatorBuilder: (context, index)=>SizedBox(height: 10.0,),
-                          itemCount: controller.attendance.value.length,
-                          itemBuilder: (context, index){
-                            final attendanceOne = controller.attendance[index];
-                            return AttendanceHistoryCard(history: attendanceOne,);
-                          }
-                      ) : NoContent(icon: kaNoAttendance, title: "No Working Time Available", description: "It looks like you don’t have any working time in this period. Don’t worry, this space will be updated as new working time submitted.")),
+                      // child: Obx(()=> controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : controller.attendance.isNotEmpty ? ListView.separated(
+                      //     separatorBuilder: (context, index)=>SizedBox(height: 10.0,),
+                      //     itemCount: controller.attendance.value.length,
+                      //     itemBuilder: (context, index){
+                      //       final attendanceOne = controller.attendance[index];
+                      //       return AttendanceHistoryCard(history: attendanceOne,);
+                      //     }
+                      // ) : NoContent(icon: kaNoAttendance, title: "No Working Time Available", description: "It looks like you don’t have any working time in this period. Don’t worry, this space will be updated as new working time submitted.")),
+                      child: MapCard(),
                     ),
                   ],
                 ),
