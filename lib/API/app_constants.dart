@@ -3,8 +3,8 @@ final String uid = "uid";
 
 
 /**** URLs ****/
-final String appBaseUrl = "https://api.instaams.instagrp.in/api/";
-// final String appBaseUrl = "http://192.168.1.26:8081/api/";
+final String appBaseUrl = "https://api.ams.instagrp.in/api/";
+// final String appBaseUrl = "http://192.168.0.106:8081/api/";
 
 /**** Auth URLs ****/
 final String registerUrl = "auth/register";

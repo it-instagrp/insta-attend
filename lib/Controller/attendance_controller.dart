@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -10,6 +12,7 @@ import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/Model/Attendance.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class AttendanceController extends GetxController {
   final AttendanceRepository attendanceRepo;
@@ -25,7 +28,26 @@ class AttendanceController extends GetxController {
 
   RxList<Attendance> attendance = <Attendance>[].obs;
   RxBool isLoading = false.obs;
+  RxString attendanceStatus = "No Check-in".obs;
+  RxString checkInTime = "".obs;
+  RxString checkOutTime = "".obs;
+  RxString checkInAddress = "".obs;
+  RxString checkOutAddress = "".obs;
   RxBool isCheckIn = true.obs;
+  Rx<Duration> todayWorkDuration = Duration.zero.obs;
+  Timer? _durationTimer;
+
+  @override
+  void onInit() {
+    super.onInit();
+    getMyAttendance();
+  }
+
+  @override
+  void onClose() {
+    _durationTimer?.cancel();
+    super.onClose();
+  }
 
   /**** Get department's latitude and longitude from user ****/
   Future<void> getLatLong(BuildContext context) async {
@@ -75,12 +97,30 @@ class AttendanceController extends GetxController {
     try {
       await getLatLong(context);
       Position position = await getCurrentLocation();
-      bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
 
-      if (inRange) {
+      if(authController.currentUser.value.geofencing == true){
+        bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+
+        if (inRange) {
+          String address = await getAddressFromLatLng(position.latitude, position.longitude);
+          Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
+              checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A"
+          ));
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            showSuccess(context, "Marked Clock In");
+            if (kDebugMode) debugPrint("Attendance Marked at: $address");
+          } else {
+            showError(context, response.body['message']);
+          }
+        } else {
+          showError(context, "You are not in office premises");
+          debugPrint("Not in range");
+        }
+      } else {
         String address = await getAddressFromLatLng(position.latitude, position.longitude);
         Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
-            checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A"
+            checkInLocation: address
         ));
 
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -89,9 +129,6 @@ class AttendanceController extends GetxController {
         } else {
           showError(context, response.body['message']);
         }
-      } else {
-        showError(context, "You are not in office premises");
-        debugPrint("Not in range");
       }
     } catch (e) {
       debugPrint("Error: $e");
@@ -105,21 +142,37 @@ class AttendanceController extends GetxController {
     isLoading.value = true;
     try {
       Position position = await getCurrentLocation();
-      bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+      if(authController.currentUser.value.geofencing == true){
+        bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
 
-      if (inRange) {
+        if (inRange) {
+          String address = await getAddressFromLatLng(position.latitude, position.longitude);
+          Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
+              checkOutLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A"
+          ));
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            showSuccess(context, "Marked Clock In");
+            if (kDebugMode) debugPrint("Attendance Marked at: $address");
+          } else {
+            showError(context, response.body['message']);
+          }
+        } else {
+          showError(context, "You are not in office premises");
+          debugPrint("Not in range");
+        }
+      } else {
         String address = await getAddressFromLatLng(position.latitude, position.longitude);
-        Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(checkOutLocation: address));
+        Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
+            checkOutLocation: address
+        ));
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          showSuccess(context, "Marked Clock Out");
+          showSuccess(context, "Marked Clock In");
           if (kDebugMode) debugPrint("Attendance Marked at: $address");
         } else {
           showError(context, response.body['message']);
         }
-      } else {
-        showError(context, "You are not in office premises");
-        debugPrint("Not in range");
       }
     } catch (e) {
       debugPrint("Error: $e");
@@ -133,6 +186,7 @@ class AttendanceController extends GetxController {
     isLoading.value = true;
     try {
       final String userId = sharedPreferences.getString("uid") ?? "";
+      log("UID from session: $userId");
       Response response = await attendanceRepo.getMyAttendance(userId);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -141,15 +195,46 @@ class AttendanceController extends GetxController {
 
         String today = DateTime.now().toIso8601String().substring(0, 10);
         var todayRecords = attendance.where((record) => record.date == today).toList();
-        if (todayRecords.isEmpty) {
-          isCheckIn.value = true;
-        } else {
+
+        // If there are records for today, process the latest one
+        if (todayRecords.isNotEmpty) {
           final latestRecord = todayRecords.last;
-          if (latestRecord.checkOutTime == null || latestRecord.checkOutTime!.isEmpty) {
-            isCheckIn.value = false; // Still clocked in, show Clock Out button
+
+          checkInTime.value = latestRecord.checkInTime ?? "";
+          checkInAddress.value = latestRecord.checkInLocation ?? "";
+
+          if (latestRecord.checkOutTime != null && latestRecord.checkOutTime!.isNotEmpty) {
+            // User has checked out
+            attendanceStatus.value = "Checked Out";
+            isCheckIn.value = true;
+            checkOutTime.value = latestRecord.checkOutTime!;
+            checkOutAddress.value = latestRecord.checkOutLocation!;
+            updateTodayDuration();
+            _durationTimer?.cancel();
+
+            print("Status: ${attendanceStatus.value}, CheckIn: ${isCheckIn}, Check Out Time: ${checkOutTime.value}, Check in Time: ${checkInTime.value}");
           } else {
-            isCheckIn.value = true; // Already clocked out, show Clock In button
+            // User is currently checked in
+            attendanceStatus.value = "Checked In";
+            isCheckIn.value = false;
+            checkOutTime.value = "";
+            checkOutAddress.value = "";
+            updateTodayDuration();
+            _startDurationTimer();
+
+            // Debugging statement added here
+            print("Status: ${attendanceStatus.value}, CheckIn Time: ${checkInTime.value}, CheckIn Address: ${checkInAddress.value}");
           }
+        } else {
+          // No attendance records for today
+          attendanceStatus.value = "No Check-in";
+          isCheckIn.value = true;
+          checkInTime.value = "";
+          checkInAddress.value = "";
+          checkOutTime.value = "";
+          checkOutAddress.value = "";
+          todayWorkDuration.value = Duration.zero;
+          _durationTimer?.cancel();
         }
       } else {
         debugPrint("Failed to fetch attendance. Status Code: ${response.statusCode}");
@@ -158,6 +243,33 @@ class AttendanceController extends GetxController {
       debugPrint("Error while fetching attendance: $err");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void _startDurationTimer() {
+    _durationTimer?.cancel();
+    _durationTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      updateTodayDuration();
+    });
+  }
+
+  void updateTodayDuration() {
+    String today = DateTime.now().toIso8601String().substring(0, 10);
+    var todayRecords = attendance.where((record) => record.date == today).toList();
+
+    if (todayRecords.isNotEmpty) {
+      final latestRecord = todayRecords.last;
+      if (latestRecord.checkInTime != null) {
+        DateTime checkInDateTime = DateTime.parse(latestRecord.checkInTime!).toLocal();
+        if (latestRecord.checkOutTime != null && latestRecord.checkOutTime!.isNotEmpty) {
+          DateTime checkOutDateTime = DateTime.parse(latestRecord.checkOutTime!).toLocal();
+          todayWorkDuration.value = checkOutDateTime.difference(checkInDateTime);
+        } else {
+          todayWorkDuration.value = DateTime.now().toLocal().difference(checkInDateTime);
+        }
+      }
+    } else {
+      todayWorkDuration.value = Duration.zero;
     }
   }
 
@@ -198,11 +310,5 @@ class AttendanceController extends GetxController {
     }).toList();
 
     return calculateTotalDuration(monthlyRecords);
-  }
-
-  @override
-  void onInit() {
-    getMyAttendance();
-    super.onInit();
   }
 }

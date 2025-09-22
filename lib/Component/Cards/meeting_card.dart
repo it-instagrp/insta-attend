@@ -66,7 +66,7 @@ class MeetingCard extends StatelessWidget {
                 child: Stack(
                   children: List.generate(_getAttendeeLength(attendee.length), (index) {
                     return Positioned(
-                      left: (index * 15).toDouble(), // Adjust the value to control overlap
+                      left: (index * 15).toDouble(),
                       child: Container(
                         height: 25,
                         width: 25,

@@ -199,9 +199,6 @@ class ApiClient extends GetxService {
 
     if (kDebugMode) {
       print('====> API Response Handling Start');
-      print('====> Request URI: $uri');
-      print('====> Response Status Code: ${response0.statusCode}');
-      print('====> Response Status Text: ${response0.statusText}');
       print('====> Response Headers: ${response0.headers}');
       print('====> Response Body: ${response0.bodyString}');
     }
@@ -237,13 +234,6 @@ class ApiClient extends GetxService {
           statusCode: 0,
           statusText: noInternetMessage
       );
-    }
-
-    if (kDebugMode) {
-      print('====> API Response Handling End');
-      print('====> Processed Response Status Code: ${response0.statusCode}');
-      print('====> Processed Response Status Text: ${response0.statusText}');
-      print('====> Processed Response Body: ${response0.bodyString}');
     }
 
     return response0;

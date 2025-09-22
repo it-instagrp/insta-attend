@@ -12,6 +12,7 @@ import 'package:insta_attend/Model/User.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Model/department.dart';
 import '../Model/designation.dart';
@@ -19,6 +20,8 @@ import '../Model/designation.dart';
 class AuthController extends GetxController {
   final AuthRepository authRepo;
   AuthController({required this.authRepo});
+
+  final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
 
   RxBool isLoading = false.obs;
   RxBool isDropDownLoading = false.obs;
@@ -154,7 +157,9 @@ class AuthController extends GetxController {
 
   Future<void> logout(BuildContext context) async {
     try {
-      authRepo.sharedPreferences.clear();
+      await sharedPreferences.clear().then((_){
+        print("Shared Preferences cleared");
+      });
       Get.offAll(() => LoginPage(), transition: Transition.fade);
       showSuccess(context, "logged out");
     } catch (err) {

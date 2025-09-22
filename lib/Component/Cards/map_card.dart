@@ -21,8 +21,8 @@ class MapCard extends StatelessWidget {
             height: 300,
             padding: EdgeInsets.all(5.0),
             decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0)
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(3.0),
@@ -34,9 +34,8 @@ class MapCard extends StatelessWidget {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    subdomains: const ['a', 'b', 'c'],
+                    urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    userAgentPackageName: 'com.nextechvision.insta_attend',
                   ),
                   if (location != null) ...[
                     MarkerLayer(
@@ -92,7 +91,8 @@ class MapScreenController extends GetxController {
 
     if (permission == LocationPermission.deniedForever) {
       return Future.error(
-          'Location permissions are permanently denied, we cannot request.');
+        'Location permissions are permanently denied, we cannot request.',
+      );
     }
 
     // Get current position
@@ -106,4 +106,3 @@ class MapScreenController extends GetxController {
     mapController.move(currentLocation.value!, 16.0);
   }
 }
-

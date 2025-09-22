@@ -25,24 +25,24 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   final List<String> icons = [
     kaHomeHollow,
     kaAttendanceHollow,
-    kaTaskHollow,
-    kaExpenseHollow,
+    // kaTaskHollow,
+    // kaExpenseHollow,
     kaLeaveHollow
   ];
   final List<String> selectedIcons = [
     kaHomeFilled,
     kaAttendanceFilled,
-    kaTaskFilled,
-    kaExpenseFilled,
+    // kaTaskFilled,
+    // kaExpenseFilled,
     kaLeaveFilled
   ];
 
   @override
   Widget build(BuildContext context) {
-    final isRigger = user.designation?.designationName?.toLowerCase() == "rigger";
 
     // Define the visible indexes
-    final visibleIndexes = isRigger ? [0, 1, 4] : [0, 1, 2, 3, 4];
+    final visibleIndexes = [0, 1, 2];
+    // final visibleIndexes = [0, 1, 2, 3, 4];
 
     return Container(
       height: 95,
