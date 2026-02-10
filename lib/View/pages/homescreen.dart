@@ -42,7 +42,7 @@ class Homescreen extends StatelessWidget {
 final List<Widget> screens = [
   Home(),
   AttendanceScreen(),
-  // TaskScreen(),
-  // ExpenseScreen(),
+  TaskScreen(),
+  ExpenseScreen(),
   LeaveScreen()
 ];

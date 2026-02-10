@@ -14,7 +14,6 @@ class LeaveHistoryCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(15.0),
       width: MediaQuery.of(context).size.width,
-      height: 120,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.0)

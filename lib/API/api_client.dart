@@ -174,6 +174,37 @@ class ApiClient extends GetxService {
       return Response(statusCode: 1, statusText: noInternetMessage);
     }
   }
+  Future<Response> putMultipartData(String uri, Map<String, dynamic> body, List<MultipartBody> multipartBody, {Map<String, String>? headers}) async {
+    try {
+      if (kDebugMode) {
+        print('====> API Call:  $appBaseUrl$uri\nHeader: $_mainHeaders');
+        print('====> API Body: $body with ${multipartBody.length} pictures');
+      }
+      http.MultipartRequest request = http.MultipartRequest('PUT', Uri.parse(appBaseUrl + uri));
+      request.headers.addAll(_mainHeaders);
+      for (MultipartBody multipart in multipartBody) {
+        if (multipart.file != null) {
+          Uint8List list = await multipart.file!.readAsBytes();
+          request.files.add(http.MultipartFile(
+            multipart.key, multipart.file!.readAsBytes().asStream(), list.length,
+            filename: '${DateTime.now().toString()}.png',
+          ));
+        }
+      }
+
+      final requestBody = _processReportFields(body);
+
+      request.fields.addAll(requestBody);
+      print("response"+body.toString());
+      http.Response response = await http.Response.fromStream(await request.send());
+      print("response");
+      print("response"+response.body);
+      return handleResponse(response, uri);
+    } catch (e) {
+      print('Error: $e');
+      return Response(statusCode: 1, statusText: noInternetMessage);
+    }
+  }
 
   Response handleResponse(http.Response response, String uri) {
     dynamic body;

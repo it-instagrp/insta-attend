@@ -13,6 +13,7 @@ class User {
   String? updatedAt;
   Department? department;
   Designation? designation;
+  List<double>? faceEmbedding;
 
   User(
       {this.id,
@@ -25,7 +26,9 @@ class User {
         this.createdAt,
         this.updatedAt,
         this.department,
-        this.designation});
+        this.designation,
+      this.faceEmbedding
+      });
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -34,6 +37,7 @@ class User {
     phoneNumber = json['phone_number'];
     geofencing = json['geofencing'];
     isEnrolled = json['is_enrolled'];
+    faceEmbedding = json['face_embedding'];
     deletePermission = json['delete_permission'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
@@ -56,6 +60,7 @@ class User {
     data['delete_permission'] = this.deletePermission;
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
+    data['face_embedding'] = this.faceEmbedding;
     if (this.department != null) {
       data['department'] = this.department!.toJson();
     }

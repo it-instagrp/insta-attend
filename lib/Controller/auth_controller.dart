@@ -1,13 +1,18 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import 'package:insta_attend/API/DTO/Request/change_password_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/Repository/auth_repository.dart';
+import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/Model/User.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
@@ -16,12 +21,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Model/department.dart';
 import '../Model/designation.dart';
+import '../Utils/face_recognition_service.dart';
+import '../Utils/fcm_service.dart';
+import '../View/pages/face_scanner_page.dart';
 
 class AuthController extends GetxController {
   final AuthRepository authRepo;
   AuthController({required this.authRepo});
 
   final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
+
+  File? profileImage;
+  final ImagePicker _picker = ImagePicker();
+  final FaceRecognitionService _faceService = FaceRecognitionService();
 
   RxBool isLoading = false.obs;
   RxBool isDropDownLoading = false.obs;
@@ -39,6 +51,42 @@ class AuthController extends GetxController {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
+
+
+  Future<void> pickAndScanFace(BuildContext context) async {
+    final XFile? photo = await _picker.pickImage(source: ImageSource.camera, preferredCameraDevice: CameraDevice.front);
+
+    if (photo != null) {
+      isLoading.value = true;
+      try {
+        final File file = File(photo.path);
+        profileImage = file;
+
+        // Load the face recognition model if not already loaded
+        await _faceService.loadModel();
+
+        // Decode image for processing
+        final bytes = await file.readAsBytes();
+        final image = img.decodeImage(bytes);
+
+        if (image != null) {
+          // Extract embedding (assuming your service handles detection + extraction or receives a face image)
+          // In a real scenario, you'd use a face detector first to crop the face
+          final List<double> embedding = _faceService.extractEmbedding(image);
+
+          if (embedding.isNotEmpty) {
+            currentUser.value.faceEmbedding = embedding;
+            showSuccess(context, "Face features extracted successfully");
+          }
+        }
+      } catch (e) {
+        showError(context, "Failed to process face: $e");
+      } finally {
+        isLoading.value = false;
+        update(); // Refresh UI to show the new photo
+      }
+    }
+  }
 
   bool validateRegisterForm(BuildContext context) {
     isLoading.value = true;
@@ -78,6 +126,11 @@ class AuthController extends GetxController {
 
   Future<void> register(BuildContext context) async {
     try {
+      final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: true));
+      if (faceResult == null) {
+        showError(context, "Face enrollment is required to register");
+        return;
+      }
       final RegisterRequestDTO request = RegisterRequestDTO(
         username: usernameController.text.trim(),
         email: emailController.text.trim(),
@@ -85,6 +138,7 @@ class AuthController extends GetxController {
         department_id: selectedDepartment.value,
         password: passwordController.text.trim(),
         designation_id: selectedDesignation.value,
+        faceEmbedding: faceResult as List<double>?
       );
 
       Response response = await authRepo.register(request);
@@ -111,6 +165,17 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> enrollUserFace(BuildContext context) async {
+    try{
+      final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: true));
+      if (faceResult != null) {
+        isLoading.value = true;
+      }
+    }catch(err){
+      log("Exception in enroll face", error: err);
+    }
+  }
+
   Future<void> login(BuildContext context) async {
     isLoading.value = true;
     try {
@@ -119,15 +184,27 @@ class AuthController extends GetxController {
       } else if (passwordController.text.isEmpty) {
         showError(context, "Please enter password");
       } else {
+        String? fcmToken;
+        try {
+          fcmToken = await FCMService.getFCMToken().timeout(
+            const Duration(seconds: 3),
+          );
+        } catch (e) {
+          debugPrint("FCM Token retrieval timed out or failed: $e");
+        }
+
         final LoginRequestDTO request = LoginRequestDTO(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
+          fcmToken: fcmToken, // Pass token to request
         );
 
         Response response = await authRepo.login(request);
         var responseBody = response.body;
+
         if (response.statusCode == 200) {
           showSuccess(context, "Login Successful");
+          // ... existing session storage logic
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
           currentUser.value = User.fromJson(responseBody['data']['user']);
@@ -144,7 +221,7 @@ class AuthController extends GetxController {
         }
       }
     } catch (err) {
-      showError(context, "Somethings went wrong");
+      showError(context, "Something went wrong");
       if (kDebugMode) print("Exception in Login: ${err.toString()}");
     } finally {
       isLoading.value = false;
@@ -178,10 +255,12 @@ class AuthController extends GetxController {
             "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
         email: emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
+        faceEmbedding: currentUser.value.faceEmbedding
       );
       Response response = await authRepo.updateProfile(
         request,
         currentUser.value.id!,
+        MultipartBody('avatar', XFile(profileImage!.path))
       );
 
       if (response.statusCode == 200) {

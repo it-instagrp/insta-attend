@@ -116,7 +116,7 @@ class SubmitLeave extends StatelessWidget {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            dialogTheme: DialogTheme(
+            dialogTheme: DialogThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

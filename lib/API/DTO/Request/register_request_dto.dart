@@ -5,6 +5,7 @@ class RegisterRequestDTO {
   String? password;
   String? department_id;
   String? designation_id;
+  List<double>? faceEmbedding;
 
   RegisterRequestDTO(
       {this.username,
@@ -12,7 +13,8 @@ class RegisterRequestDTO {
         this.phoneNumber,
         this.password,
         this.department_id,
-        this.designation_id});
+        this.designation_id,
+      this.faceEmbedding});
 
   RegisterRequestDTO.fromJson(Map<String, dynamic> json) {
     username = json['username'];
@@ -21,6 +23,7 @@ class RegisterRequestDTO {
     password = json['password'];
     department_id = json['department_id'];
     designation_id = json['designation_id'];
+    faceEmbedding = json['face_embedding'];
   }
 
   Map<String, dynamic> toJson() {
@@ -31,6 +34,7 @@ class RegisterRequestDTO {
     data['password'] = this.password;
     data['department_id'] = this.department_id;
     data['designation_id'] = this.designation_id;
+    data['face_embedding'] = this.faceEmbedding;
     return data;
   }
 }

@@ -57,7 +57,6 @@ class LeaveCard extends StatelessWidget {
   Widget _buildLeaveSection(LeaveType type, int amount){
     return Container(
       padding: EdgeInsets.all(12.0),
-      height: 80,
       width: 140,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8.0),

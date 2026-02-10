@@ -50,8 +50,10 @@ class TaskCard extends StatelessWidget {
   Widget _buildTaskSection(TaskType type, int amount){
     return Container(
       padding: EdgeInsets.all(12.0),
+      constraints: BoxConstraints(
+        minWidth: 100
+      ),
       height: 80,
-      width: 100,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8.0),
           color: kcGrey25,

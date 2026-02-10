@@ -26,6 +26,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -41,17 +42,22 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                // This pulls the "release-key.jks" string from your properties file
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
         }
     }
 
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -60,8 +66,13 @@ android {
             )
         }
     }
+
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

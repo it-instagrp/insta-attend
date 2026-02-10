@@ -10,7 +10,7 @@ class TaskDetailCard extends StatelessWidget {
   final Task task;
   TaskDetailCard({super.key, required this.task});
 
-  RxDouble progress = 0.6.obs;
+  final RxDouble progress = 0.6.obs;
 
   @override
   Widget build(BuildContext context) {

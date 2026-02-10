@@ -14,6 +14,8 @@ import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
+import '../View/pages/face_scanner_page.dart';
+
 class AttendanceController extends GetxController {
   final AttendanceRepository attendanceRepo;
   AttendanceController({required this.attendanceRepo});
@@ -93,47 +95,59 @@ class AttendanceController extends GetxController {
 
   /**** Mark user Clock In ****/
   void clockIn(BuildContext context) async {
-    isLoading.value = true;
-    try {
-      await getLatLong(context);
-      Position position = await getCurrentLocation();
+    // 1. ADDED: Trigger Face Scanner before any other logic
+    final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: false));
 
-      if(authController.currentUser.value.geofencing == true){
-        bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+    if (faceResult != null && faceResult is List<double>) {
+      isLoading.value = true;
+      try {
+        // EXISTING LOGIC: Get department coordinates
+        await getLatLong(context);
+        Position position = await getCurrentLocation();
 
-        if (inRange) {
+        // EXISTING LOGIC: Geofencing check
+        if (authController.currentUser.value.geofencing == true) {
+          bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+
+          if (inRange) {
+            String address = await getAddressFromLatLng(position.latitude, position.longitude);
+            // UPDATED: Pass faceEmbedding to DTO
+            Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
+                checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
+                faceEmbedding: faceResult // New field
+            ));
+
+            if (response.statusCode == 200 || response.statusCode == 201) {
+              showSuccess(context, "Marked Clock In");
+              getMyAttendance();
+            } else {
+              showError(context, response.body['message']);
+            }
+          } else {
+            showError(context, "You are not in office premises");
+          }
+        } else {
+          // EXISTING LOGIC: No Geofencing path
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
           Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
-              checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A"
+              checkInLocation: address,
+              faceEmbedding: faceResult // New field
           ));
 
           if (response.statusCode == 200 || response.statusCode == 201) {
             showSuccess(context, "Marked Clock In");
-            if (kDebugMode) debugPrint("Attendance Marked at: $address");
+            getMyAttendance();
           } else {
             showError(context, response.body['message']);
           }
-        } else {
-          showError(context, "You are not in office premises");
-          debugPrint("Not in range");
         }
-      } else {
-        String address = await getAddressFromLatLng(position.latitude, position.longitude);
-        Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
-            checkInLocation: address
-        ));
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          showSuccess(context, "Marked Clock In");
-          if (kDebugMode) debugPrint("Attendance Marked at: $address");
-        } else {
-          showError(context, response.body['message']);
-        }
+      } catch (e) {
+        debugPrint("Error: $e");
+      } finally {
+        isLoading.value = false;
       }
-    } catch (e) {
-      debugPrint("Error: $e");
-    } finally {
-      isLoading.value = false;
+    } else {
+      showError(context, "Face verification cancelled or failed");
     }
   }
 

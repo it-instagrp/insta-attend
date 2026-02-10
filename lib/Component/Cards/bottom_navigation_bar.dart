@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../Constant/constant_asset.dart';
 import '../../Controller/homescreen_controller.dart';
 
@@ -12,65 +11,72 @@ class CustomBottomNavigationBar extends StatefulWidget {
 
   CustomBottomNavigationBar({super.key, required this.onSelectIndex, required this.context});
 
-
   @override
   State<CustomBottomNavigationBar> createState() => _CustomBottomNavigationBarState();
 }
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
-  final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
   final HomescreenController controller = Get.find<HomescreenController>();
-  final user = Get.find<AuthController>().currentUser.value;
+  final authController = Get.find<AuthController>();
 
   final List<String> icons = [
     kaHomeHollow,
     kaAttendanceHollow,
-    // kaTaskHollow,
-    // kaExpenseHollow,
+    kaTaskHollow,
+    kaExpenseHollow,
     kaLeaveHollow
   ];
+
   final List<String> selectedIcons = [
     kaHomeFilled,
     kaAttendanceFilled,
-    // kaTaskFilled,
-    // kaExpenseFilled,
+    kaTaskFilled,
+    kaExpenseFilled,
     kaLeaveFilled
   ];
 
   @override
   Widget build(BuildContext context) {
+    return Obx(() {
+      final user = authController.currentUser.value;
+      final bool isCorporate = user.department?.departmentName == "Corporate Office";
 
-    // Define the visible indexes
-    final visibleIndexes = [0, 1, 2];
-    // final visibleIndexes = [0, 1, 2, 3, 4];
+      final List<int> visibleIndexes = [
+        0,
+        1,
+        if (isCorporate) 2,
+        if (isCorporate) 3,
+        4,
+      ];
 
-    return Container(
-      height: 95,
-      padding: EdgeInsets.only(bottom: 20),
-      width: MediaQuery.of(context).size.width,
-      color: const Color(0xFF1C2020),
-      child: Obx(() => Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: visibleIndexes.map((index) {
-        final isSelected = controller.selectedIndex.value == index;
-        return GestureDetector(
-          onTap: () {
-            controller.selectedIndex.value = index;
-            widget.onSelectIndex(index);
-          },
-          child: BottomBarItem(
-            index: index,
-            iconPath: isSelected ? selectedIcons[index] : icons[index],
-            isSelected: isSelected,
-            onTap: () {
-              controller.selectedIndex.value = index;
-              widget.onSelectIndex(index);
-            },
-          ),
-        );
-      }).toList(),
-    )),
-    );
+      return Container(
+        height: 95,
+        padding: const EdgeInsets.only(bottom: 20),
+        width: MediaQuery.of(context).size.width,
+        color: const Color(0xFF1C2020),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: visibleIndexes.map((index) {
+            final isSelected = controller.selectedIndex.value == index;
+            return GestureDetector(
+              onTap: () {
+                controller.selectedIndex.value = index;
+                widget.onSelectIndex(index);
+              },
+              child: BottomBarItem(
+                index: index,
+                iconPath: isSelected ? selectedIcons[index] : icons[index],
+                isSelected: isSelected,
+                onTap: () {
+                  controller.selectedIndex.value = index;
+                  widget.onSelectIndex(index);
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    });
   }
 }
 
@@ -109,4 +115,3 @@ class BottomBarItem extends StatelessWidget {
     );
   }
 }
-

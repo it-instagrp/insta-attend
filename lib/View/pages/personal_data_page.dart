@@ -103,7 +103,9 @@ class PersonalDataPage extends StatelessWidget {
               ),
               /**** Profile Picture ****/
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  controller.pickAndScanFace(context);
+                },
                 child: SizedBox(
                   width: 150,
                   child: Stack(

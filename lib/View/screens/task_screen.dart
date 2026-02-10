@@ -67,12 +67,12 @@ class TaskScreen extends StatelessWidget {
                     ),
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 18.0),
-                      height: 320,
                       decoration: BoxDecoration(
                           color: tasks.isEmpty ? Colors.white : Color(0xFFF1F3F8),
                           borderRadius: BorderRadius.circular(8.0)
                       ),
                       child: tasks.isNotEmpty ? ListView.separated(
+                        shrinkWrap: true,
                           separatorBuilder: (context, index)=>SizedBox(height: 10.0,),
                           itemCount: tasks.length,
                           itemBuilder: (context, index){
