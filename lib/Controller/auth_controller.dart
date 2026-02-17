@@ -1,27 +1,21 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:image/image.dart' as img;
-import 'package:image_picker/image_picker.dart';
 import 'package:insta_attend/API/DTO/Request/change_password_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/Repository/auth_repository.dart';
-import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/Model/User.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../Model/department.dart';
 import '../Model/designation.dart';
-import '../Utils/face_recognition_service.dart';
 import '../Utils/fcm_service.dart';
 import '../View/pages/face_scanner_page.dart';
 
@@ -32,8 +26,6 @@ class AuthController extends GetxController {
   final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
 
   File? profileImage;
-  final ImagePicker _picker = ImagePicker();
-  final FaceRecognitionService _faceService = FaceRecognitionService();
 
   RxBool isLoading = false.obs;
   RxBool isDropDownLoading = false.obs;
@@ -43,6 +35,7 @@ class AuthController extends GetxController {
   RxBool isConsentGiven = false.obs;
   RxList<Department> departmentList = <Department>[].obs;
   RxList<Designation> designationList = <Designation>[].obs;
+  RxList<double> newFaceEmbedding = <double>[].obs;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
@@ -54,37 +47,16 @@ class AuthController extends GetxController {
 
 
   Future<void> pickAndScanFace(BuildContext context) async {
-    final XFile? photo = await _picker.pickImage(source: ImageSource.camera, preferredCameraDevice: CameraDevice.front);
+    // Navigate to the FaceScannerPage for high-quality embedding extraction
+    final dynamic result = await Get.to(() => const FaceScannerPage(isRegistration: true));
 
-    if (photo != null) {
-      isLoading.value = true;
-      try {
-        final File file = File(photo.path);
-        profileImage = file;
-
-        // Load the face recognition model if not already loaded
-        await _faceService.loadModel();
-
-        // Decode image for processing
-        final bytes = await file.readAsBytes();
-        final image = img.decodeImage(bytes);
-
-        if (image != null) {
-          // Extract embedding (assuming your service handles detection + extraction or receives a face image)
-          // In a real scenario, you'd use a face detector first to crop the face
-          final List<double> embedding = _faceService.extractEmbedding(image);
-
-          if (embedding.isNotEmpty) {
-            currentUser.value.faceEmbedding = embedding;
-            showSuccess(context, "Face features extracted successfully");
-          }
-        }
-      } catch (e) {
-        showError(context, "Failed to process face: $e");
-      } finally {
-        isLoading.value = false;
-        update(); // Refresh UI to show the new photo
-      }
+    if (result != null && result is List<double>) {
+      // Store the 192-dimension embedding for the profile update
+      // Assuming you have a variable to hold the new embedding in your controller
+      newFaceEmbedding.value = result;
+      showSuccess(context, "Face scanned successfully. Ready to update profile.");
+    } else {
+      showError(context, "Face scan failed or was cancelled.");
     }
   }
 
@@ -251,20 +223,28 @@ class AuthController extends GetxController {
     isLoading.value = true;
     try {
       final UpdateProfileRequestDTO request = UpdateProfileRequestDTO(
-        username:
-            "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
-        email: emailController.text.trim(),
-        phoneNumber: phoneController.text.trim(),
-        faceEmbedding: currentUser.value.faceEmbedding
+          username: "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
+          email: emailController.text.trim(),
+          phoneNumber: phoneController.text.trim(),
+          faceEmbedding: newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null
       );
+
       Response response = await authRepo.updateProfile(
-        request,
-        currentUser.value.id!,
-        MultipartBody('avatar', XFile(profileImage!.path))
+          request,
+          currentUser.value.id!
       );
 
       if (response.statusCode == 200) {
+        newFaceEmbedding.clear();
         showSuccess(context, "Profile Updated Successfully");
+
+        // Update local currentUser data so the UI reflects changes immediately
+        currentUser.value.username = request.username;
+        currentUser.value.email = request.email;
+        currentUser.value.phoneNumber = request.phoneNumber;
+
+        // Update session storage
+        await sharedPreferences.setString("user", jsonEncode(currentUser.value.toJson()));
       } else {
         showError(context, response.body['message']);
       }

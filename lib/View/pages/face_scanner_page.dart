@@ -43,7 +43,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
 
     _cameraController = CameraController(
       frontCam,
-      ResolutionPreset.low,
+      ResolutionPreset.high,
       enableAudio: false,
       imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.yuv420 : ImageFormatGroup.bgra8888,
     );
@@ -78,15 +78,19 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
           final img.Image? capturedImage = _convertYUV420ToImage(image);
 
           if (capturedImage != null) {
+
+            img.Image fixedImage = img.copyRotate(
+                capturedImage,
+                angle: Platform.isAndroid ? 270 : 0
+            );
+
             final img.Image croppedFace = img.copyCrop(
-              capturedImage,
+              fixedImage,
               x: face.boundingBox.left.toInt(),
               y: face.boundingBox.top.toInt(),
               width: face.boundingBox.width.toInt(),
               height: face.boundingBox.height.toInt(),
             );
-
-            // Extract unique 128-d vector
             final embedding = _recognitionService.extractEmbedding(croppedFace);
             if (mounted) Get.back(result: embedding);
             return;
@@ -157,18 +161,8 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
-        fit: StackFit.expand,
         children: [
-          SizedBox.expand(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _cameraController!.value.previewSize!.height,
-                height: _cameraController!.value.previewSize!.width,
-                child: CameraPreview(_cameraController!),
-              ),
-            ),
-          ),
+          CameraPreview(_cameraController!),
           Center(
             child: Container(
               width: 220, height: 220,

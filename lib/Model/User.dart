@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'department.dart';
 import 'designation.dart';
 
@@ -37,7 +39,18 @@ class User {
     phoneNumber = json['phone_number'];
     geofencing = json['geofencing'];
     isEnrolled = json['is_enrolled'];
-    faceEmbedding = json['face_embedding'];
+    if (json['face_embedding'] != null) {
+      var embeddingData = json['face_embedding'];
+
+      if (embeddingData is String) {
+        // If the API sent a string "[0.1, 0.2...]", decode it first
+        List<dynamic> decoded = jsonDecode(embeddingData);
+        faceEmbedding = decoded.map((e) => (e as num).toDouble()).toList();
+      } else if (embeddingData is List) {
+        // If the API sent a proper JSON array [0.1, 0.2...]
+        faceEmbedding = embeddingData.map((e) => (e as num).toDouble()).toList();
+      }
+    }
     deletePermission = json['delete_permission'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];

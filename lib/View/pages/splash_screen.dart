@@ -8,7 +8,9 @@ import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Controller/onboarding_controller.dart';
 import '../../Model/User.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   SplashScreen({super.key});
@@ -25,7 +27,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () async {
+    // Register the new controller
+    final OnboardingController onboardingController = Get.find<OnboardingController>();
+
+    Future.delayed(const Duration(seconds: 3), () async {
       final String userToken = sharedPreferences.getString("token") ?? "";
       final String userJson = sharedPreferences.getString("user") ?? "";
 
@@ -34,7 +39,13 @@ class _SplashScreenState extends State<SplashScreen> {
         controller.currentUser.value = User.fromJson(jsonDecode(userJson));
         Get.offAll(() => Homescreen());
       } else {
-        Get.offAll(() => LoginPage());
+        // Check if onboarding or permissions are required
+        bool showOnboarding = await onboardingController.shouldShowOnboarding();
+        if (showOnboarding) {
+          Get.offAll(() => const OnboardingScreen());
+        } else {
+          Get.offAll(() => LoginPage());
+        }
       }
     });
   }

@@ -95,23 +95,19 @@ class AttendanceController extends GetxController {
 
   /**** Mark user Clock In ****/
   void clockIn(BuildContext context) async {
-    // 1. ADDED: Trigger Face Scanner before any other logic
     final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: false));
 
     if (faceResult != null && faceResult is List<double>) {
       isLoading.value = true;
       try {
-        // EXISTING LOGIC: Get department coordinates
         await getLatLong(context);
         Position position = await getCurrentLocation();
 
-        // EXISTING LOGIC: Geofencing check
         if (authController.currentUser.value.geofencing == true) {
           bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
 
           if (inRange) {
             String address = await getAddressFromLatLng(position.latitude, position.longitude);
-            // UPDATED: Pass faceEmbedding to DTO
             Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
                 checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
                 faceEmbedding: faceResult // New field
@@ -131,7 +127,7 @@ class AttendanceController extends GetxController {
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
           Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
               checkInLocation: address,
-              faceEmbedding: faceResult // New field
+              faceEmbedding: faceResult
           ));
 
           if (response.statusCode == 200 || response.statusCode == 201) {
@@ -153,45 +149,55 @@ class AttendanceController extends GetxController {
 
   /**** Mark user Clock Out ****/
   void clockOut(BuildContext context) async {
-    isLoading.value = true;
-    try {
-      Position position = await getCurrentLocation();
-      if(authController.currentUser.value.geofencing == true){
-        bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+    final dynamic faceResult = await Get.to(() => const FaceScannerPage(isRegistration: false));
 
-        if (inRange) {
+    if (faceResult != null && faceResult is List<double>) {
+      isLoading.value = true;
+      try {
+        Position position = await getCurrentLocation();
+        if (authController.currentUser.value.geofencing == true) {
+          bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+
+          if (inRange) {
+            String address = await getAddressFromLatLng(position.latitude, position.longitude);
+            Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
+              checkOutLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
+              faceEmbedding: faceResult,
+            ));
+
+            if (response.statusCode == 200 || response.statusCode == 201) {
+              showSuccess(context, "Marked Clock Out");
+              getMyAttendance();
+              if (kDebugMode) debugPrint("Attendance Marked at: $address");
+            } else {
+              showError(context, response.body['message']);
+            }
+          } else {
+            showError(context, "You are not in office premises");
+            debugPrint("Not in range");
+          }
+        } else {
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
           Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
-              checkOutLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A"
+            checkOutLocation: address,
+            faceEmbedding: faceResult,
           ));
 
           if (response.statusCode == 200 || response.statusCode == 201) {
-            showSuccess(context, "Marked Clock In");
+            showSuccess(context, "Marked Clock Out");
+            getMyAttendance();
             if (kDebugMode) debugPrint("Attendance Marked at: $address");
           } else {
             showError(context, response.body['message']);
           }
-        } else {
-          showError(context, "You are not in office premises");
-          debugPrint("Not in range");
         }
-      } else {
-        String address = await getAddressFromLatLng(position.latitude, position.longitude);
-        Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
-            checkOutLocation: address
-        ));
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          showSuccess(context, "Marked Clock In");
-          if (kDebugMode) debugPrint("Attendance Marked at: $address");
-        } else {
-          showError(context, response.body['message']);
-        }
+      } catch (e) {
+        debugPrint("Error: $e");
+      } finally {
+        isLoading.value = false;
       }
-    } catch (e) {
-      debugPrint("Error: $e");
-    } finally {
-      isLoading.value = false;
+    } else {
+      showError(context, "Face verification cancelled or failed");
     }
   }
 

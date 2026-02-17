@@ -26,8 +26,8 @@ class AuthRepository {
     return await apiClient.getData(meUrl);
   }
 
-  Future<Response> updateProfile(UpdateProfileRequestDTO request, String userId, MultipartBody file) async{
-    return await apiClient.putMultipartData(profileUrl, request.toJson(), [file]);
+  Future<Response> updateProfile(UpdateProfileRequestDTO request, String userId) async{
+    return await apiClient.putData(profileUrl, request.toJson());
   }
 
   Future<Response> changePassword(ChangePasswordRequestDTO request) async{

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
@@ -24,14 +25,11 @@ class FaceRecognitionService {
 
   List<double> extractEmbedding(img.Image faceImage) {
     if (_interpreter == null) {
-      debugPrint("Interpreter not initialized");
       return [];
     }
 
-    // 1. Resize image to model requirements (112x112)
     img.Image resized = img.copyResize(faceImage, width: inputSize, height: inputSize);
 
-    // 2. Convert to Float32 list and normalize (0-255 to -1 to 1)
     var input = Float32List(1 * inputSize * inputSize * 3);
     var buffer = Float32List.view(input.buffer);
 
@@ -39,25 +37,29 @@ class FaceRecognitionService {
     for (int y = 0; y < inputSize; y++) {
       for (int x = 0; x < inputSize; x++) {
         var pixel = resized.getPixel(x, y);
-        // Normalization: (Pixel - 127.5) / 128 maps 0..255 to roughly -1..1
         buffer[pixelIndex++] = (pixel.r - 127.5) / 128;
         buffer[pixelIndex++] = (pixel.g - 127.5) / 128;
         buffer[pixelIndex++] = (pixel.b - 127.5) / 128;
       }
     }
 
-    // 3. Prepare output container matching the model's actual shape [1, 192]
     var output = List.filled(1 * outputDimensions, 0.0).reshape([1, outputDimensions]);
 
-    // 4. Run Inference
     try {
       _interpreter?.run(input.reshape([1, inputSize, inputSize, 3]), output);
     } catch (e) {
-      debugPrint("Inference Error: $e");
       return [];
     }
 
-    return List<double>.from(output[0]);
+    List<double> rawEmbedding = List<double>.from(output[0]);
+
+    double sumSq = 0.0;
+    for (double val in rawEmbedding) {
+      sumSq += val * val;
+    }
+    double norm = sqrt(sumSq);
+
+    return rawEmbedding.map((val) => val / norm).toList();
   }
 
   void close() {
