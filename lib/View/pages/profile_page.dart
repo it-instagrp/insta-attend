@@ -191,6 +191,36 @@ class ProfilePage extends StatelessWidget {
                               SizedBox(
                                 height: 20.0,
                               ),
+                              /**** Register Face ID Option ****/
+                              InkWell(
+                                onTap: () {
+                                  controller.enrollUserFace(context);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.face_5_outlined,
+                                      size: 20,
+                                      color: kcPurple500,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Register Face ID",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
                               /**** Office Assets ****/
                               InkWell(
                                 onTap: () {

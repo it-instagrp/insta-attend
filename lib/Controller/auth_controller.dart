@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -138,13 +137,33 @@ class AuthController extends GetxController {
   }
 
   Future<void> enrollUserFace(BuildContext context) async {
-    try{
-      final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: true));
-      if (faceResult != null) {
+    try {
+      final dynamic faceResult = await Get.to(() => const FaceScannerPage(isRegistration: true));
+
+      if (faceResult != null && faceResult is List<double>) {
         isLoading.value = true;
+        final UpdateProfileRequestDTO request = UpdateProfileRequestDTO(
+          faceEmbedding: faceResult,
+        );
+
+        Response response = await authRepo.updateProfile(request, currentUser.value.id!);
+
+        if (response.statusCode == 200) {
+          currentUser.value.faceEmbedding = faceResult;
+          currentUser.value.isEnrolled = true;
+          await sharedPreferences.setString("user", jsonEncode(currentUser.value.toJson()));
+          showSuccess(context, "Face biometric profile updated successfully");
+        } else {
+          showError(context, response.body['message'] ?? "Failed to update face biometric profile");
+        }
+      } else {
+        showError(context, "Face enrollment cancelled or failed");
       }
-    }catch(err){
-      log("Exception in enroll face", error: err);
+    } catch (err) {
+      showError(context, "Something went wrong during enrollment");
+      debugPrint("Exception in enrollUserFace: ${err.toString()}");
+    } finally {
+      isLoading.value = false;
     }
   }
 

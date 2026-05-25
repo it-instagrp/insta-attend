@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -14,6 +15,7 @@ import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
+import '../Constant/constant_color.dart';
 import '../View/pages/face_scanner_page.dart';
 
 class AttendanceController extends GetxController {
@@ -93,6 +95,38 @@ class AttendanceController extends GetxController {
     return "${place.name}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
   }
 
+  void _handleAttendanceError(BuildContext context, String serverMessage) {
+    if (serverMessage.toLowerCase().contains("face not registered")) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text("Face Profile Required"),
+          content: const Text("Your face biometric profile is missing from the server records. Would you like to scan and register your face now?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: kcGrey500)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kcPurple600,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                authController.enrollUserFace(context);
+              },
+              child: const Text("Register Now", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      showError(context, serverMessage);
+    }
+  }
+
   /**** Mark user Clock In ****/
   void clockIn(BuildContext context) async {
     final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: false));
@@ -107,23 +141,21 @@ class AttendanceController extends GetxController {
           bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
 
           if (inRange) {
-            String address = await getAddressFromLatLng(position.latitude, position.longitude);
             Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
                 checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
-                faceEmbedding: faceResult // New field
+                faceEmbedding: faceResult
             ));
 
             if (response.statusCode == 200 || response.statusCode == 201) {
               showSuccess(context, "Marked Clock In");
               getMyAttendance();
             } else {
-              showError(context, response.body['message']);
+              _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
             }
           } else {
             showError(context, "You are not in office premises");
           }
         } else {
-          // EXISTING LOGIC: No Geofencing path
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
           Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
               checkInLocation: address,
@@ -134,7 +166,7 @@ class AttendanceController extends GetxController {
             showSuccess(context, "Marked Clock In");
             getMyAttendance();
           } else {
-            showError(context, response.body['message']);
+            _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
           }
         }
       } catch (e) {
@@ -159,7 +191,6 @@ class AttendanceController extends GetxController {
           bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
 
           if (inRange) {
-            String address = await getAddressFromLatLng(position.latitude, position.longitude);
             Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
               checkOutLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
               faceEmbedding: faceResult,
@@ -168,13 +199,11 @@ class AttendanceController extends GetxController {
             if (response.statusCode == 200 || response.statusCode == 201) {
               showSuccess(context, "Marked Clock Out");
               getMyAttendance();
-              if (kDebugMode) debugPrint("Attendance Marked at: $address");
             } else {
-              showError(context, response.body['message']);
+              _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
             }
           } else {
             showError(context, "You are not in office premises");
-            debugPrint("Not in range");
           }
         } else {
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
@@ -186,9 +215,8 @@ class AttendanceController extends GetxController {
           if (response.statusCode == 200 || response.statusCode == 201) {
             showSuccess(context, "Marked Clock Out");
             getMyAttendance();
-            if (kDebugMode) debugPrint("Attendance Marked at: $address");
           } else {
-            showError(context, response.body['message']);
+            _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
           }
         }
       } catch (e) {
