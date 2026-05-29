@@ -36,12 +36,12 @@ class ExpenseCard extends StatelessWidget {
             height: 15,
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildExpenseSection(ExpenseType.total, 1010),
-              _buildExpenseSection(ExpenseType.review, 445),
-              _buildExpenseSection(ExpenseType.approved, 555),
+              Expanded(child: _buildExpenseSection(ExpenseType.total, totalExpense)),
+              SizedBox(width: 8),
+              Expanded(child: _buildExpenseSection(ExpenseType.review, reviewExpense)),
+              SizedBox(width: 8),
+              Expanded(child: _buildExpenseSection(ExpenseType.approved, approvedExpense)),
             ],
           )
         ],
@@ -49,36 +49,40 @@ class ExpenseCard extends StatelessWidget {
     );
   }
 
-  Widget _buildExpenseSection(ExpenseType type, int amount){
+  Widget _buildExpenseSection(ExpenseType type, int amount) {
     return Container(
-      padding: EdgeInsets.all(12.0),
-      height: 80,
-      width: 100,
+      padding: EdgeInsets.all(10.0),       // reduced from 12 → gives text more room
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
         color: kcGrey25,
-        border: Border.all(
-          color: kcGrey100,
-          width: 2
-        )
+        border: Border.all(color: kcGrey100, width: 1.5),  // reduced from 2 → saves 1px per side
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SvgPicture.asset(_getExpenseIcon(type), fit: BoxFit.scaleDown, height: 15, width: 15,),
-              SizedBox(width: 5,),
-              Text(_getExpenseTitle(type), style: kfLabelMedium,),
+              SvgPicture.asset(
+                _getExpenseIcon(type),
+                fit: BoxFit.scaleDown,
+                height: 14,
+                width: 14,
+              ),
+              SizedBox(width: 4),
+              Flexible(                     // prevents label from overflowing
+                child: Text(
+                  _getExpenseTitle(type),
+                  style: kfLabelMedium,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
             ],
           ),
-          SizedBox(
-            height: 5,
-          ),
-          Text("₹ ${amount.toString()}", style: kfTitleLarge,)
+          SizedBox(height: 4),
+          Text("₹ ${amount.toString()}", style: kfTitleLarge),
         ],
       ),
     );

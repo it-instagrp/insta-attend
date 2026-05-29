@@ -195,7 +195,6 @@ class AuthController extends GetxController {
 
         if (response.statusCode == 200) {
           showSuccess(context, "Login Successful");
-          // ... existing session storage logic
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
           currentUser.value = User.fromJson(responseBody['data']['user']);

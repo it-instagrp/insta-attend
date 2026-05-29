@@ -1,50 +1,52 @@
 import java.util.Properties
 import java.io.FileInputStream
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
+
+    // FlutterFire
     id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+
+    id("org.jetbrains.kotlin.android")
+
+    // Flutter plugin
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 // Load keystore.properties
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
+
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
     namespace = "com.nextechvision.insta_attend"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion ="27.0.12077973"
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.nextechvision.insta_attend"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+
+        minSdk = 24
+        targetSdk = 36
+
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             create("release") {
-                // This pulls the "release-key.jks" string from your properties file
                 storeFile = file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
                 keyAlias = keystoreProperties["keyAlias"] as String
@@ -58,15 +60,22 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
+
             isMinifyEnabled = true
             isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+}
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 flutter {

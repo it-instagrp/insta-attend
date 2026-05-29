@@ -6,6 +6,7 @@ final String kaProfile = "assets/Images/profile.png";
 final String kaExploreCamera = "assets/Images/camera.png";
 final String kaClockIn = "assets/Images/clockIn.png";
 final String kaLeave = "assets/Images/leave.png";
+final String kaExpense = "assets/Images/expense.png";
 final String kaTask = "assets/Images/task.png";
 
 
@@ -55,6 +56,7 @@ final String kaComment = "assets/svg/comment.svg";
 final String kaLeaveCardIcon = "assets/svg/leaveCardIcon.svg";
 final String kaBackButton = "assets/svg/backButton.svg";
 final String kaDuration = "assets/svg/duration.svg";
+final String kaExpenseIcon = "assets/svg/expense.svg";
 final String kaEmailIcon = "assets/svg/emailIcon.svg";
 final String kaLocationTick = "assets/svg/location-tick.svg";
 final String kaPersonalData = "assets/svg/personalData.svg";

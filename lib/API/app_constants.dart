@@ -43,3 +43,10 @@ final String versionUrl = "version";
 
 /**** Assets URLs ****/
 String getMyAssetsUrl(String id) => "asset/$id";
+
+
+/**** Expense URLs ****/
+final String createExpenseUrl = "expense";
+String getMyExpenseUrl({int pageNumber=1, int pageSize = 10}) => "expense?pageNumber=${pageNumber}&pageSize=${pageSize}";
+String updateMyExpenseUrl(String id) => "expense/$id";
+String deleteMyExpenseUrl(String id) => "expense/$id";

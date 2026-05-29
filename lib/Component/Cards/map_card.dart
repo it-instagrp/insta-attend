@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:insta_attend/Component/Cards/user_map_pin.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapCard extends StatelessWidget {
   MapCard({super.key});
@@ -15,52 +13,54 @@ class MapCard extends StatelessWidget {
     return Obx(() {
       final location = controller.currentLocation.value;
 
-      return Stack(
-        children: [
-          Container(
-            height: 300,
-            padding: EdgeInsets.all(5.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
+      return Container(
+        height: 300,
+        padding: const EdgeInsets.all(5.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(3.0),
+          child: GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: location ?? const LatLng(20.5937, 78.9629),
+              zoom: 16,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(3.0),
-              child: FlutterMap(
-                mapController: controller.mapController,
-                options: MapOptions(
-                  initialCenter: location ?? const LatLng(20.5937, 78.9629),
-                  initialZoom: 16.0,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    userAgentPackageName: 'com.nextechvision.insta_attend',
-                  ),
-                  if (location != null) ...[
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: location,
-                          width: 100,
-                          height: 100,
-                          child: const UserMapPin(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
+
+            myLocationEnabled: true,
+
+            // REMOVE EXTRA ICONS
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+
+            markers: location != null
+                ? {
+              Marker(
+                markerId: const MarkerId('currentLocation'),
+                position: location,
               ),
-            ),
+            }
+                : {},
+
+            onMapCreated: (GoogleMapController mapController) {
+              controller.mapController = mapController;
+
+              if (location != null) {
+                mapController.animateCamera(
+                  CameraUpdate.newLatLngZoom(location, 16),
+                );
+              }
+            },
           ),
-        ],
+        ),
       );
     });
   }
 }
 
 class MapScreenController extends GetxController {
-  final MapController mapController = MapController();
+  GoogleMapController? mapController;
 
   var currentLocation = Rxn<LatLng>();
 
@@ -74,16 +74,17 @@ class MapScreenController extends GetxController {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Check if location service is enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
     if (!serviceEnabled) {
       return Future.error('Location services are disabled.');
     }
 
-    // Check permission
     permission = await Geolocator.checkPermission();
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+
       if (permission == LocationPermission.denied) {
         return Future.error('Location permissions are denied.');
       }
@@ -91,18 +92,26 @@ class MapScreenController extends GetxController {
 
     if (permission == LocationPermission.deniedForever) {
       return Future.error(
-        'Location permissions are permanently denied, we cannot request.',
+        'Location permissions are permanently denied.',
       );
     }
 
-    // Get current position
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    currentLocation.value = LatLng(position.latitude, position.longitude);
+    currentLocation.value = LatLng(
+      position.latitude,
+      position.longitude,
+    );
 
-    // Move map to location
-    mapController.move(currentLocation.value!, 16.0);
+    if (mapController != null) {
+      mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          currentLocation.value!,
+          16,
+        ),
+      );
+    }
   }
 }
