@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 
 /**** Display Text Style ****/
-final TextStyle kfDisplayLarge = TextStyle(
+  final TextStyle kfDisplayLarge = TextStyle(
   fontSize: 57
 );
 

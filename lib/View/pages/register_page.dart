@@ -68,6 +68,7 @@ class RegisterPage extends StatelessWidget {
                   hintText: "Enter your name",
                   icon: kaPerson,
                   controller: controller.usernameController,
+                  keyboardType: TextInputType.text,
                 ),
                 SizedBox(height: 15),
                 CustomTextfield(
@@ -75,6 +76,7 @@ class RegisterPage extends StatelessWidget {
                   hintText: "Enter your email",
                   icon: kaEmail,
                   controller: controller.emailController,
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 SizedBox(height: 15),
                 CustomTextfield(

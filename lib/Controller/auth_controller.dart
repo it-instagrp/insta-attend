@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -195,17 +196,13 @@ class AuthController extends GetxController {
 
         if (response.statusCode == 200) {
           showSuccess(context, "Login Successful");
-          // ... existing session storage logic
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
           currentUser.value = User.fromJson(responseBody['data']['user']);
           authRepo.apiClient.updateHeader(userToken);
           await authRepo.sharedPreferences.setString("token", userToken);
           await authRepo.sharedPreferences.setString("user", user);
-          await authRepo.sharedPreferences.setString(
-            "uid",
-            responseBody['data']['user']['id'],
-          );
+          await authRepo.sharedPreferences.setString("uid", responseBody['data']['user']['id'],);
           Get.offAll(() => Homescreen(), transition: Transition.fade);
         } else {
           showError(context, responseBody['message']);
@@ -220,7 +217,18 @@ class AuthController extends GetxController {
   }
 
   Future<void> forgotPassword(BuildContext context) async {
-    //To be implemented in backend
+    try{
+      isLoading.value = true;
+      Response response = await authRepo.forgotPassword(emailController.text.trim());
+      if(response.statusCode == 200){
+        showSuccess(context, "Password reset link sent to your email");
+      } else {
+        showError(context, response.body['message']);
+      }
+    }catch(err){
+      showError(context, "Something went wrong");
+      log("Exception in forgot password", error: err);
+    }
   }
 
   Future<void> logout(BuildContext context) async {
@@ -337,5 +345,15 @@ class AuthController extends GetxController {
     }finally{
       isDropDownLoading.value = false;
     }
+  }
+
+  void clearForm(){
+    usernameController.clear();
+    firstNameController.clear();
+    lastNameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
   }
 }

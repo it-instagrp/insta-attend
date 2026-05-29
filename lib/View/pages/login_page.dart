@@ -62,6 +62,7 @@ class LoginPage extends StatelessWidget {
               hintText: "Enter your email",
               icon: kaEmail,
               controller: controller.emailController,
+              keyboardType: TextInputType.emailAddress,
             ),
             SizedBox(height: 15),
             CustomPasswordField(

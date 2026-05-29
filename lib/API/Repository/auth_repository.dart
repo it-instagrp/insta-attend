@@ -30,6 +30,10 @@ class AuthRepository {
     return await apiClient.putData(profileUrl, request.toJson());
   }
 
+  Future<Response> forgotPassword(String email) async{
+    return await apiClient.postData(forgotPasswordUrl, {"email": email});
+  }
+
   Future<Response> changePassword(ChangePasswordRequestDTO request) async{
     return await apiClient.postData(changePasswordUrl, request.toJson());
   }

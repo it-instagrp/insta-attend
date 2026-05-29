@@ -7,7 +7,8 @@ import 'package:insta_attend/Constant/constant_color.dart';
 class CustomPasswordField extends StatelessWidget {
   final String title, hintText;
   final TextEditingController controller;
-  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller});
+  final TextInputType keyboardType;
+  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller, this.keyboardType = TextInputType.visiblePassword});
 
   RxBool isObscure = true.obs;
 
