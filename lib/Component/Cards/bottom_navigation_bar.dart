@@ -21,16 +21,16 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
 
   final List<String> icons = [
     kaHomeHollow,
-    kaAttendanceHollow,
-    kaTaskHollow,
+    // kaAttendanceHollow,
+    // kaTaskHollow,
     kaExpenseHollow,
     kaLeaveHollow
   ];
 
   final List<String> selectedIcons = [
     kaHomeFilled,
-    kaAttendanceFilled,
-    kaTaskFilled,
+    // kaAttendanceFilled,
+    // kaTaskFilled,
     kaExpenseFilled,
     kaLeaveFilled
   ];
@@ -44,14 +44,22 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
       final List<int> visibleIndexes = [
         0,
         1,
-        if (isCorporate) 2,
-        if (isCorporate) 3,
-        4,
+        // if (isCorporate) 2,
+        // if (isCorporate) 3,
+        2,
+      ];
+
+      final List<String> titles = [
+        "Home",
+        // "Attendance",
+        // "Tasks",
+        "Expense",
+        "Leave"
       ];
 
       return Container(
-        height: 95,
-        padding: const EdgeInsets.only(bottom: 20),
+        height: 80,
+        padding: const EdgeInsets.only(bottom: 12),
         width: MediaQuery.of(context).size.width,
         color: const Color(0xFF1C2020),
         child: Row(
@@ -70,7 +78,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                 onTap: () {
                   controller.selectedIndex.value = index;
                   widget.onSelectIndex(index);
-                },
+                }, title: titles[index],
               ),
             );
           }).toList(),
@@ -82,6 +90,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
 
 class BottomBarItem extends StatelessWidget {
   final int index;
+  final String title;
   final VoidCallback onTap;
   final bool isSelected;
   final String iconPath;
@@ -92,26 +101,35 @@ class BottomBarItem extends StatelessWidget {
     required this.onTap,
     required this.isSelected,
     required this.iconPath,
+    required this.title,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 35,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          SvgPicture.asset(iconPath, height: 25, width: 25),
-          Container(
-            height: 2,
-            width: 12,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              color: isSelected ? Colors.white : Colors.transparent,
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,        // ← shrink-wraps the column
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(iconPath, height: 25, width: 25),
+        const SizedBox(height: 4),           // ← fixed gap instead of spaceBetween
+        Container(
+          height: 2,
+          width: 12,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(2),
+            color: isSelected ? Colors.white : Colors.transparent,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),           // ← fixed gap instead of spaceBetween
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
+            color: Colors.white,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }
