@@ -14,6 +14,7 @@ class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
   final AuthController controller = Get.find<AuthController>();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -22,120 +23,132 @@ class LoginPage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(height: 100),
-            SvgPicture.asset(
-              kaLogo,
-              fit: BoxFit.scaleDown,
-              height: 55,
-              width: 55,
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                "InstaAttend",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 100),
+              SvgPicture.asset(
+                kaLogo,
+                fit: BoxFit.scaleDown,
+                height: 55,
+                width: 55,
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "InstaAttend",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 5),
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                "Register using your credentials",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: kcGrey400,
+              SizedBox(height: 5),
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "Register using your credentials",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: kcGrey400,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 25),
-            CustomTextfield(
-              title: "Email",
-              hintText: "Enter your email",
-              icon: kaEmail,
-              controller: controller.emailController,
-            ),
-            SizedBox(height: 15),
-            CustomPasswordField(
-              title: "Password",
-              hintText: "My Password",
-              controller: controller.passwordController,
-            ),
-            SizedBox(height: 20),
-            Obx(
-                  () =>
-              controller.isLoading.value
-                  ? Center(
-                child: CircularProgressIndicator(
-                  strokeCap: StrokeCap.round,
-                  color: kcPurple500,
-                ),
-              )
-                  : MainButton(
-                label: "Login",
-                onTap: () {
-                    controller.login(context);
+              SizedBox(height: 25),
+              CustomTextfield(
+                title: "Email",
+                hintText: "Enter your email",
+                icon: kaEmail,
+                controller: controller.emailController,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value){
+                  if (value == null || value.isEmpty) return 'Email is required';
+                  final regex = RegExp( r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",);
+                  if(!regex.hasMatch(value)) return 'Enter a valid Email';
+                  return null;
                 },
-                buttonSize: ButtonSize.xl,
               ),
-            ),
-            SizedBox(height: 30,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  height: 1,
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  color: kcGrey400,
-                ),
-                Text("or", style: kfBodyMedium,),
-                Container(
-                  height: 1,
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  color: kcGrey400,
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text("Don't Have Account? ", style: kfTitleSmall,),
-                InkWell(
-                  onTap: ()
-                  {
-                    Get.off(() => RegisterPage());
+              SizedBox(height: 15),
+              CustomPasswordField(
+                title: "Password",
+                hintText: "My Password",
+                controller: controller.passwordController,
+              ),
+              SizedBox(height: 20),
+              Obx(
+                    () =>
+                controller.isLoading.value
+                    ? Center(
+                  child: CircularProgressIndicator(
+                    strokeCap: StrokeCap.round,
+                    color: kcPurple500,
+                  ),
+                )
+                    : MainButton(
+                  label: "Login",
+                  onTap: () {
+                    if(_formKey.currentState!.validate()){
+                      controller.login(context);
+                    }
                   },
-                  child: Text("Sign up", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
+                  buttonSize: ButtonSize.xl,
                 ),
-              ],
-            ),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text("Forgot Password? ", style: kfTitleSmall,),
-                InkWell(
-                  onTap: (){
-                    showForgotPasswordScreen(context: context);
-                  },
-                  child: Text("Click Here", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
-                ),
-              ],
-            ),
-          ],
+              ),
+              SizedBox(height: 30,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    height: 1,
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    color: kcGrey400,
+                  ),
+                  Text("or", style: kfBodyMedium,),
+                  Container(
+                    height: 1,
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    color: kcGrey400,
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Don't Have Account? ", style: kfTitleSmall,),
+                  InkWell(
+                    onTap: ()
+                    {
+                      Get.off(() => RegisterPage());
+                    },
+                    child: Text("Sign up", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
+                  ),
+                ],
+              ),
+              Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Forgot Password? ", style: kfTitleSmall,),
+                  InkWell(
+                    onTap: (){
+                      showForgotPasswordScreen(context: context);
+                    },
+                    child: Text("Click Here", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

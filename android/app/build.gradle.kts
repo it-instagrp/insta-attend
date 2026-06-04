@@ -1,20 +1,14 @@
 import java.util.Properties
 import java.io.FileInputStream
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+//import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-
-    // FlutterFire
     id("com.google.gms.google-services")
-
-    id("org.jetbrains.kotlin.android")
-
-    // Flutter plugin
+    //id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Load keystore.properties
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 
@@ -24,16 +18,13 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.nextechvision.insta_attend"
-
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.nextechvision.insta_attend"
-
         minSdk = 24
         targetSdk = 36
-
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -60,10 +51,8 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
-
             isMinifyEnabled = true
             isShrinkResources = true
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -72,11 +61,17 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
-}
+//kotlin {
+//    compilerOptions {
+//        jvmTarget.set(JvmTarget.JVM_17)
+//    }
+//}
+
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+//    compilerOptions {
+//        jvmTarget.set(JvmTarget.JVM_17)
+//    }
+//}
 
 flutter {
     source = "../.."
