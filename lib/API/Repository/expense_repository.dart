@@ -13,6 +13,10 @@ class ExpenseRepository {
   Future<Response> createExpense(ExpenseRequestDTO request) async{
     return await apiClient.postData(createExpenseUrl, request.toJson());
   }
+  
+  Future<Response> getMyStats() async{
+    return await apiClient.getData(getMyStatsUrl);
+  }
 
   Future<Response> getMyExpense({int? pageNumber, int? pageSize}) async{
     return await apiClient.getData(getMyExpenseUrl(pageNumber: pageNumber ?? 1, pageSize: pageSize ?? 10));

@@ -4,7 +4,7 @@ final String uid = "uid";
 
 /**** URLs ****/
 final String appBaseUrl = "https://api.ams.instagrp.in/api/";
-// final String appBaseUrl = "http://192.168.1.9:8081/api/";
+// final String appBaseUrl = "http://192.168.1.24:8081/api/";
 
 //TODO
 // https://api.ams.instagrp.in/api/delete-my-account create this url page to host a html which will allow user to request deletion of his account
@@ -47,6 +47,7 @@ String getMyAssetsUrl(String id) => "asset/$id";
 
 /**** Expense URLs ****/
 final String createExpenseUrl = "expense";
-String getMyExpenseUrl({int pageNumber=1, int pageSize = 10}) => "expense?pageNumber=${pageNumber}&pageSize=${pageSize}";
+String getMyExpenseUrl({int pageNumber=1, int pageSize = 10}) => "expense/my?pageNumber=${pageNumber}&pageSize=${pageSize}";
 String updateMyExpenseUrl(String id) => "expense/$id";
 String deleteMyExpenseUrl(String id) => "expense/$id";
+final String getMyStatsUrl = "expense/stats";

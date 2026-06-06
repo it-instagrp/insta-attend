@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:insta_attend/API/DTO/Request/expense_request_dto.dart';
 import 'package:insta_attend/API/Repository/expense_repository.dart';
 import 'package:insta_attend/Model/expense.dart';
+import 'package:insta_attend/Model/expense_stats.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 
 class ExpenseController extends GetxController {
@@ -18,6 +19,7 @@ class ExpenseController extends GetxController {
   final RxList<Expense> approvedExpense = <Expense>[].obs;
   final RxList<Expense> rejectedExpense = <Expense>[].obs;
   final RxBool isLoading = false.obs;
+  final Rxn<ExpenseStats> stats = Rxn<ExpenseStats>();
   final RxString expenseDate = ''.obs;
   final List<String> expenseType = ["Travel", "Purchase", "Daily Allowance"];
   final RxString selectedExpenseType = ''.obs;
@@ -92,6 +94,23 @@ class ExpenseController extends GetxController {
       showError(context, "Something went wrong");
       if (kDebugMode) log("Exception in get my expenses", error: err);
     } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> getMyStats(BuildContext context) async{
+    try{
+      isLoading.value = true;
+      Response response = await expenseRepo.getMyStats();
+
+      if(response.statusCode == 200){
+        stats.value = ExpenseStats.fromJson(response.body['data']);
+      } else {
+        showError(context, response.body['message']);
+      }
+    }catch(err){
+
+    }finally{
       isLoading.value = false;
     }
   }

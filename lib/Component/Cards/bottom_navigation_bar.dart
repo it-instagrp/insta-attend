@@ -46,7 +46,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
         1,
         // if (isCorporate) 2,
         // if (isCorporate) 3,
-        2,
+        if (isCorporate) 2,
       ];
 
       final List<String> titles = [
