@@ -68,6 +68,7 @@ class RegisterPage extends StatelessWidget {
                   hintText: "Enter your name",
                   icon: kaPerson,
                   controller: controller.usernameController,
+                  keyboardType: TextInputType.name,
                 ),
                 SizedBox(height: 15),
                 CustomTextfield(
@@ -75,6 +76,7 @@ class RegisterPage extends StatelessWidget {
                   hintText: "Enter your email",
                   icon: kaEmail,
                   controller: controller.emailController,
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 SizedBox(height: 15),
                 CustomTextfield(
@@ -82,6 +84,7 @@ class RegisterPage extends StatelessWidget {
                   hintText: "Enter your phone number",
                   icon: kaPhone,
                   controller: controller.phoneController,
+                  keyboardType: TextInputType.phone,
                 ),
                 SizedBox(height: 15),
               Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : CustomDropDown(

@@ -44,6 +44,21 @@ class AuthController extends GetxController {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
+  void clearLoginForm(){
+    emailController.clear();
+    passwordController.clear();
+  }
+  void clearRegisterForm(){
+    usernameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    selectedDepartment.value = '';
+    selectedDesignation.value = '';
+    isConsentGiven.value = false;
+  }
+
 
   Future<void> pickAndScanFace(BuildContext context) async {
     // Navigate to the FaceScannerPage for high-quality embedding extraction
@@ -67,6 +82,11 @@ class AuthController extends GetxController {
       return false;
     } else if (emailController.text.trim().isEmpty) {
       showError(context, "Please enter your email");
+      isLoading.value = false;
+      return false;
+    } else if (!RegExp( r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",)
+    .hasMatch(emailController.text.trim())) {
+      showError(context, "Please enter a valid email address");
       isLoading.value = false;
       return false;
     } else if (phoneController.text.trim().isEmpty) {
@@ -124,6 +144,7 @@ class AuthController extends GetxController {
           "user",
           jsonEncode(user.toJson()),
         );
+        clearRegisterForm();
         Get.offAll(() => Homescreen(), transition: Transition.fade);
       } else {
         showError(context, response.body['message']);
@@ -205,6 +226,7 @@ class AuthController extends GetxController {
             "uid",
             responseBody['data']['user']['id'],
           );
+          clearLoginForm();
           Get.offAll(() => Homescreen(), transition: Transition.fade);
         } else {
           showError(context, responseBody['message']);

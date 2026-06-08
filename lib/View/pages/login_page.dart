@@ -187,7 +187,7 @@ class LoginPage extends StatelessWidget {
                 SizedBox(
                   height: 30,
                 ),
-                CustomTextfield(title: "Email", hintText: "My Email", icon: kaEmail, controller: controller.emailController),
+                CustomTextfield(title: "Email", hintText: "My Email", icon: kaEmail, controller: controller.emailController, keyboardType: TextInputType.emailAddress,),
                 SizedBox(
                   height: 35,
                 ),

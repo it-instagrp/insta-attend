@@ -30,6 +30,7 @@ class CustomPasswordField extends StatelessWidget {
           Obx(()=>TextFormField(
             obscureText: isObscure.value,
             controller: controller,
+            keyboardType: TextInputType.visiblePassword,
             decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
