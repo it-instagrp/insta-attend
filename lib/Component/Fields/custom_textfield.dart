@@ -8,7 +8,8 @@ class CustomTextfield extends StatelessWidget {
   final VoidCallback? onTap;
   final TextEditingController controller;
   final TextInputType keyboardType;
-  const CustomTextfield({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap, this.keyboardType = TextInputType.text});
+  final String? Function(String?)? validator;
+  const CustomTextfield({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap, this.keyboardType = TextInputType.text, this.validator});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,7 @@ class CustomTextfield extends StatelessWidget {
             readOnly: isDisabled,
             controller: controller,
             keyboardType: keyboardType,
+            validator: validator,
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
