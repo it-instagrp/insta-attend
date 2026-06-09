@@ -11,6 +11,7 @@ import 'package:insta_attend/API/DTO/Request/check_out_request_dto.dart';
 import 'package:insta_attend/API/Repository/attendance_repository.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/Model/Attendance.dart';
+import 'package:insta_attend/Model/attendance_for_week.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -40,6 +41,7 @@ class AttendanceController extends GetxController {
   RxBool isCheckIn = true.obs;
   Rx<Duration> todayWorkDuration = Duration.zero.obs;
   Timer? _durationTimer;
+  final RxList<AttendanceForWeek> weekAttendance = <AttendanceForWeek>[].obs;
 
   @override
   void onInit() {
@@ -359,4 +361,6 @@ class AttendanceController extends GetxController {
 
     return calculateTotalDuration(monthlyRecords);
   }
+
+  //TODO implement simulation for weekly attendance fetching and get attendance details by id for UI development
 }
