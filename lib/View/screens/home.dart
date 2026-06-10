@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/Component/Cards/attendance_history_card.dart';
+import 'package:insta_attend/Component/Cards/weekly_attendance.dart';
+import 'package:insta_attend/Controller/attendance_controller.dart';
 import 'package:popover/popover.dart';
 import '../../Component/Cards/attendance_status_card.dart';
 import '../../Component/Cards/total_working_hour_card.dart';
@@ -14,6 +17,7 @@ class Home extends StatelessWidget {
   Home({super.key});
 
   final AuthController controller = Get.find<AuthController>();
+  final AttendanceController attendanceController = Get.find<AttendanceController>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,9 @@ class Home extends StatelessWidget {
         // ── Extracted: Total Working Hour + Check In/Out card ────────────────
         TotalWorkingHourCard(),
 
+
+        // ── Extracted: Total Working Hour + Check In/Out card ────────────────
+        Obx(()=>attendanceController.weeklyAttendance.value.isNotEmpty ? WeeklyAttendance(attendance: attendanceController.weeklyAttendance) : SizedBox()),
       ],
     );
   }

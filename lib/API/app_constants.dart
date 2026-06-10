@@ -1,5 +1,11 @@
+import 'package:flutter/material.dart';
+
 final String token = "token";
 final String uid = "uid";
+
+
+/**** Global Context ****/
+final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
 
 
 /**** URLs ****/

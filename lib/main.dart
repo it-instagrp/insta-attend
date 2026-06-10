@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:insta_attend/Helper/get_di.dart' as di;
 import 'package:insta_attend/View/pages/splash_screen.dart';
 import 'package:insta_attend/firebase_options.dart';
+import 'API/app_constants.dart';
 import 'Utils/notification_service.dart';
 
 // Top-level function to handle background/closed messages
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: globalNavigatorKey,
       title: "Insta Attend",
       theme: ThemeData(
         primaryColor: Colors.lightBlueAccent,

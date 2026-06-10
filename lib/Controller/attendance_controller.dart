@@ -1,7 +1,4 @@
 import 'dart:developer';
-
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
@@ -11,11 +8,12 @@ import 'package:insta_attend/API/DTO/Request/check_out_request_dto.dart';
 import 'package:insta_attend/API/Repository/attendance_repository.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/Model/Attendance.dart';
+import 'package:insta_attend/Model/attendance_detail.dart';
 import 'package:insta_attend/Model/attendance_for_week.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
-
+import '../API/Data/mock_attendance.dart';
 import '../Constant/constant_color.dart';
 import '../View/pages/face_scanner_page.dart';
 
@@ -33,6 +31,8 @@ class AttendanceController extends GetxController {
 
   RxList<Attendance> attendance = <Attendance>[].obs;
   RxBool isLoading = false.obs;
+  RxBool isWeeklyAttendanceLoading = false.obs;
+  RxBool isAttendanceDetailsLoading = false.obs;
   RxString attendanceStatus = "No Check-in".obs;
   RxString checkInTime = "".obs;
   RxString checkOutTime = "".obs;
@@ -41,8 +41,8 @@ class AttendanceController extends GetxController {
   RxBool isCheckIn = true.obs;
   Rx<Duration> todayWorkDuration = Duration.zero.obs;
   Timer? _durationTimer;
-  final RxList<AttendanceForWeek> weekAttendance = <AttendanceForWeek>[].obs;
-
+  final RxList<AttendanceForWeek> weeklyAttendance = <AttendanceForWeek>[].obs;
+  final Rxn<AttendanceDetails> attendanceDetails = Rxn<AttendanceDetails>();
   @override
   void onInit() {
     super.onInit();
@@ -63,7 +63,7 @@ class AttendanceController extends GetxController {
       lat.value = double.tryParse(positionArray[0]) ?? 0.0;
       long.value = double.tryParse(positionArray[1]) ?? 0.0;
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       debugPrint("Something went wrong: ${err.toString()}");
     }
   }
@@ -125,7 +125,7 @@ class AttendanceController extends GetxController {
         ),
       );
     } else {
-      showError(context, serverMessage);
+      showError(serverMessage);
     }
   }
 
@@ -149,13 +149,13 @@ class AttendanceController extends GetxController {
             ));
 
             if (response.statusCode == 200 || response.statusCode == 201) {
-              showSuccess(context, "Marked Clock In");
+              showSuccess("Marked Clock In");
               getMyAttendance();
             } else {
               _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
             }
           } else {
-            showError(context, "You are not in office premises");
+            showError("You are not in office premises");
           }
         } else {
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
@@ -165,7 +165,7 @@ class AttendanceController extends GetxController {
           ));
 
           if (response.statusCode == 200 || response.statusCode == 201) {
-            showSuccess(context, "Marked Clock In");
+            showSuccess("Marked Clock In");
             getMyAttendance();
           } else {
             _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
@@ -177,7 +177,7 @@ class AttendanceController extends GetxController {
         isLoading.value = false;
       }
     } else {
-      showError(context, "Face verification cancelled or failed");
+      showError("Face verification cancelled or failed");
     }
   }
 
@@ -199,13 +199,13 @@ class AttendanceController extends GetxController {
             ));
 
             if (response.statusCode == 200 || response.statusCode == 201) {
-              showSuccess(context, "Marked Clock Out");
+              showSuccess("Marked Clock Out");
               getMyAttendance();
             } else {
               _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
             }
           } else {
-            showError(context, "You are not in office premises");
+            showError("You are not in office premises");
           }
         } else {
           String address = await getAddressFromLatLng(position.latitude, position.longitude);
@@ -215,7 +215,7 @@ class AttendanceController extends GetxController {
           ));
 
           if (response.statusCode == 200 || response.statusCode == 201) {
-            showSuccess(context, "Marked Clock Out");
+            showSuccess("Marked Clock Out");
             getMyAttendance();
           } else {
             _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
@@ -227,7 +227,7 @@ class AttendanceController extends GetxController {
         isLoading.value = false;
       }
     } else {
-      showError(context, "Face verification cancelled or failed");
+      showError("Face verification cancelled or failed");
     }
   }
 
@@ -363,4 +363,36 @@ class AttendanceController extends GetxController {
   }
 
   //TODO implement simulation for weekly attendance fetching and get attendance details by id for UI development
+  Future<void> getMyWeekAttendance() async {
+    try {
+      isWeeklyAttendanceLoading.value = true;
+      Future.delayed(Duration(seconds: 2), (){
+        var attendanceList = weekAttendance;
+        weeklyAttendance.assignAll(
+          attendanceList
+              .map((atd) => AttendanceForWeek.fromJson(atd))
+              .toList(),
+        );
+      });
+    } catch (err) {
+      showError("Something went wrong");
+      log("Exception in get my weekly attendance");
+    } finally {
+      isWeeklyAttendanceLoading.value = false;
+    }
+  }
+
+  Future<void> getAttendanceDetails() async {
+    try {
+      isAttendanceDetailsLoading.value = true;
+      Future.delayed((Duration(seconds: 2)), (){
+        attendanceDetails.value = AttendanceDetails.fromJson(mockAttendanceDetails);
+      });
+    } catch (err) {
+      showError("Something went wrong");
+      log("Exception in get attendance details: ", error: err);
+    } finally {
+      isAttendanceDetailsLoading.value = false;
+    }
+  }
 }

@@ -72,7 +72,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       if (mounted && !_isCaptured) {
         _isCaptured = true;
         _cameraController?.stopImageStream();
-        showWarning(context, "Face timeout: No face detected within limits.");
+        showWarning("Face timeout: No face detected within limits.");
         Get.back(result: null);
       }
     });

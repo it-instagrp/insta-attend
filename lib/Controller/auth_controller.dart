@@ -53,41 +53,41 @@ class AuthController extends GetxController {
       // Store the 192-dimension embedding for the profile update
       // Assuming you have a variable to hold the new embedding in your controller
       newFaceEmbedding.value = result;
-      showSuccess(context, "Face scanned successfully. Ready to update profile.");
+      showSuccess("Face scanned successfully. Ready to update profile.");
     } else {
-      showError(context, "Face scan failed or was cancelled.");
+      showError("Face scan failed or was cancelled.");
     }
   }
 
   bool validateRegisterForm(BuildContext context) {
     isLoading.value = true;
     if (usernameController.text.trim().isEmpty) {
-      showError(context, "Please enter your name");
+      showError("Please enter your name");
       isLoading.value = false;
       return false;
     } else if (emailController.text.trim().isEmpty) {
-      showError(context, "Please enter your email");
+      showError("Please enter your email");
       isLoading.value = false;
       return false;
     } else if (phoneController.text.trim().isEmpty) {
-      showError(context, "Please enter your phone number");
+      showError("Please enter your phone number");
       isLoading.value = false;
       return false;
     } else if (passwordController.text.trim().isEmpty) {
-      showError(context, "Please enter your password");
+      showError("Please enter your password");
       isLoading.value = false;
       return false;
     } else if (confirmPasswordController.text.trim().isEmpty) {
-      showError(context, "Please confirm your password");
+      showError("Please confirm your password");
       isLoading.value = false;
       return false;
     } else if (passwordController.text.trim() !=
         confirmPasswordController.text.trim()) {
-      showError(context, "Password do not match");
+      showError("Password do not match");
       isLoading.value = false;
       return false;
     } else if (!isConsentGiven.value) {
-      showError(context, "Please accept the terms & conditions");
+      showError("Please accept the terms & conditions");
       isLoading.value = false;
       return false;
     } else {
@@ -99,7 +99,7 @@ class AuthController extends GetxController {
     try {
       final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: true));
       if (faceResult == null) {
-        showError(context, "Face enrollment is required to register");
+        showError("Face enrollment is required to register");
         return;
       }
       final RegisterRequestDTO request = RegisterRequestDTO(
@@ -114,7 +114,7 @@ class AuthController extends GetxController {
 
       Response response = await authRepo.register(request);
       if (response.statusCode == 201) {
-        showSuccess(context, "Registered Successfully");
+        showSuccess("Registered Successfully");
         final User user = User.fromJson(response.body['data']['user']);
         currentUser.value = user;
         final String token = response.body['data']['token'];
@@ -126,10 +126,10 @@ class AuthController extends GetxController {
         );
         Get.offAll(() => Homescreen(), transition: Transition.fade);
       } else {
-        showError(context, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       print("Internal Exception: ${err.toString()}");
     } finally {
       isLoading.value = false;
@@ -152,15 +152,15 @@ class AuthController extends GetxController {
           currentUser.value.faceEmbedding = faceResult;
           currentUser.value.isEnrolled = true;
           await sharedPreferences.setString("user", jsonEncode(currentUser.value.toJson()));
-          showSuccess(context, "Face biometric profile updated successfully");
+          showSuccess("Face biometric profile updated successfully");
         } else {
-          showError(context, response.body['message'] ?? "Failed to update face biometric profile");
+          showError(response.body['message'] ?? "Failed to update face biometric profile");
         }
       } else {
-        showError(context, "Face enrollment cancelled or failed");
+        showError("Face enrollment cancelled or failed");
       }
     } catch (err) {
-      showError(context, "Something went wrong during enrollment");
+      showError("Something went wrong during enrollment");
       debugPrint("Exception in enrollUserFace: ${err.toString()}");
     } finally {
       isLoading.value = false;
@@ -171,9 +171,9 @@ class AuthController extends GetxController {
     isLoading.value = true;
     try {
       if (emailController.text.isEmpty) {
-        showError(context, "Please enter email");
+        showError("Please enter email");
       } else if (passwordController.text.isEmpty) {
-        showError(context, "Please enter password");
+        showError("Please enter password");
       } else {
         String? fcmToken;
         try {
@@ -194,7 +194,7 @@ class AuthController extends GetxController {
         var responseBody = response.body;
 
         if (response.statusCode == 200) {
-          showSuccess(context, "Login Successful");
+          showSuccess("Login Successful");
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
           currentUser.value = User.fromJson(responseBody['data']['user']);
@@ -207,11 +207,11 @@ class AuthController extends GetxController {
           );
           Get.offAll(() => Homescreen(), transition: Transition.fade);
         } else {
-          showError(context, responseBody['message']);
+          showError(responseBody['message']);
         }
       }
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       if (kDebugMode) print("Exception in Login: ${err.toString()}");
     } finally {
       isLoading.value = false;
@@ -228,9 +228,9 @@ class AuthController extends GetxController {
         print("Shared Preferences cleared");
       });
       Get.offAll(() => LoginPage(), transition: Transition.fade);
-      showSuccess(context, "logged out");
+      showSuccess("logged out");
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       if (kDebugMode) print("Exception: ${err.toString()}");
     } finally {
       isLoading.value = false;
@@ -254,7 +254,7 @@ class AuthController extends GetxController {
 
       if (response.statusCode == 200) {
         newFaceEmbedding.clear();
-        showSuccess(context, "Profile Updated Successfully");
+        showSuccess("Profile Updated Successfully");
 
         // Update local currentUser data so the UI reflects changes immediately
         currentUser.value.username = request.username;
@@ -264,10 +264,10 @@ class AuthController extends GetxController {
         // Update session storage
         await sharedPreferences.setString("user", jsonEncode(currentUser.value.toJson()));
       } else {
-        showError(context, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       print("Exception: " + err.toString());
     } finally {
       isLoading.value = false;
@@ -280,7 +280,7 @@ class AuthController extends GetxController {
     try{
       if(passwordController.text.isEmpty || confirmPasswordController.text.isEmpty){
         Get.back();
-        showError(context, "Please enter password");
+        showError("Please enter password");
         return;
       }
       final ChangePasswordRequestDTO request = ChangePasswordRequestDTO(
@@ -292,12 +292,12 @@ class AuthController extends GetxController {
         Get.back();
         passwordController.clear();
         confirmPasswordController.clear();
-        showSuccess(context, "Password Changed Successfully");
+        showSuccess("Password Changed Successfully");
       }else{
-        showError(context, response.body['message']);
+        showError(response.body['message']);
       }
     }catch(err){
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       print("Exception: " + err.toString());
     }finally{
       isLoading.value = false;
@@ -315,7 +315,7 @@ class AuthController extends GetxController {
       }
     }catch (err){
       if (kDebugMode) print("Exception: ${err.toString()}");
-      showError(Get.context!, "Something went wrong");
+      showError("Something went wrong");
     }finally{
       isDropDownLoading.value = false;
     }
@@ -332,7 +332,7 @@ class AuthController extends GetxController {
       }
     }catch (err){
       if (kDebugMode) print("Exception: ${err.toString()}");
-      showError(Get.context!, "Something went wrong");
+      showError("Something went wrong");
     }finally{
       isDropDownLoading.value = false;
     }

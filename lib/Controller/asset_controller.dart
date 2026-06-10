@@ -23,10 +23,10 @@ class AssetController extends GetxController {
         List<Asset> list = dataList.map((json) => Asset.fromJson(json)).toList();
         assets.assignAll(list);
       } else {
-        showError(Get.context!, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(Get.context!, "Something went wrong");
+      showError("Something went wrong");
       print("Exception: "+err.toString());
     } finally {
       isLoading.value = false;

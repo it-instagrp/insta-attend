@@ -1,67 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:insta_attend/API/app_constants.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:toastification/toastification.dart';
 
-void showSuccess(BuildContext context, String message){
+/// Helper getter to fetch the active top-level context safely from the global key pipeline
+BuildContext? get _safeContext => globalNavigatorKey.currentContext;
+
+void showSuccess(String message) {
+  final ctx = _safeContext;
+  if (ctx == null) return;
+
   toastification.show(
     backgroundColor: Colors.white,
     alignment: Alignment.topLeft,
-    autoCloseDuration: Duration(seconds: 3),
+    autoCloseDuration: const Duration(seconds: 3),
     closeOnClick: true,
-    context: context,
+    context: ctx,
     direction: TextDirection.ltr,
-      showIcon: false,
+    showIcon: false,
     style: ToastificationStyle.flat,
     dragToClose: true,
-    title: Text(message, style: kfBodyLarge,),
-    type: ToastificationType.success
+    title: Text(message, style: kfBodyLarge),
+    type: ToastificationType.success,
   );
 }
 
-void showError(BuildContext context, String message){
+void showError(String message) {
+  final ctx = _safeContext;
+  if (ctx == null) return;
+
   toastification.show(
     backgroundColor: Colors.white,
     alignment: Alignment.topLeft,
-    autoCloseDuration: Duration(seconds: 3),
+    autoCloseDuration: const Duration(seconds: 3),
     closeOnClick: true,
-    context: context,
+    context: ctx,
     direction: TextDirection.ltr,
-      showIcon: false,
+    showIcon: false,
     style: ToastificationStyle.flat,
     dragToClose: true,
-    title: Text(message, style: kfBodyLarge,),
-    type: ToastificationType.error
+    title: Text(message, style: kfBodyLarge),
+    type: ToastificationType.error,
   );
 }
 
-void showWarning(BuildContext context, String message){
+void showWarning(String message) {
+  final ctx = _safeContext;
+  if (ctx == null) return;
+
   toastification.show(
     backgroundColor: Colors.white,
     alignment: Alignment.topLeft,
-    autoCloseDuration: Duration(seconds: 3),
+    autoCloseDuration: const Duration(seconds: 3),
     closeOnClick: true,
-    context: context,
+    context: ctx,
     direction: TextDirection.ltr,
-      showIcon: false,
+    showIcon: false,
     style: ToastificationStyle.flat,
     dragToClose: true,
-    title: Text(message, style: kfBodyLarge,),
-    type: ToastificationType.warning
+    title: Text(message, style: kfBodyLarge),
+    type: ToastificationType.warning,
   );
 }
 
-void showInfo(BuildContext context, String message){
+void showInfo(String message) {
+  final ctx = _safeContext;
+  if (ctx == null) return;
+
   toastification.show(
     backgroundColor: Colors.white,
     alignment: Alignment.topLeft,
-    autoCloseDuration: Duration(seconds: 3),
+    autoCloseDuration: const Duration(seconds: 3),
     closeOnClick: true,
-    context: context,
+    context: ctx,
     direction: TextDirection.ltr,
-      showIcon: false,
+    showIcon: false,
     style: ToastificationStyle.flat,
     dragToClose: true,
-    title: Text(message, style: kfBodyLarge,),
-    type: ToastificationType.info
+    title: Text(message, style: kfBodyLarge),
+    type: ToastificationType.info,
   );
 }
