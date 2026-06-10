@@ -37,10 +37,10 @@ class VersionController extends GetxController{
 
         versionList.assignAll(list);
       } else {
-        showError(Get.context!, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(Get.context!, "Something went wrong");
+      showError("Something went wrong");
       print("Exception: $err");
     } finally {
       isLoading.value = false;

@@ -19,8 +19,8 @@ class ExpenseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.getMyStats(context);
-      controller.getMyExpense(context);
+      controller.getMyStats();
+      controller.getMyExpense();
     });
 
     return Container(

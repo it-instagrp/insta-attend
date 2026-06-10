@@ -56,10 +56,10 @@ class LeaveController extends GetxController {
         rejectedLeaves.assignAll(leaves.where((l) => l.status?.toLowerCase() == 'rejected').toList());
 
       } else {
-        showError(Get.context!, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(Get.context!, "Something went wrong");
+      showError("Something went wrong");
       print("Error: " + err.toString());
     } finally {
       isLoading.value = false;
@@ -70,7 +70,7 @@ class LeaveController extends GetxController {
     isLoading.value = true;
     try {
       if (fromDate.value.isEmpty || toDate.value.isEmpty) {
-        showError(context, "Please select a leave duration");
+        showError("Please select a leave duration");
         return;
       }
       final String userId = leaveRepository.sharedPreferences.getString("uid") ?? "";
@@ -83,15 +83,15 @@ class LeaveController extends GetxController {
       Response response = await leaveRepository.requestLeave(request);
 
       if (response.statusCode == 200) {
-        showSuccess(context, "Leave Requested Successfully");
+        showSuccess("Leave Requested Successfully");
         getMyLeaves();
         Navigator.pop(context);
         Navigator.pop(context);
       } else {
-        showError(context, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
     } finally {
       isLoading.value = false;
     }

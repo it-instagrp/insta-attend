@@ -31,15 +31,13 @@ class ExpenseController extends GetxController {
     return await expenseRepo.sharedPreferences.getString("uid") ?? "";
   }
 
-  Future<void> createExpense(BuildContext context) async {
+  Future<void> createExpense() async {
     try {
       isLoading.value = true;
 
       if (selectedExpenseType.value == expenseType.last &&
           ((double.tryParse(amountController.text.trim()) ?? 0.0) > 300.0)) {
-        showError(
-          context,
-          "Expense more than 300 should be communicated with administration",
+        showError("Expense more than 300 should be communicated with administration",
         );
         return;
       }
@@ -58,25 +56,24 @@ class ExpenseController extends GetxController {
 
       if (response.statusCode == 201) {
         showSuccess(
-          context,
           "Expense created, waiting for admin approval",
         );
-        getMyExpense(context);
+        getMyExpense();
         clearForm();
         Get.back();
         Get.back();
       } else {
-        showError(context, response.body['message']);
+        showError(response.body['message']);
       }
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       if (kDebugMode) log("Exception in create expenses", error: err);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> getMyExpense(BuildContext context) async {
+  Future<void> getMyExpense() async {
     try {
       isLoading.value = true;
       Response response = await expenseRepo.getMyExpense();
@@ -91,14 +88,14 @@ class ExpenseController extends GetxController {
         rejectedExpense.assignAll(list.where((l) => l.expenseStatus?.toLowerCase() == 'rejected').toList());
       }
     } catch (err) {
-      showError(context, "Something went wrong");
+      showError("Something went wrong");
       if (kDebugMode) log("Exception in get my expenses", error: err);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> getMyStats(BuildContext context) async{
+  Future<void> getMyStats() async{
     try{
       isLoading.value = true;
       Response response = await expenseRepo.getMyStats();
@@ -106,7 +103,7 @@ class ExpenseController extends GetxController {
       if(response.statusCode == 200){
         stats.value = ExpenseStats.fromJson(response.body['data']);
       } else {
-        showError(context, response.body['message']);
+        showError(response.body['message']);
       }
     }catch(err){
 

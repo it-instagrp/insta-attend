@@ -225,7 +225,7 @@ class CreateExpense extends StatelessWidget {
                       )
                           : main.MainButton(
                         label: "Submit Expense",
-                        onTap: () => controller.createExpense(context),
+                        onTap: () => controller.createExpense(),
                       ),
                     ),
                   ),
