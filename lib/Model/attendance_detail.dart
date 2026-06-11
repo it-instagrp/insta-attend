@@ -1,4 +1,4 @@
-class AttendanceDetails {
+class AttendanceDetail {
   String? id;
   String? employeeId;
   String? employeeName;
@@ -15,7 +15,7 @@ class AttendanceDetails {
   String? updatedAt;
   User? user;
 
-  AttendanceDetails(
+  AttendanceDetail(
       {this.id,
         this.employeeId,
         this.employeeName,
@@ -32,7 +32,7 @@ class AttendanceDetails {
         this.updatedAt,
         this.user});
 
-  AttendanceDetails.fromJson(Map<String, dynamic> json) {
+  AttendanceDetail.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     employeeId = json['employee_id'];
     employeeName = json['employee_name'];
