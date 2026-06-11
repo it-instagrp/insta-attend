@@ -42,7 +42,7 @@ class AttendanceController extends GetxController {
   Rx<Duration> todayWorkDuration = Duration.zero.obs;
   Timer? _durationTimer;
   final RxList<AttendanceForWeek> weeklyAttendance = <AttendanceForWeek>[].obs;
-  final Rxn<AttendanceDetails> attendanceDetails = Rxn<AttendanceDetails>();
+  final Rxn<AttendanceDetail> attendanceDetails = Rxn<AttendanceDetail>();
   @override
   void onInit() {
     super.onInit();
@@ -387,7 +387,7 @@ class AttendanceController extends GetxController {
     try {
       isAttendanceDetailsLoading.value = true;
       Future.delayed((Duration(seconds: 2)), (){
-        attendanceDetails.value = AttendanceDetails.fromJson(mockAttendanceDetails);
+        attendanceDetails.value = AttendanceDetail.fromJson(mockAttendanceDetails);
       });
     } catch (err) {
       showError("Something went wrong");
