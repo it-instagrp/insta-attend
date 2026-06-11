@@ -46,6 +46,7 @@ class AttendanceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    getMyWeekAttendance();
     getMyAttendance();
   }
 

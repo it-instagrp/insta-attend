@@ -36,9 +36,10 @@ class Home extends StatelessWidget {
         // ── Extracted: Total Working Hour + Check In/Out card ────────────────
         TotalWorkingHourCard(),
 
+        const SizedBox(height: 15.0),
 
         // ── Extracted: Total Working Hour + Check In/Out card ────────────────
-        Obx(()=>attendanceController.weeklyAttendance.value.isNotEmpty ? WeeklyAttendance(attendance: attendanceController.weeklyAttendance) : SizedBox()),
+        Obx(()=>attendanceController.isWeeklyAttendanceLoading.value ? CircularProgressIndicator(strokeCap: StrokeCap.round,) : attendanceController.weeklyAttendance.value.isNotEmpty ? WeeklyAttendance(attendance: attendanceController.weeklyAttendance) : SizedBox()),
       ],
     );
   }
