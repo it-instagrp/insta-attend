@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
 import 'package:insta_attend/Component/Button/main_button.dart';
 import 'package:insta_attend/Component/Fields/custom_drop_down.dart';
 import 'package:insta_attend/Component/Fields/custom_password_field.dart';
@@ -20,10 +21,10 @@ class RegisterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    controller.getDepartment();
-    controller.getDesignation();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.getDepartment();
+      controller.getDesignation();
+    });
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -92,11 +93,21 @@ class RegisterPage extends StatelessWidget {
                         hintText: "Enter your phone number",
                         icon: kaPhone,
                         controller: controller.phoneController,
-                        keyboardType: TextInputType.phone,
+                        keyboardType: TextInputType.number,
                         maxLength: 10,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (value){
+                          if(value == null || value.trim().isEmpty) {
+                            return 'Phone Number is required';
+                          }
+                          if (value.length < 10) {
+                            return 'Phone number must be exactly of 10 digits ';
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 15),
-                      Obx(() => controller.isLoading.value
+                      Obx(() => controller.isDropDownLoading.value
                           ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600))
                           : CustomDropDown(
                         options: controller.departmentList.value.map((dept) => dept.departmentName ?? '').toList(),
@@ -112,7 +123,7 @@ class RegisterPage extends StatelessWidget {
                         isField: true,
                       )),
                       SizedBox(height: 15),
-                      Obx(() => controller.isLoading.value
+                      Obx(() => controller.isDropDownLoading.value
                           ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600))
                           : CustomDropDown(
                         options: controller.designationList.value.map((role) => role.designationName ?? '').toList(),

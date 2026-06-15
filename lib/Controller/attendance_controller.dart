@@ -236,7 +236,14 @@ class AttendanceController extends GetxController {
   void getMyAttendance() async {
     isLoading.value = true;
     try {
-      final String userId = sharedPreferences.getString("uid") ?? "";
+      /****
+       Fix: Fetch userId from currentUser in memory first instead of
+          relying only on SharedPreferences, because SharedPreferences may
+          return stale or old uid from a previous session causing wrong
+          employee's attendance to be displayed.
+          Falls back to SharedPreferences uid if currentUser id is null.
+       ****/
+      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
       log("UID from session: $userId");
       Response response = await attendanceRepo.getMyAttendance(userId);
 
