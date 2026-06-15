@@ -43,6 +43,18 @@ class AuthController extends GetxController {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController forgotPasswordEmailController = TextEditingController();
+
+  String? validateEmail(String? value){
+    if (value == null || value.trim().isEmpty) {
+      return "Please enter your email";
+    }
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if(!emailRegex.hasMatch(value.trim())) {
+      return "Please enter valid email";
+    }
+    return null;
+  }
 
 
   Future<void> pickAndScanFace(BuildContext context) async {
@@ -124,6 +136,7 @@ class AuthController extends GetxController {
           "user",
           jsonEncode(user.toJson()),
         );
+        clearRegisterForm();
         Get.offAll(() => Homescreen(), transition: Transition.fade);
       } else {
         showError(response.body['message']);
@@ -205,6 +218,7 @@ class AuthController extends GetxController {
             "uid",
             responseBody['data']['user']['id'],
           );
+          clearLoginForm();
           Get.offAll(() => Homescreen(), transition: Transition.fade);
         } else {
           showError(responseBody['message']);
@@ -227,6 +241,11 @@ class AuthController extends GetxController {
       await sharedPreferences.clear().then((_){
         print("Shared Preferences cleared");
       });
+      emailController.clear();
+      passwordController.clear();
+      usernameController.clear();
+      phoneController.clear();
+      confirmPasswordController.clear();
       Get.offAll(() => LoginPage(), transition: Transition.fade);
       showSuccess("logged out");
     } catch (err) {
@@ -303,6 +322,21 @@ class AuthController extends GetxController {
       isLoading.value = false;
     }
   }
+  void clearLoginForm(){
+    emailController.clear();
+    passwordController.clear();
+  }
+  void clearRegisterForm(){
+    usernameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    selectedDesignation.value = '';
+    selectedDepartment.value = '';
+    isConsentGiven.value = false;
+  }
+
 
   Future<void> getDepartment() async {
     try{
