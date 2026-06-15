@@ -42,15 +42,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      navigatorKey: globalNavigatorKey,
-      title: "Insta Attend",
-      theme: ThemeData(
-        primaryColor: Colors.lightBlueAccent,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
-        textTheme: GoogleFonts.interTextTheme()
-      ),
-      home: SplashScreen(),
-    );
+        debugShowCheckedModeBanner: false,
+        navigatorKey: globalNavigatorKey,
+        title: "Insta Attend",
+        theme: ThemeData(
+          primaryColor: Colors.lightBlueAccent,
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+          textTheme: GoogleFonts.interTextTheme()
+        ),
+        home: SplashScreen(),
+      );
   }
 }
