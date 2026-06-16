@@ -24,7 +24,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
   @override
   void initState() {
     super.initState();
-    controller.getAttendanceDetails();
+    controller.getAttendanceDetails(widget.attendanceId);
   }
 
   @override
@@ -39,7 +39,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
       body: Obx(() {
         if (controller.isAttendanceDetailsLoading.value) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(strokeCap: StrokeCap.round),
           );
         }
 

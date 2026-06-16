@@ -25,4 +25,12 @@ class AttendanceRepository{
   Future<Response> getMyAttendance(userId) async{
     return await apiClient.getData(attendanceByIdUrl(userId));
   }
+
+  Future<Response> getWeeklyAttendance(String userId) async{
+    return await apiClient.getData(getWeeklyAttendanceUrl(userId));
+  }
+
+  Future<Response> getAttendanceDetails(String attendanceId) async{
+    return await apiClient.getData(getAttendanceDetailUrl(attendanceId));
+  }
 }
