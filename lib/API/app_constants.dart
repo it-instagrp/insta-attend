@@ -31,7 +31,11 @@ final String updateProfileUrl = "users";
 final String checkInUrl = "attendance/check-in";
 final String checkOutUrl = "attendance/check-out";
 String attendanceByIdUrl(String id) => "attendance/${id}";
-
+// String getWeeklyAttendanceUrl(String userId) {
+//   return 'attendance/weekly/${userId}';
+// }
+String getWeeklyAttendanceUrl(String userId) => 'attendance/weekly/$userId';
+String getAttendanceDetailUrl(String attendanceId) => 'attendance/record/$attendanceId';
 
 /**** Departments URLs ****/
 final String getDepartments = "department";

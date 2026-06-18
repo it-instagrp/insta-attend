@@ -374,33 +374,44 @@ class AttendanceController extends GetxController {
   Future<void> getMyWeekAttendance() async {
     try {
       isWeeklyAttendanceLoading.value = true;
-      Future.delayed(Duration(seconds: 2), (){
-        var attendanceList = weekAttendance;
-        weeklyAttendance.assignAll(
-          attendanceList
-              .map((atd) => AttendanceForWeek.fromJson(atd))
-              .toList(),
+      final String userId = await attendanceRepo.sharedPreferences.getString("uid")?? "";
+      Response response = await attendanceRepo.getWeeklyAttendance(userId);
+      if (response.statusCode == 200) {
+        final List<dynamic> attendanceData = response.body['data'] ?? [];
+
+        // 3. SOLUTION: Explicitly cast the mapped results into a strongly-typed List
+        final List<AttendanceForWeek> parsedList = List<AttendanceForWeek>.from(
+            attendanceData.map((atd) => AttendanceForWeek.fromJson(atd))
         );
-      });
+
+        // 4. Assign the properly typed list to your reactive RxList variable
+        weeklyAttendance.assignAll(parsedList);
+      } else {
+        showError(response.body['message']);
+      }
     } catch (err) {
       showError("Something went wrong");
-      log("Exception in get my weekly attendance");
+      log("Exception in get my weekly attendance", error: err);
     } finally {
       isWeeklyAttendanceLoading.value = false;
     }
   }
 
-  Future<void> getAttendanceDetails() async {
+    Future<void> getAttendanceDetails(String attendanceId) async{
     try {
       isAttendanceDetailsLoading.value = true;
-      Future.delayed((Duration(seconds: 2)), (){
-        attendanceDetails.value = AttendanceDetail.fromJson(mockAttendanceDetails);
-      });
+      Response response = await attendanceRepo.getAttendanceDetails(attendanceId);
+      if(response.statusCode == 200) {
+        attendanceDetails.value = AttendanceDetail.fromJson(response.body['data']);
+      } else{
+        showError(response.body['message'] ?? "Failed to load details");
+      }
     } catch (err) {
       showError("Something went wrong");
       log("Exception in get attendance details: ", error: err);
     } finally {
       isAttendanceDetailsLoading.value = false;
     }
-  }
+
+    }
 }

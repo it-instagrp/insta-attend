@@ -8,6 +8,7 @@ import 'package:insta_attend/View/pages/splash_screen.dart';
 import 'package:insta_attend/firebase_options.dart';
 import 'API/app_constants.dart';
 import 'Utils/notification_service.dart';
+import 'package:toastification/toastification.dart';
 
 // Top-level function to handle background/closed messages
 @pragma('vm:entry-point')
@@ -41,16 +42,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-        debugShowCheckedModeBanner: false,
-        navigatorKey: globalNavigatorKey,
-        title: "Insta Attend",
-        theme: ThemeData(
-          primaryColor: Colors.lightBlueAccent,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
-          textTheme: GoogleFonts.interTextTheme()
+    return ToastificationWrapper(
+      child: GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          navigatorKey: globalNavigatorKey,
+          title: "Insta Attend",
+          theme: ThemeData(
+            primaryColor: Colors.lightBlueAccent,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+            textTheme: GoogleFonts.interTextTheme()
+          ),
+          home: SplashScreen(),
         ),
-        home: SplashScreen(),
-      );
+    );
   }
 }
