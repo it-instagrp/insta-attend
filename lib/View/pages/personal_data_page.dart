@@ -174,28 +174,28 @@ class PersonalDataPage extends StatelessWidget {
                 ),
               ),
               /**** Details ****/
-              CustomTextfield(
+              CustomTextField(
                 title: "First Name",
                 hintText: "Enter First Name",
                 icon: kaPerson,
                 controller: controller.firstNameController,
               ),
               SizedBox(height: 10.0),
-              CustomTextfield(
+              CustomTextField(
                 title: "Last Name",
                 hintText: "Enter Last Name",
                 icon: kaPerson,
                 controller: controller.lastNameController,
               ),
               SizedBox(height: 10.0),
-              CustomTextfield(
+              CustomTextField(
                 title: "Email",
                 hintText: "Enter Email",
                 icon: kaEmail,
                 controller: controller.emailController,
               ),
               SizedBox(height: 10.0),
-              CustomTextfield(
+              CustomTextField(
                 title: "Phone Number",
                 hintText: "Enter Phone",
                 icon: kaPhone,

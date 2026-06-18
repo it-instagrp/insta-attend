@@ -3,15 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 
-class CustomTextfield extends StatelessWidget {
+class CustomTextField extends StatelessWidget {
   final String title, hintText, icon;
   final bool isDisabled;
   final VoidCallback? onTap;
   final TextEditingController controller;
   final TextInputType keyboardType;
   final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
-  const CustomTextfield({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap, this.keyboardType = TextInputType.text, this.maxLength, this.validator, this.inputFormatters,});
+  const CustomTextField({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap, this.keyboardType = TextInputType.text, this.maxLength, this.validator, this.inputFormatters,});
 
   @override
   Widget build(BuildContext context) {

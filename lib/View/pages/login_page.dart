@@ -10,6 +10,8 @@ import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/View/pages/register_page.dart';
 
+import '../../Utils/bottom_sheet_helper.dart';
+
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
@@ -60,7 +62,7 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 25),
-              CustomTextfield(
+              CustomTextField(
                 title: "Email",
                 hintText: "Enter your email",
                 icon: kaEmail,
@@ -151,57 +153,34 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  void showForgotPasswordScreen({required BuildContext context}){
-    showModalBottomSheet(
-      barrierColor: Colors.black.withAlpha(180),
-        context: context,
-        isScrollControlled: true,
-        builder: (context){
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 60,
-                ),
-                Text("Forgot Password", style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 20,
-                  color: Colors.black
-                ),),
-                SizedBox(
-                  height: 15,
-                ),
-                Align(
-                    alignment: Alignment.topLeft,
-                    child: Text("A verification link will be sent to your email to reset your password.", style: kfBodyMedium.copyWith(color: kcGrey400),)),
-                SizedBox(
-                  height: 30,
-                ),
-                CustomTextfield(title: "Email", hintText: "My Email", icon: kaEmail, controller: controller.forgotPasswordEmailController, keyboardType: TextInputType.emailAddress,),
-                SizedBox(
-                  height: 35,
-                ),
-                Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : MainButton(label: "Send Email", onTap: (){}, buttonSize: ButtonSize.lg,)),
-                SizedBox(
-                  height: 30,
-                ),
-              ],
-            ),
+  void showForgotPasswordScreen({required BuildContext context}) {
+    showCustomBottomSheet(
+      context: context,
+      title: "Forgot Password",
+      description: "A verification link will be sent to your email to reset your password.",
+      topIconAsset: kaForgotPasswordTop,
+      showSecondaryButton: false,
+      additionalContent: CustomTextField(
+        title: "Email",
+        hintText: "My Email",
+        icon: kaEmail,
+        controller: controller.forgotPasswordEmailController,
+        keyboardType: TextInputType.emailAddress,
+      ),
+      primaryButton: Obx(
+            () => controller.isLoading.value
+            ? Center(
+          child: CircularProgressIndicator(
+            strokeCap: StrokeCap.round,
+            color: kcPurple600,
           ),
-          Positioned(
-              left: 0,
-              right: 0,
-              top: -50,
-              child: SvgPicture.asset(kaForgotPasswordTop))
-        ],
-      );
-    });
+        )
+            : MainButton(
+          label: "Send Email",
+          onTap: () {},
+          buttonSize: ButtonSize.lg,
+        ),
+      ),
+    );
   }
 }

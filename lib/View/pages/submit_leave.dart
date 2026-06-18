@@ -10,6 +10,7 @@ import 'package:insta_attend/Controller/leave_controller.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../Constant/constant_font.dart';
+import '../../Utils/bottom_sheet_helper.dart';
 
 class SubmitLeave extends StatelessWidget {
   SubmitLeave({super.key});
@@ -97,7 +98,7 @@ class SubmitLeave extends StatelessWidget {
             SizedBox(
               height: 15,
             ),
-            Obx(()=>CustomTextfield(title: "Leave Duration", hintText: convertDuration(controller.fromDate.value, controller.toDate.value), icon: kaDuration, controller: TextEditingController(), isDisabled: true, onTap: ()=>showDurationRangeDialog(context),))
+            Obx(()=>CustomTextField(title: "Leave Duration", hintText: convertDuration(controller.fromDate.value, controller.toDate.value), icon: kaDuration, controller: TextEditingController(), isDisabled: true, onTap: ()=>showDurationRangeDialog(context),))
           ],
         ),
       ),
@@ -176,63 +177,25 @@ class SubmitLeave extends StatelessWidget {
   }
 
 
-  void showConfirmationDialogue(BuildContext  context){
-    showModalBottomSheet(
-        barrierColor: Colors.black.withAlpha(180),
-        context: context,
-        isScrollControlled: true,
-        builder: (context){
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 60,
-                    ),
-                    Text("Submit Leave", style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: Colors.black
-                    ),),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("Double-check your leave details to ensure everything is correct. Do you want to proceed?", style: kfBodyMedium.copyWith(color: kcGrey400),)),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    SizedBox(
-                      height: 45,
-                        width: MediaQuery.of(context).size.width,
-                        child: Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : main.MainButton(label: "Submit Leave", onTap: ()=>controller.requestLeave(context)))),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    SizedBox(
-                      height: 45,
-                        width: MediaQuery.of(context).size.width,
-                        child: CustomButton(label: "No, Let me check", onPressed: ()=>Navigator.pop(context), hierarchy: ButtonHierarchy.secondary,)),
-                    SizedBox(
-                      height: 30,
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                  left: 0,
-                  right: 0,
-                  top: -50,
-                  child: SvgPicture.asset(kaSubmitLeaveTop))
-            ],
-          );
-        });
+  void showConfirmationDialogue(BuildContext context) {
+    showCustomBottomSheet(
+      context: context,
+      title: "Submit Leave",
+      description: "Double-check your leave details to ensure everything is correct. Do you want to proceed?",
+      topIconAsset: kaSubmitLeaveTop,
+      primaryButton: Obx(
+            () => controller.isLoading.value
+            ? Center(
+          child: CircularProgressIndicator(
+            strokeCap: StrokeCap.round,
+            color: kcPurple600,
+          ),
+        )
+            : main.MainButton(
+          label: "Submit Leave",
+          onTap: () => controller.requestLeave(context),
+        ),
+      ),
+    );
   }
 }

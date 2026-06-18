@@ -116,7 +116,7 @@ class CreateExpense extends StatelessWidget {
             SizedBox(height: 15),
 
             // Amount Field
-            CustomTextfield(
+            CustomTextField(
               title: "Amount",
               hintText: "Enter amount",
               icon: kaExpenseIcon,
@@ -128,7 +128,7 @@ class CreateExpense extends StatelessWidget {
 
             // Expense Date Field
             Obx(
-                  () => CustomTextfield(
+                  () => CustomTextField(
                 title: "Expense Date",
                 hintText: controller.expenseDate.value.isNotEmpty
                     ? formatDate(controller.expenseDate.value)

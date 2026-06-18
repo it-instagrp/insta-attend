@@ -7,10 +7,9 @@ import 'package:insta_attend/View/pages/office_asset_page.dart';
 import 'package:insta_attend/View/pages/personal_data_page.dart';
 import 'package:insta_attend/View/pages/versioning_page.dart';
 import '../../Component/Button/custom_button.dart';
-import '../../Component/Button/main_button.dart' as main;
 import '../../Constant/constant_asset.dart';
 import '../../Constant/constant_color.dart';
-import '../../Constant/constant_font.dart';
+import '../../Utils/bottom_sheet_helper.dart';
 
 class ProfilePage extends StatelessWidget {
   ProfilePage({super.key});
@@ -435,64 +434,29 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  void showLogoutConfirmation(BuildContext context){
-    showModalBottomSheet(
-        barrierColor: Colors.black.withAlpha(180),
-        context: context,
-        isScrollControlled: true,
-        builder: (context){
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 60,
-                    ),
-                    Text("Are you sure?", style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: Colors.black
-                    ),),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("If you logout you have to login again with your credentials, make sure you remember your login credentials", style: kfBodyMedium.copyWith(color: kcGrey400),)),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    SizedBox(
-                        height: 45,
-                        width: MediaQuery.of(context).size.width,
-                        child: Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : CustomButton(label: "Yes, Logout", onPressed: ()=>controller.logout(context), destructive: true,))),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    SizedBox(
-                        height: 45,
-                        width: MediaQuery.of(context).size.width,
-                        child: CustomButton(label: "No, Keep me here", onPressed: ()=>Navigator.pop(context), hierarchy: ButtonHierarchy.secondary, destructive: true,)),
-                    SizedBox(
-                      height: 30,
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                  left: 0,
-                  right: 0,
-                  top: -50,
-                  child: SvgPicture.asset(kaLogoutTop))
-            ],
-          );
-        });
+  void showLogoutConfirmation(BuildContext context) {
+    showCustomBottomSheet(
+      context: context,
+      title: "Are you sure?",
+      description: "If you logout you have to login again with your credentials, make sure you remember your login credentials",
+      topIconAsset: kaLogoutTop,
+      primaryButton: Obx(
+            () => controller.isLoading.value
+            ? Center(
+          child: CircularProgressIndicator(
+            strokeCap: StrokeCap.round,
+            color: kcPurple600,
+          ),
+        )
+            : CustomButton(
+          label: "Yes, Logout",
+          onPressed: () => controller.logout(context),
+          destructive: true,
+        ),
+      ),
+      secondaryButtonLabel: "No, Keep me here",
+      isSecondaryDestructive: true,
+    );
   }
 
 }

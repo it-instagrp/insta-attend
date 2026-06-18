@@ -71,7 +71,7 @@ class RegisterPage extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 25),
-                      CustomTextfield(
+                      CustomTextField(
                         title: "Full Name",
                         hintText: "Enter your name",
                         icon: kaPerson,
@@ -79,7 +79,7 @@ class RegisterPage extends StatelessWidget {
                         keyboardType: TextInputType.text,
                       ),
                       SizedBox(height: 15),
-                      CustomTextfield(
+                      CustomTextField(
                         title: "Email",
                         hintText: "Enter your email",
                         icon: kaEmail,
@@ -88,7 +88,7 @@ class RegisterPage extends StatelessWidget {
                         validator: controller.validateEmail,
                       ),
                       SizedBox(height: 15),
-                      CustomTextfield(
+                      CustomTextField(
                         title: "Phone Number",
                         hintText: "Enter your phone number",
                         icon: kaPhone,

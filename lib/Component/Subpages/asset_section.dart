@@ -27,23 +27,23 @@ class AssetSection extends StatelessWidget {
           SizedBox(
             height: 10.0,
           ),
-          CustomTextfield(title: "Asset Name", hintText: "Asset Name", icon: kaAssetNameIcon, controller: TextEditingController(text: asset.assetName), isDisabled: true,),
+          CustomTextField(title: "Asset Name", hintText: "Asset Name", icon: kaAssetNameIcon, controller: TextEditingController(text: asset.assetName), isDisabled: true,),
           SizedBox(
             height: 10.0,
           ),
-          CustomTextfield(title: "Asset Brand", hintText: "Asset Brand", icon: kaAssetBrandIcon, controller: TextEditingController(text: asset.assetBrand), isDisabled: true,),
+          CustomTextField(title: "Asset Brand", hintText: "Asset Brand", icon: kaAssetBrandIcon, controller: TextEditingController(text: asset.assetBrand), isDisabled: true,),
           SizedBox(
             height: 10.0,
           ),
-          CustomTextfield(title: "Warranty Status", hintText: "Warranty Status", icon: kaWarrantyIcon, controller: TextEditingController(text: asset.assetWarrantyStatus), isDisabled: true,),
+          CustomTextField(title: "Warranty Status", hintText: "Warranty Status", icon: kaWarrantyIcon, controller: TextEditingController(text: asset.assetWarrantyStatus), isDisabled: true,),
           SizedBox(
             height: 10.0,
           ),
-          CustomTextfield(title: "Allotted Date", hintText: "Allotted Date", icon: kaAllottedDateIcon, controller: TextEditingController(text: formatedDate(asset.allotedDate ?? (DateTime.now()).toString())), isDisabled: true,),
+          CustomTextField(title: "Allotted Date", hintText: "Allotted Date", icon: kaAllottedDateIcon, controller: TextEditingController(text: formatedDate(asset.allotedDate ?? (DateTime.now()).toString())), isDisabled: true,),
           SizedBox(
             height: 10.0,
           ),
-          CustomTextfield(title: "Return Date", hintText: "Return Date", icon: kaReturnDateIcon, controller: TextEditingController(text: formatedDate(asset.returnDate ?? "NA")), isDisabled: true,),
+          CustomTextField(title: "Return Date", hintText: "Return Date", icon: kaReturnDateIcon, controller: TextEditingController(text: formatedDate(asset.returnDate ?? "NA")), isDisabled: true,),
         ],
       ),
     );
