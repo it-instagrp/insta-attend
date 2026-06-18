@@ -107,6 +107,7 @@ class RegisterPage extends StatelessWidget {
                         },
                       ),
                       SizedBox(height: 15),
+                      // Department Dropdown Implementation
                       Obx(() => controller.isDropDownLoading.value
                           ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600))
                           : CustomDropDown(
@@ -121,8 +122,11 @@ class RegisterPage extends StatelessWidget {
                         hintText: 'Select Department',
                         title: 'Department',
                         isField: true,
+                        hasError: controller.selectedDepartment.value.isEmpty && controller.isLoading.value,
                       )),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
+
+                      // Designation Dropdown Implementation
                       Obx(() => controller.isDropDownLoading.value
                           ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600))
                           : CustomDropDown(
@@ -137,6 +141,7 @@ class RegisterPage extends StatelessWidget {
                         hintText: 'Select Designation',
                         title: 'Designation',
                         isField: true,
+                        hasError: controller.selectedDesignation.value.isEmpty && controller.isLoading.value,
                       )),
                       SizedBox(height: 15),
                       CustomPasswordField(
@@ -186,10 +191,12 @@ class RegisterPage extends StatelessWidget {
                           : MainButton(
                         label: "Register",
                         onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            if (controller.validateRegisterForm(context)) {
-                              controller.register(context);
-                            }
+                          // Rule evaluation sequence correction
+                          final isCustomFormValid = controller.validateRegisterForm(context);
+                          final isInputFormValid = _formKey.currentState!.validate();
+
+                          if (isCustomFormValid && isInputFormValid) {
+                            controller.register(context);
                           }
                         },
                         buttonSize: ButtonSize.xl,

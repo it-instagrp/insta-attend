@@ -56,6 +56,18 @@ class AuthController extends GetxController {
     return null;
   }
 
+  bool validateName() {
+    if(usernameController.text.trim().isEmpty){
+      showError("Please enter full name");
+      return true;
+    }
+    if(usernameController.text.trim().split(" ").length < 2){
+      showError("Please enter first name and last name");
+      return true;
+    }
+    return false;
+  }
+
 
   Future<void> pickAndScanFace(BuildContext context) async {
     // Navigate to the FaceScannerPage for high-quality embedding extraction
@@ -72,35 +84,32 @@ class AuthController extends GetxController {
   }
 
   bool validateRegisterForm(BuildContext context) {
-    isLoading.value = true;
-    if (usernameController.text.trim().isEmpty) {
-      showError("Please enter your name");
-      isLoading.value = false;
+    if (validateName()) {
       return false;
     } else if (emailController.text.trim().isEmpty) {
       showError("Please enter your email");
-      isLoading.value = false;
       return false;
     } else if (phoneController.text.trim().isEmpty) {
       showError("Please enter your phone number");
-      isLoading.value = false;
+      return false;
+    } else if(selectedDepartment.value == "") {
+      showError("Please select your department");
+      return false;
+    } else if(selectedDepartment.value == "") {
+      showError("Please select your designation");
       return false;
     } else if (passwordController.text.trim().isEmpty) {
       showError("Please enter your password");
-      isLoading.value = false;
       return false;
     } else if (confirmPasswordController.text.trim().isEmpty) {
       showError("Please confirm your password");
-      isLoading.value = false;
       return false;
     } else if (passwordController.text.trim() !=
         confirmPasswordController.text.trim()) {
       showError("Password do not match");
-      isLoading.value = false;
       return false;
     } else if (!isConsentGiven.value) {
       showError("Please accept the terms & conditions");
-      isLoading.value = false;
       return false;
     } else {
       return true;
