@@ -12,7 +12,8 @@ class CustomTextField extends StatelessWidget {
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
-  const CustomTextField({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap, this.keyboardType = TextInputType.text, this.maxLength, this.validator, this.inputFormatters,});
+  final void Function(String)? onChanged;
+  const CustomTextField({super.key, required this.title, required this.hintText, required this.icon, required this.controller, this.isDisabled = false, this.onTap, this.keyboardType = TextInputType.text, this.maxLength, this.validator, this.inputFormatters, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +39,8 @@ class CustomTextField extends StatelessWidget {
             maxLength: maxLength,
             validator: validator,
             inputFormatters: inputFormatters,
+            onChanged: onChanged,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
