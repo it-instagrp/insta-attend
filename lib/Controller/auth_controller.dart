@@ -35,6 +35,7 @@ class AuthController extends GetxController {
   RxList<Department> departmentList = <Department>[].obs;
   RxList<Designation> designationList = <Designation>[].obs;
   RxList<double> newFaceEmbedding = <double>[].obs;
+  RxBool isLoginFormValid = false.obs;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
@@ -54,6 +55,19 @@ class AuthController extends GetxController {
       return "Please enter valid email";
     }
     return null;
+  }
+
+  String? validatePassword(String? value) {
+    if (value == null || value.trim().isEmpty){
+      return "Please enter your password";
+    }
+    return null;
+  }
+
+  void checkLoginFormValidity() {
+    final emailValid = validateEmail(emailController.text) == null;
+    final passwordValid = validatePassword(passwordController.text) == null;
+    isLoginFormValid.value = emailValid && passwordValid;
   }
 
 

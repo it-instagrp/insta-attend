@@ -53,7 +53,7 @@ class MainButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: buttonType == ButtonType.disabled ? null : onTap,
       splashColor: Colors.transparent,
       child: Container(
         alignment: Alignment.center,

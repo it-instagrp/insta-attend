@@ -7,7 +7,9 @@ import 'package:insta_attend/Constant/constant_color.dart';
 class CustomPasswordField extends StatelessWidget {
   final String title, hintText;
   final TextEditingController controller;
-  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller});
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller, this.validator, this.onChanged});
 
   RxBool isObscure = true.obs;
 
@@ -30,6 +32,9 @@ class CustomPasswordField extends StatelessWidget {
           Obx(()=>TextFormField(
             obscureText: isObscure.value,
             controller: controller,
+            validator: validator,
+            onChanged: onChanged,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),

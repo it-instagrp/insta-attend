@@ -69,32 +69,37 @@ class LoginPage extends StatelessWidget {
                 controller: controller.emailController,
                 keyboardType: TextInputType.emailAddress,
                 validator: controller.validateEmail,
+                onChanged: (_) => controller.checkLoginFormValidity(),
               ),
               SizedBox(height: 15),
               CustomPasswordField(
                 title: "Password",
                 hintText: "My Password",
                 controller: controller.passwordController,
+                validator: controller.validatePassword,
+                onChanged: (_) => controller.checkLoginFormValidity(),
               ),
               SizedBox(height: 20),
               Obx(
-                    () =>
-                controller.isLoading.value
+                    () => controller.isLoading.value
                     ? Center(
                   child: CircularProgressIndicator(
                     strokeCap: StrokeCap.round,
                     color: kcPurple500,
                   ),
                 )
-                    : MainButton(
+                    : Obx(() => MainButton(                               // WRAP in Obx
                   label: "Login",
+                  buttonType: controller.isLoginFormValid.value
+                      ? ButtonType.normal
+                      : ButtonType.disabled,                          // ADD
                   onTap: () {
-                    if(_formKey.currentState!.validate()){
+                    if (_formKey.currentState!.validate()) {
                       controller.login(context);
                     }
                   },
                   buttonSize: ButtonSize.xl,
-                ),
+                )),
               ),
               SizedBox(height: 30,),
               Row(
