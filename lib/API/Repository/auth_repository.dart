@@ -6,6 +6,7 @@ import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api_client.dart';
+import 'package:insta_attend/API/DTO/Request/forgot_password_request_dto.dart';
 
 class AuthRepository {
   final ApiClient apiClient;
@@ -40,6 +41,10 @@ class AuthRepository {
 
   Future<Response> getDesignations() async{
     return await apiClient.getData(getDesignationUrl);
+  }
+
+  Future<Response> forgotPassword(ForgotPasswordRequestDto request) async{
+    return await apiClient.postData(forgotPasswordUrl, request.toJson());
   }
 
 }
