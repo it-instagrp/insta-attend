@@ -37,6 +37,12 @@ class AuthController extends GetxController {
   RxList<Designation> designationList = <Designation>[].obs;
   RxList<double> newFaceEmbedding = <double>[].obs;
   RxBool isLoginFormValid = false.obs;
+  RxBool isProfileFormValid = false.obs;
+  RxBool hasProfileChanges = false.obs;
+  RxString originalFirstName = "".obs;
+  RxString originalLastName= "".obs;
+  RxString originalEmail = "".obs;
+  RxString originalPhone = "".obs;
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
@@ -71,7 +77,62 @@ class AuthController extends GetxController {
     isLoginFormValid.value = emailValid && passwordValid;
   }
 
+  // validates first name/last name: required letters only, max 50 char.
 
+  String? validateName(String? value){
+    if (value == null || value.trim().isEmpty){
+      return "This Fild is required";
+    }
+    final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
+    if (!nameRegex.hasMatch(value.trim())) {
+      return "Name must contain only letters";
+    }
+    if (value.trim().length > 50){
+      return "Name is too long";
+    }
+    return null;
+  }
+
+  // validate Phone - required digits only, exact 10 digits
+
+  String? validatePhone(String? value){
+    if (value == null || value.trim().isEmpty){
+      return "Phone number is required";
+    }
+    final phoneRegex = RegExp(r'^[0-9]+$');
+    if (!phoneRegex.hasMatch(value.trim())){
+      return "Phone must contain only digits";
+    }
+    if (value.trim().length != 10){
+      return "Phone number must be 10 digits";
+    }
+    return null;
+  }
+  // personal data from state logic
+
+  void snapshotOriginalProfileData() {
+    originalFirstName.value = firstNameController.text.trim();
+    originalLastName.value = lastNameController.text.trim();
+    originalEmail.value = emailController.text.trim();
+    originalPhone.value = phoneController.text.trim();
+    hasProfileChanges.value = false;
+  }
+
+  // Re- runs all fields validators + change-detection.
+
+  void checkProfileFromValidity() {
+    final firstNameValid = validateName(firstNameController.text) == null;
+    final lastNameValid =  validateName(lastNameController.text) == null;
+    final emailValid = validateEmail(emailController.text) == null;
+    final phoneValid = validatePhone(phoneController.text) == null;
+    isProfileFormValid.value = firstNameValid && lastNameValid && emailValid && phoneValid;
+
+    hasProfileChanges.value =
+        firstNameController.text.trim() != originalFirstName.value ||
+        lastNameController.text.trim() != originalLastName.value ||
+        emailController.text.trim() != originalEmail.value ||
+        phoneController.text.trim() != originalPhone.value;
+  }
   Future<void> pickAndScanFace(BuildContext context) async {
     // Navigate to the FaceScannerPage for high-quality embedding extraction
     final dynamic result = await Get.to(() => const FaceScannerPage(isRegistration: true));
