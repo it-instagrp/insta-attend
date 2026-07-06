@@ -17,6 +17,7 @@ class LoginPage extends StatelessWidget {
 
   final AuthController controller = Get.find<AuthController>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _forgotPasswordFormKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -165,12 +166,16 @@ class LoginPage extends StatelessWidget {
       description: "A verification link will be sent to your email to reset your password.",
       topIconAsset: kaForgotPasswordTop,
       showSecondaryButton: false,
-      additionalContent: CustomTextField(
-        title: "Email",
-        hintText: "My Email",
-        icon: kaEmail,
-        controller: controller.forgotPasswordEmailController,
-        keyboardType: TextInputType.emailAddress,
+      additionalContent: Form(
+        key: _forgotPasswordFormKey,
+        child: CustomTextField(
+          title: "Email",
+          hintText: "My Email",
+          icon: kaEmail,
+          controller: controller.forgotPasswordEmailController,
+          keyboardType: TextInputType.emailAddress,
+          validator: controller.validateEmail,
+        ),
       ),
       primaryButton: Obx(
             () => controller.isLoading.value
@@ -182,7 +187,11 @@ class LoginPage extends StatelessWidget {
         )
             : MainButton(
           label: "Send Email",
-          onTap: () {},
+          onTap: () {
+            if (_forgotPasswordFormKey.currentState!.validate()){
+              controller.forgotPassword(context);
+            }
+          },
           buttonSize: ButtonSize.lg,
         ),
       ),

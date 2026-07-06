@@ -17,6 +17,7 @@ import '../Model/department.dart';
 import '../Model/designation.dart';
 import '../Utils/fcm_service.dart';
 import '../View/pages/face_scanner_page.dart';
+import 'package:insta_attend/API/DTO/Request/forgot_password_request_dto.dart';
 
 class AuthController extends GetxController {
   final AuthRepository authRepo;
@@ -97,6 +98,14 @@ class AuthController extends GetxController {
       return false;
     } else if (phoneController.text.trim().isEmpty) {
       showError("Please enter your phone number");
+      isLoading.value = false;
+      return false;
+    } else if (selectedDepartment.value.isEmpty){
+      showError("Please select your department");
+      isLoading.value = false;
+      return false;
+    } else if (selectedDesignation.value.isEmpty) {
+      showError("Please select your designation");
       isLoading.value = false;
       return false;
     } else if (passwordController.text.trim().isEmpty) {
@@ -247,7 +256,25 @@ class AuthController extends GetxController {
   }
 
   Future<void> forgotPassword(BuildContext context) async {
-    //To be implemented in backend
+    isLoading.value = true;
+    try {
+      final ForgotPasswordRequestDto request = ForgotPasswordRequestDto(
+        email:  forgotPasswordEmailController.text.trim(),
+      );
+      Response response = await authRepo.forgotPassword(request);
+      if(response.statusCode == 200){
+        Get.back();
+        showSuccess(response.body['message'] ?? "If account exists, a reset link has been sent");
+        forgotPasswordEmailController.clear();
+      } else {
+        showError(response.body['message'] ?? "Unable to send reset link");
+      }
+    } catch (err) {
+      showError("Something went wrong");
+      if (kDebugMode) print("Exception in forgotPassword: ${err.toString()}");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> logout(BuildContext context) async {
