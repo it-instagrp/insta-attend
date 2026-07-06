@@ -9,6 +9,8 @@ import 'package:get/get.dart';
 
 import '../../Component/Button/custom_button.dart';
 import '../../Constant/constant_font.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class PersonalDataPage extends StatelessWidget {
   PersonalDataPage({super.key});
@@ -34,14 +36,17 @@ class PersonalDataPage extends StatelessWidget {
                       color: kcPurple600,
                     ),
                   )
-              // button now reflects live validity + change state
+                  // button now reflects live validity + change state
                   : main.MainButton(
                     label: "Update",
-                    buttonType: (controller.isProfileFormValid.value && controller.hasProfileChanges.value)
-                          ? main.ButtonType.normal
-                          : main.ButtonType.disabled,
+                    buttonType:
+                        (controller.isProfileFormValid.value &&
+                                controller.hasProfileChanges.value)
+                            ? main.ButtonType.normal
+                            : main.ButtonType.disabled,
                     onTap: () {
-                      if(_formKey.currentState!.validate() && controller.hasProfileChanges.value){
+                      if (_formKey.currentState!.validate() &&
+                          controller.hasProfileChanges.value) {
                         showUpdateConfirmation(context);
                       }
                     },
@@ -86,7 +91,7 @@ class PersonalDataPage extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           child: Form(
-            key:  _formKey,
+            key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -112,9 +117,7 @@ class PersonalDataPage extends StatelessWidget {
                 ),
                 /**** Profile Picture ****/
                 InkWell(
-                  onTap: () {
-                    controller.pickAndScanFace(context);
-                  },
+                  onTap: () => _showImageSourcePicker(context),
                   child: SizedBox(
                     width: 150,
                     child: Stack(
@@ -124,20 +127,31 @@ class PersonalDataPage extends StatelessWidget {
                           alignment: Alignment.center,
                           child: Column(
                             children: [
-                              Container(
-                                height: 100,
-                                width: 100,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  border: Border.all(
-                                    width: 2,
-                                    color: Colors.white,
+                              Obx(
+                                () => Container(
+                                  height: 100,
+                                  width: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    border: Border.all(
+                                      width: 2,
+                                      color: Colors.white,
+                                    ),
+                                    color: kcPurple600,
                                   ),
-                                  color: kcPurple600,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.asset(kaProfile),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child:
+                                        controller.pickedProfileImage.value !=
+                                                null
+                                            ? Image.file(
+                                              controller
+                                                  .pickedProfileImage
+                                                  .value!,
+                                              fit: BoxFit.cover,
+                                            )
+                                            : Image.asset(kaProfile),
+                                  ),
                                 ),
                               ),
                               Text(
@@ -151,7 +165,10 @@ class PersonalDataPage extends StatelessWidget {
                               Text(
                                 "Format should be in .jpeg .png atleast 800x800px and less than 5MB",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 10, color: kcGrey500),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: kcGrey500,
+                                ),
                               ),
                             ],
                           ),
@@ -159,21 +176,18 @@ class PersonalDataPage extends StatelessWidget {
                         Positioned(
                           top: -10,
                           right: 15,
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Container(
-                              height: 30,
-                              width: 30,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: kcPurple500,
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                  size: 15,
-                                ),
+                          child: Container(
+                            height: 30,
+                            width: 30,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: kcPurple500,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 15,
                               ),
                             ),
                           ),
@@ -198,7 +212,7 @@ class PersonalDataPage extends StatelessWidget {
                   icon: kaPerson,
                   controller: controller.lastNameController,
                   validator: controller.validateName,
-                  onChanged:  (_) => controller.checkProfileFromValidity(),
+                  onChanged: (_) => controller.checkProfileFromValidity(),
                 ),
                 SizedBox(height: 10.0),
                 CustomTextField(
@@ -206,7 +220,7 @@ class PersonalDataPage extends StatelessWidget {
                   hintText: "Enter Email",
                   icon: kaEmail,
                   controller: controller.emailController,
-                  validator:  controller.validateEmail,
+                  validator: controller.validateEmail,
                   onChanged: (_) => controller.checkProfileFromValidity(),
                   keyboardType: TextInputType.emailAddress,
                 ),
@@ -239,63 +253,121 @@ class PersonalDataPage extends StatelessWidget {
     controller.snapshotOriginalProfileData();
   }
 
-  void showUpdateConfirmation(BuildContext context){
+  void showUpdateConfirmation(BuildContext context) {
     showModalBottomSheet(
-        barrierColor: Colors.black.withAlpha(180),
-        context: context,
-        isScrollControlled: true,
-        builder: (context){
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 60,
+      barrierColor: Colors.black.withAlpha(180),
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: 30),
+                  Text(
+                    "Update Profile",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      color: Colors.black,
                     ),
-                    Text("Update Profile", style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: Colors.black
-                    ),),
-                    SizedBox(
-                      height: 15,
+                  ),
+                  SizedBox(height: 15),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.",
+                      style: kfBodyMedium.copyWith(color: kcGrey400),
                     ),
-                    Align(
-                        alignment: Alignment.topLeft,
-                        child: Text("Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.", style: kfBodyMedium.copyWith(color: kcGrey400),)),
-                    SizedBox(
-                      height: 30,
+                  ),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    height: 45,
+                    width: MediaQuery.of(context).size.width,
+                    child: Obx(
+                      () =>
+                          controller.isLoading.value
+                              ? Center(
+                                child: CircularProgressIndicator(
+                                  strokeCap: StrokeCap.round,
+                                  color: kcPurple600,
+                                ),
+                              )
+                              : main.MainButton(
+                                label: "Yes, Update Profile",
+                                onTap: () => controller.updateProfile(context),
+                              ),
                     ),
-                    SizedBox(
-                        height: 45,
-                        width: MediaQuery.of(context).size.width,
-                        child: Obx(()=>controller.isLoading.value ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600,),) : main.MainButton(label: "Yes, Update Profile", onTap: ()=>controller.updateProfile(context)))),
-                    SizedBox(
-                      height: 20,
+                  ),
+                  SizedBox(height: 15),
+                  SizedBox(
+                    height: 45,
+                    width: MediaQuery.of(context).size.width,
+                    child: CustomButton(
+                      label: "No, Let me check",
+                      onPressed: () => Navigator.pop(context),
+                      hierarchy: ButtonHierarchy.secondary,
                     ),
-                    SizedBox(
-                        height: 45,
-                        width: MediaQuery.of(context).size.width,
-                        child: CustomButton(label: "No, Let me check", onPressed: ()=>Navigator.pop(context), hierarchy: ButtonHierarchy.secondary,)),
-                    SizedBox(
-                      height: 30,
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 20),
+                ],
               ),
-              Positioned(
-                  left: 0,
-                  right: 0,
-                  top: -50,
-                  child: SvgPicture.asset(kaUpdateTop))
-            ],
-          );
-        });
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: -40,
+              child: SvgPicture.asset(kaUpdateTop),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showImageSourcePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder:
+          (_) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 10),
+                Text(
+                  "Upload Profile Photo",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: 10),
+                ListTile(
+                  leading: Icon(Icons.camera_alt_rounded, color: kcPurple500),
+                  title: Text("Take a photo"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    controller.pickProfilePhoto(context, ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.photo_library_rounded, color: kcPurple500),
+                  title: const Text("Choose from Gallery"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    controller.pickProfilePhoto(context, ImageSource.gallery);
+                  },
+                ),
+                SizedBox(height: 10),
+              ],
+            ),
+          ),
+    );
   }
 }
