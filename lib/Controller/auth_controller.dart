@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,7 @@ import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/Repository/auth_repository.dart';
+import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/Model/User.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
@@ -148,6 +150,9 @@ class AuthController extends GetxController {
       }
 
       pickedProfileImage.value = finalFile;
+      if(pickedProfileImage.value!.path.isNotEmpty){
+        uploadProfilePicture(context);
+      }
       checkProfileFromValidity();
       hasProfileChanges.value = true;
     } catch (e) {
@@ -211,8 +216,7 @@ class AuthController extends GetxController {
         firstNameController.text.trim() != originalFirstName.value ||
         lastNameController.text.trim() != originalLastName.value ||
         emailController.text.trim() != originalEmail.value ||
-        phoneController.text.trim() != originalPhone.value ||
-        pickedProfileImage.value != null;
+        phoneController.text.trim() != originalPhone.value;
   }
 
   Future<void> pickAndScanFace(BuildContext context) async {
@@ -532,6 +536,38 @@ class AuthController extends GetxController {
       isLoading.value = false;
     }
   }
+
+   Future<void> uploadProfilePicture(BuildContext context) async{
+
+    /* Action Plan:
+    1. Process picked image to convert it into Xfile Multipart body with appropriate file key.
+    2. Call API with id and file.
+    3. Handle the response and update the UI accordingly.
+     */
+       try{
+         //Initialize loading screen
+         isLoading.value = true;
+
+         //Fetch User id from session using shared preference
+         final String userId = await authRepo.sharedPreferences.getString("uid") ?? "";
+
+         //Call API by passing user id and file
+         Response response = await authRepo.uploadProfilePicture(userId, MultipartBody("avatar", XFile(pickedProfileImage.value!.path)));
+
+         //Handle Response
+         if(response.statusCode == 200){
+           showSuccess("Profile picture updated successfully");
+         }
+       }catch(err){
+
+         //Exception toast message
+         showError("Something went wrong");
+         //Debug exception log
+         if(kDebugMode) log("Exception in upload profile picture", error: err);
+       }finally{
+         isLoading.value = false;
+       }
+     }
 
   void clearLoginForm() {
     emailController.clear();
