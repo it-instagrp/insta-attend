@@ -7,6 +7,7 @@ import 'package:insta_attend/API/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api_client.dart';
 import 'package:insta_attend/API/DTO/Request/forgot_password_request_dto.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthRepository {
   final ApiClient apiClient;
@@ -28,7 +29,14 @@ class AuthRepository {
   }
 
   Future<Response> updateProfile(UpdateProfileRequestDTO request, String userId) async{
-    return await apiClient.putData(profileUrl, request.toJson());
+    // added multipart file list - only adds photo if one was picked
+    final List<MultipartBody> multipartFiles = [];
+    if (request.profilePhoto != null) {
+      multipartFiles.add(
+        MultipartBody('avatar', XFile(request.profilePhoto!.path),),
+      );
+    }
+    return await apiClient.putMultipartData(profileUrl, request.toJson(), multipartFiles);
   }
 
   Future<Response> changePassword(ChangePasswordRequestDTO request) async{

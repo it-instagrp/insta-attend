@@ -1,12 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 
 class UpdateProfileRequestDTO {
   String? username;
   String? email;
   String? phoneNumber;
   List<double>? faceEmbedding;
+  File? profilePhoto;
 
-  UpdateProfileRequestDTO({this.username, this.email, this.phoneNumber, this.faceEmbedding});
+  UpdateProfileRequestDTO({this.username, this.email, this.phoneNumber, this.faceEmbedding, this.profilePhoto});
 
   UpdateProfileRequestDTO.fromJson(Map<String, dynamic> json) {
     username = json['username'];

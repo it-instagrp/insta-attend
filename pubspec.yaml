@@ -58,6 +58,7 @@ dependencies:
   image: ^4.7.2
   camera: ^0.12.0+1
   google_maps_flutter: ^2.17.1
+  image_cropper: ^7.0.5
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +88,8 @@ flutter:
     - assets/svg/
     - assets/model/
   #   - images/a_dot_ham.jpeg
+dependency_overrides:
+  web: ^1.1.1
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
