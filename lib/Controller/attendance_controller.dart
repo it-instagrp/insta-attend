@@ -374,7 +374,14 @@ class AttendanceController extends GetxController {
   Future<void> getMyWeekAttendance() async {
     try {
       isWeeklyAttendanceLoading.value = true;
-      final String userId = await attendanceRepo.sharedPreferences.getString("uid")?? "";
+      // CHANGED - use in-memory currentUser id first, fall back to SharedPreferences
+      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
+
+      // ADDED - skip the api call entirely if no valid userId is available
+      if(userId.isEmpty){
+        debugPrint("getMyWeekAttendance: userId is empty, skipping call");
+        return;
+      }
       Response response = await attendanceRepo.getWeeklyAttendance(userId);
       if (response.statusCode == 200) {
         final List<dynamic> attendanceData = response.body['data'] ?? [];
@@ -387,10 +394,11 @@ class AttendanceController extends GetxController {
         // 4. Assign the properly typed list to your reactive RxList variable
         weeklyAttendance.assignAll(parsedList);
       } else {
-        showError(response.body['message']);
+        // CHANGED - log instead of showing popup for a background fetch
+        debugPrint("getMyWeekAttendance failed: ${response.statusCode} - ${response.body}");
       }
     } catch (err) {
-      showError("Something went wrong");
+      debugPrint("Exception in get my weekly attendance: $err");
       log("Exception in get my weekly attendance", error: err);
     } finally {
       isWeeklyAttendanceLoading.value = false;
