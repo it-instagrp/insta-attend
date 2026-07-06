@@ -6,6 +6,7 @@ import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/Utils/bottom_sheet_helper.dart';
 
 import '../../Component/Button/custom_button.dart';
 import '../../Constant/constant_font.dart';
@@ -254,81 +255,24 @@ class PersonalDataPage extends StatelessWidget {
   }
 
   void showUpdateConfirmation(BuildContext context) {
-    showModalBottomSheet(
-      barrierColor: Colors.black.withAlpha(180),
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 30),
-                  Text(
-                    "Update Profile",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      "Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.",
-                      style: kfBodyMedium.copyWith(color: kcGrey400),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    height: 45,
-                    width: MediaQuery.of(context).size.width,
-                    child: Obx(
-                      () =>
-                          controller.isLoading.value
-                              ? Center(
-                                child: CircularProgressIndicator(
-                                  strokeCap: StrokeCap.round,
-                                  color: kcPurple600,
-                                ),
-                              )
-                              : main.MainButton(
-                                label: "Yes, Update Profile",
-                                onTap: () => controller.updateProfile(context),
-                              ),
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  SizedBox(
-                    height: 45,
-                    width: MediaQuery.of(context).size.width,
-                    child: CustomButton(
-                      label: "No, Let me check",
-                      onPressed: () => Navigator.pop(context),
-                      hierarchy: ButtonHierarchy.secondary,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                ],
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: -40,
-              child: SvgPicture.asset(kaUpdateTop),
-            ),
-          ],
-        );
-      },
-    );
+    showCustomBottomSheet(context: context, title: "Update Profile", description: "Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.", topIconAsset: kaUpdateTop, primaryButton: SizedBox(
+      height: 45,
+      width: MediaQuery.of(context).size.width,
+      child: Obx(
+            () =>
+        controller.isLoading.value
+            ? Center(
+          child: CircularProgressIndicator(
+            strokeCap: StrokeCap.round,
+            color: kcPurple600,
+          ),
+        )
+            : main.MainButton(
+          label: "Yes, Update Profile",
+          onTap: () => controller.updateProfile(context),
+        ),
+      ),
+    ));
   }
 
   void _showImageSourcePicker(BuildContext context) {

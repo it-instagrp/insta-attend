@@ -9,8 +9,8 @@ final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>()
 
 
 /**** URLs ****/
-final String appBaseUrl = "https://api.ams.instagrp.in/api/";
-// final String appBaseUrl = "http://192.168.1.24:8081/api/";
+// final String appBaseUrl = "https://api.ams.instagrp.in/api/";
+final String appBaseUrl = "http://192.168.1.28:8081/api/";
 
 //TODO
 // https://api.ams.instagrp.in/api/delete-my-account create this url page to host a html which will allow user to request deletion of his account
@@ -20,11 +20,13 @@ final String registerUrl = "auth/register";
 final String loginUrl = "auth/login";
 final String meUrl = "auth/me";
 final String profileUrl = "auth/profile";
+final String uploadProfilePictureUrl = "auth/avatar";
 final String forgotPasswordUrl = "auth/forgot-password";
 final String changePasswordUrl = "auth/change-password";
 final String getDesignationUrl = "designation";
 final String getDepartmentUrl = "department";
 final String updateProfileUrl = "users";
+
 
 
 /**** Attendance URLs ****/

@@ -26,7 +26,6 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
   bool _isCaptured = false;
   final FaceRecognitionService _recognitionService = FaceRecognitionService();
 
-  // Low-allocation reusable heap buffers
   late final Float32List _inputBuffer;
   late final List<List<double>> _outputBuffer;
   late final List<double> _cleanResultEmbedding;
@@ -38,11 +37,9 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
   Timer? _timeoutTimer;
   DateTime? _fallbackTimerStart;
 
-  // Strict optimization thresholds
-  static const double minFaceConfidence = 0.75;
-  static const int frameThrottleInterval = 3; // Process every 3rd frame
+  static const int frameThrottleInterval = 3;
   static const int inputSize = 112;
-  static const int outputDimensions = 192; // Dynamic MobileFaceNet configuration
+  static const int outputDimensions = 192;
 
   final FaceDetector _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
@@ -80,8 +77,8 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
 
   void _toggleWakelock(bool enable) {
     try {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
       if (enable) {
-        // Fallback channel matching clean system platform wake-locks securely
         const MethodChannel('plugins.flutter.io/sensors')
             .invokeMethod('keepOn', true)
             .catchError((_) {});
@@ -126,19 +123,17 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
 
     try {
       final inputImage = _convertCameraImage(image);
+      if (inputImage == null) {
+        _isProcessing = false;
+        return;
+      }
+
       final faces = await _faceDetector.processImage(inputImage);
 
       if (faces.isNotEmpty) {
         Face face = faces.first;
 
-        // Apply optimization 2: Minimum confidence validation threshold
-        if (face.boundingBox.width < 80 || face.boundingBox.height < 80) {
-          _isProcessing = false;
-          return;
-        }
-
-        // Filter extreme angles to guarantee high-fidelity extraction matrix match
-        if (face.headEulerAngleY! > 22 || face.headEulerAngleY! < -22) {
+        if (face.boundingBox.width < 60 || face.boundingBox.height < 60) {
           _isProcessing = false;
           return;
         }
@@ -151,7 +146,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
             _openEyeBaseline = (currentLeftEye + currentRightEye) / 2;
           }
 
-          double contextThreshold = (_openEyeBaseline! * 0.4).clamp(0.12, 0.28);
+          double contextThreshold = (_openEyeBaseline! * 0.45).clamp(0.12, 0.28);
           bool isEyeClosed = currentLeftEye < contextThreshold || currentRightEye < contextThreshold;
 
           if (isEyeClosed) {
@@ -177,8 +172,6 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       }
     } catch (e) {
       debugPrint("Detection Error: $e");
-    } catch (e) {
-      debugPrint("ML Kit Parsing Failure: $e");
     } finally {
       if (!_isCaptured) {
         _isProcessing = false;
@@ -199,12 +192,17 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
           angle: Platform.isAndroid ? 270 : 0,
         );
 
+        int x = face.boundingBox.left.toInt().clamp(0, fixedImage.width - 1);
+        int y = face.boundingBox.top.toInt().clamp(0, fixedImage.height - 1);
+        int w = face.boundingBox.width.toInt().clamp(1, fixedImage.width - x);
+        int h = face.boundingBox.height.toInt().clamp(1, fixedImage.height - y);
+
         croppedFace = img.copyCrop(
           fixedImage,
-          x: face.boundingBox.left.toInt(),
-          y: face.boundingBox.top.toInt(),
-          width: face.boundingBox.width.toInt(),
-          height: face.boundingBox.height.toInt(),
+          x: x,
+          y: y,
+          width: w,
+          height: h,
         );
 
         final embedding = _extractEmbeddingWithBufferReuse(croppedFace);
@@ -217,7 +215,6 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       _fallbackTimerStart = DateTime.now();
       _cameraController?.startImageStream(_processCameraImage);
     } finally {
-      // Apply optimization 4: Explicitly dispose/clear image structures from the Heap
       capturedImage?.clear();
       fixedImage?.clear();
       croppedFace?.clear();
@@ -225,10 +222,8 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
   }
 
   List<double> _extractEmbeddingWithBufferReuse(img.Image faceImage) {
-    // Resize image safely without assigning continuous arrays
     img.Image resized = img.copyResize(faceImage, width: inputSize, height: inputSize);
 
-    // Apply optimization 3: Reuse input buffer directly without structural re-allocations
     int pixelIndex = 0;
     for (int y = 0; y < inputSize; y++) {
       for (int x = 0; x < inputSize; x++) {
@@ -240,17 +235,13 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
     }
     resized.clear();
 
-    // Safely look up local interpreter configurations directly via public architecture instances
     final Interpreter? interpreterInstance = _recognitionService.getInterpreter();
     if (interpreterInstance == null) {
-      throw Exception("TFLite Interpreter is not initialized on current service context.");
+      throw Exception("TFLite Interpreter uninitialized.");
     }
 
-    // Direct, low-allocation execution matching native tensor shapes
-    final inputShape = _inputBuffer.reshape([1, inputSize, inputSize, 3]);
-    interpreterInstance.run(inputShape, _outputBuffer);
+    interpreterInstance.run(_inputBuffer.reshape([1, inputSize, inputSize, 3]), _outputBuffer);
 
-    // Reuse output extraction variables without running garbage collector loops
     double sumSq = 0.0;
     for (int i = 0; i < outputDimensions; i++) {
       double val = _outputBuffer[0][i];
@@ -260,7 +251,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
     double norm = sqrt(sumSq);
 
     for (int i = 0; i < outputDimensions; i++) {
-      _cleanResultEmbedding[i] /= norm;
+      _cleanResultEmbedding[i] /= (norm == 0 ? 1.0 : norm);
     }
 
     return _cleanResultEmbedding;
@@ -276,48 +267,88 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       final planeU = image.planes[1].bytes;
       final planeV = image.planes[2].bytes;
 
+      final int yRowStride = image.planes[0].bytesPerRow;
       final int uvRowStride = image.planes[1].bytesPerRow;
       final int uvPixelStride = image.planes[1].bytesPerPixel ?? 1;
 
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
+          final int yIndex = y * yRowStride + x;
           final int uvIndex = (y >> 1) * uvRowStride + (x >> 1) * uvPixelStride;
-          final int index = y * width + x;
 
-          if (index >= planeY.length || uvIndex >= planeU.length || uvIndex >= planeV.length) continue;
+          if (yIndex >= planeY.length || uvIndex >= planeU.length || uvIndex >= planeV.length) continue;
 
-          final yp = planeY[index];
+          final yp = planeY[yIndex];
           final up = planeU[uvIndex];
           final vp = planeV[uvIndex];
 
-          res.setPixelRgb(x, y, yp, up, vp);
+          int r = (yp + 1.370705 * (vp - 128)).round().clamp(0, 255);
+          int g = (yp - 0.337633 * (up - 128) - 0.698001 * (vp - 128)).round().clamp(0, 255);
+          int b = (yp + 1.732446 * (up - 128)).round().clamp(0, 255);
+
+          res.setPixelRgb(x, y, r, g, b);
         }
       }
       return res;
     } catch (e) {
-      debugPrint("Image Conversion Error: $e");
+      debugPrint("Hardware Conversion Error: $e");
       return null;
     }
   }
 
-  InputImage _convertCameraImage(CameraImage image) {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
+  // CORRECTED: Fixed hardware padding removal step manually rebuilds contiguous NV21 layout structure
+  InputImage? _convertCameraImage(CameraImage image) {
+    try {
+      final int width = image.width;
+      final int height = image.height;
 
-    return InputImage.fromBytes(
-      bytes: bytes,
-      metadata: InputImageMetadata(
-        size: Size(image.width.toDouble(), image.height.toDouble()),
-        rotation: InputImageRotationValue.fromRawValue(
-            _cameraController!.description.sensorOrientation) ??
-            InputImageRotation.rotation0deg,
-        format: Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888,
-        bytesPerRow: image.planes[0].bytesPerRow,
-      ),
-    );
+      final Uint8List yPlane = image.planes[0].bytes;
+      final Uint8List uPlane = image.planes[1].bytes;
+      final Uint8List vPlane = image.planes[2].bytes;
+
+      final int yStride = image.planes[0].bytesPerRow;
+      final int uvStride = image.planes[1].bytesPerRow;
+      final int uvPixelStride = image.planes[1].bytesPerPixel ?? 1;
+
+      final int totalNV21Length = width * height + (2 * ((width + 1) ~/ 2) * ((height + 1) ~/ 2));
+      final Uint8List nv21Buffer = Uint8List(totalNV21Length);
+
+      int idY = 0;
+      for (int y = 0; y < height; y++) {
+        int rowStart = y * yStride;
+        for (int x = 0; x < width; x++) {
+          nv21Buffer[idY++] = yPlane[rowStart + x];
+        }
+      }
+
+      int idUV = width * height;
+      final int uvHeight = (height + 1) ~/ 2;
+      final int uvWidth = (width + 1) ~/ 2;
+
+      for (int y = 0; y < uvHeight; y++) {
+        int uvRowStart = y * uvStride;
+        for (int x = 0; x < uvWidth; x++) {
+          int pixelOffset = x * uvPixelStride;
+          nv21Buffer[idUV++] = vPlane[uvRowStart + pixelOffset];
+          nv21Buffer[idUV++] = uPlane[uvRowStart + pixelOffset];
+        }
+      }
+
+      return InputImage.fromBytes(
+        bytes: nv21Buffer,
+        metadata: InputImageMetadata(
+          size: Size(width.toDouble(), height.toDouble()),
+          rotation: InputImageRotationValue.fromRawValue(
+              _cameraController!.description.sensorOrientation) ??
+              InputImageRotation.rotation0deg,
+          format: InputImageFormat.nv21,
+          bytesPerRow: width,
+        ),
+      );
+    } catch (e) {
+      debugPrint("MLKit Input Frame Conversion Error: $e");
+      return null;
+    }
   }
 
   @override

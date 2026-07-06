@@ -49,389 +49,387 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              height: MediaQuery.of(context).size.height * 0.80,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  topRight: Radius.circular(20.0),
-                ),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  /**** Profile Content ****/
-                  Positioned(
-                    top: 100,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          /**** CONTACT ****/
-                          Text(
-                            "CONTACT",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: kcGrey600,
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Container(
-                            width: MediaQuery.of(context).size.width - 30.0,
-                            padding: EdgeInsets.all(15.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                              color: kcGrey100,
-                            ),
-                            child: Column(
-                              children: [
-                                /**** Email ****/
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SvgPicture.asset(
-                                      kaEmailIcon,
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    SizedBox(width: 10.0),
-                                    Text(
-                                      controller.currentUser.value.email!,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: kcGrey500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                /**** Department ****/
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SvgPicture.asset(
-                                      kaLocationTick,
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    SizedBox(width: 10.0),
-                                    Text(
-                                      controller.currentUser.value.department?.departmentName ?? "NA",
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: kcGrey500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 20.0),
-                          /**** ACCOUNT ****/
-                          Text(
-                            "ACCOUNT",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: kcGrey600,
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Container(
-                            width: MediaQuery.of(context).size.width - 30.0,
-                            padding: EdgeInsets.all(15.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                              color: kcGrey100,
-                            ),
-                            child: Column(
-                              children: [
-                                /**** Personal Data ****/
-                                InkWell(
-                                  onTap: () {
-                                    Get.to(()=>PersonalDataPage(), transition: Transition.fade);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SvgPicture.asset(
-                                        kaPersonalData,
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "Personal Data",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                /**** Register Face ID Option ****/
-                                InkWell(
-                                  onTap: () {
-                                    controller.enrollUserFace(context);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.face_5_outlined,
-                                        size: 20,
-                                        color: kcPurple500,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "Register Face ID",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                /**** Office Assets ****/
-                                InkWell(
-                                  onTap: () {
-                                    Get.to(()=>OfficeAssetPage(), transition: Transition.fade);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SvgPicture.asset(
-                                        kaOfficeAsset,
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "Office Assets",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 20.0),
-                          /**** SETTINGS ****/
-                          Text(
-                            "SETTINGS",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: kcGrey600,
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Container(
-                            width: MediaQuery.of(context).size.width - 30.0,
-                            padding: EdgeInsets.all(15.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                              color: kcGrey100,
-                            ),
-                            child: Column(
-                              children: [
-                                /**** Change Password ****/
-                                InkWell(
-                                  onTap: () {
-                                    Get.to(()=>ChangePasswordPage(), transition: Transition.fade);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SvgPicture.asset(
-                                        kaChangePasswordIcon,
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "Change Password",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                /**** Versioning ****/
-                                InkWell(
-                                  onTap: () {
-                                    Get.to(()=>VersioningPage(), transition: Transition.fade);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SvgPicture.asset(
-                                        kaVersioning,
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "Versioning",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                /**** FAQ and Help ****/
-                                InkWell(
-                                  onTap: () => {},
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SvgPicture.asset(
-                                        kaFaq,
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "FAQ and Help",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 20.0,
-                                ),
-                                /**** Logout ****/
-                                InkWell(
-                                  onTap: () {
-                                    showLogoutConfirmation(context);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SvgPicture.asset(
-                                        kaLogout,
-                                        width: 20,
-                                        height: 20,
-                                      ),
-                                      SizedBox(width: 10.0),
-                                      Text(
-                                        "Logout",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: kcGrey500,
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-        
-                  /**** Profile Picture ****/
-                  Positioned(
-                      top: -50,
-                      left: 0,
-                      right: 0,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: [
-                            Container(
-                              height: 100,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(
-                                  width: 2,
-                                  color: Colors.white
-                                ),
-                                color: kcPurple600
-                              ),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.asset(kaProfile)),
-                            ),
-                            Text(controller.currentUser.value.username ?? "NA", style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black
-                            ),),
-                            Text(controller.currentUser.value.designation?.designationName ?? "NA", style: TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w500, color: kcPurple500
-                            ),),
-                          ],
-                        ),
-                      ))
-                ],
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: MediaQuery.of(context).size.height * 0.80,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.0),
+                topRight: Radius.circular(20.0),
               ),
             ),
-          ],
-        ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                /**** Profile Content ****/
+                Positioned(
+                  top: 100,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /**** CONTACT ****/
+                        Text(
+                          "CONTACT",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: kcGrey600,
+                          ),
+                        ),
+                        SizedBox(height: 10.0),
+                        Container(
+                          width: MediaQuery.of(context).size.width - 30.0,
+                          padding: EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            color: kcGrey100,
+                          ),
+                          child: Column(
+                            children: [
+                              /**** Email ****/
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SvgPicture.asset(
+                                    kaEmailIcon,
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                  SizedBox(width: 10.0),
+                                  Text(
+                                    controller.currentUser.value.email!,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: kcGrey500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              /**** Department ****/
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SvgPicture.asset(
+                                    kaLocationTick,
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                  SizedBox(width: 10.0),
+                                  Text(
+                                    controller.currentUser.value.department?.departmentName ?? "NA",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: kcGrey500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 20.0),
+                        /**** ACCOUNT ****/
+                        Text(
+                          "ACCOUNT",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: kcGrey600,
+                          ),
+                        ),
+                        SizedBox(height: 10.0),
+                        Container(
+                          width: MediaQuery.of(context).size.width - 30.0,
+                          padding: EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            color: kcGrey100,
+                          ),
+                          child: Column(
+                            children: [
+                              /**** Personal Data ****/
+                              InkWell(
+                                onTap: () {
+                                  Get.to(()=>PersonalDataPage(), transition: Transition.fade);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SvgPicture.asset(
+                                      kaPersonalData,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Personal Data",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              /**** Register Face ID Option ****/
+                              InkWell(
+                                onTap: () {
+                                  controller.enrollUserFace(context);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.face_5_outlined,
+                                      size: 20,
+                                      color: kcPurple500,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Register Face ID",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              /**** Office Assets ****/
+                              InkWell(
+                                onTap: () {
+                                  Get.to(()=>OfficeAssetPage(), transition: Transition.fade);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SvgPicture.asset(
+                                      kaOfficeAsset,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Office Assets",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 20.0),
+                        /**** SETTINGS ****/
+                        Text(
+                          "SETTINGS",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: kcGrey600,
+                          ),
+                        ),
+                        SizedBox(height: 10.0),
+                        Container(
+                          width: MediaQuery.of(context).size.width - 30.0,
+                          padding: EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            color: kcGrey100,
+                          ),
+                          child: Column(
+                            children: [
+                              /**** Change Password ****/
+                              InkWell(
+                                onTap: () {
+                                  Get.to(()=>ChangePasswordPage(), transition: Transition.fade);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SvgPicture.asset(
+                                      kaChangePasswordIcon,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Change Password",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              /**** Versioning ****/
+                              InkWell(
+                                onTap: () {
+                                  Get.to(()=>VersioningPage(), transition: Transition.fade);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SvgPicture.asset(
+                                      kaVersioning,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Versioning",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              /**** FAQ and Help ****/
+                              InkWell(
+                                onTap: () => {},
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SvgPicture.asset(
+                                      kaFaq,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "FAQ and Help",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20.0,
+                              ),
+                              /**** Logout ****/
+                              InkWell(
+                                onTap: () {
+                                  showLogoutConfirmation(context);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SvgPicture.asset(
+                                      kaLogout,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    SizedBox(width: 10.0),
+                                    Text(
+                                      "Logout",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: kcGrey500,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                /**** Profile Picture ****/
+                Positioned(
+                    top: -50,
+                    left: 0,
+                    right: 0,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 100,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.0),
+                              border: Border.all(
+                                width: 2,
+                                color: Colors.white
+                              ),
+                              color: kcPurple600
+                            ),
+                            child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10.0),
+                                child: Image.asset(kaProfile)),
+                          ),
+                          Text(controller.currentUser.value.username ?? "NA", style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black
+                          ),),
+                          Text(controller.currentUser.value.designation?.designationName ?? "NA", style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500, color: kcPurple500
+                          ),),
+                        ],
+                      ),
+                    ))
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

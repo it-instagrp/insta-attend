@@ -29,14 +29,11 @@ class AuthRepository {
   }
 
   Future<Response> updateProfile(UpdateProfileRequestDTO request, String userId) async{
-    // added multipart file list - only adds photo if one was picked
-    final List<MultipartBody> multipartFiles = [];
-    if (request.profilePhoto != null) {
-      multipartFiles.add(
-        MultipartBody('avatar', XFile(request.profilePhoto!.path),),
-      );
-    }
-    return await apiClient.putMultipartData(profileUrl, request.toJson(), multipartFiles);
+    return await apiClient.putData(profileUrl, request.toJson());
+  }
+
+  Future<Response> uploadProfilePicture(String userId, MultipartBody file) async{
+    return await apiClient.postMultipartData(uploadProfilePictureUrl, {}, [file]);
   }
 
   Future<Response> changePassword(ChangePasswordRequestDTO request) async{

@@ -3,12 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:insta_attend/Component/Button/main_button.dart' as main;
 import 'package:insta_attend/Component/Fields/custom_password_field.dart';
 import 'package:insta_attend/Constant/constant_asset.dart';
-import 'package:insta_attend/Constant/constant_color.dart'; .
+import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
-
-import '../../Component/Button/custom_button.dart';
-import '../../Constant/constant_font.dart';
 import '../../Utils/bottom_sheet_helper.dart';
 
 class ChangePasswordPage extends StatelessWidget {
