@@ -65,7 +65,7 @@ class AttendanceController extends GetxController {
       long.value = double.tryParse(positionArray[1]) ?? 0.0;
     } catch (err) {
       showError("Something went wrong");
-      debugPrint("Something went wrong: ${err.toString()}");
+      debugPrint("Exception in get lat long: ${err.toString()}");
     }
   }
 
