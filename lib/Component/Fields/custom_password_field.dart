@@ -9,7 +9,8 @@ class CustomPasswordField extends StatelessWidget {
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
-  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller, this.validator, this.onChanged});
+  final AutovalidateMode? autovalidateMode;
+  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller, this.validator, this.onChanged, this.autovalidateMode});
 
   RxBool isObscure = true.obs;
 
@@ -34,7 +35,7 @@ class CustomPasswordField extends StatelessWidget {
             controller: controller,
             validator: validator,
             onChanged: onChanged,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
+            autovalidateMode: autovalidateMode ?? AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),

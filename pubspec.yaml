@@ -90,6 +90,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
 dependency_overrides:
   web: ^1.1.1
+  package_info_plus: ^8.1.4
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
