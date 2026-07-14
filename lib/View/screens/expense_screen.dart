@@ -123,6 +123,7 @@ class ExpenseScreen extends StatelessWidget {
                         itemBuilder:
                             (context, index) => ExpenseHistoryCard(
                               expense: targetExpenses[index],
+                              onEdit: () => controller.startEditingExpense(targetExpenses[index]),
                             ),
                       );
                     }),
@@ -140,11 +141,10 @@ class ExpenseScreen extends StatelessWidget {
               color: Colors.white,
               child: MainButton(
                 label: "Create New Expense",
-                onTap:
-                    () => Get.to(
-                      () => CreateExpense(),
-                      transition: Transition.fade,
-                    ),
+                onTap: (){
+                  controller.clearForm();
+                  Get.to(() => CreateExpense(), transition: Transition.fade);
+                },
                 buttonSize: ButtonSize.sm,
               ),
             ),
