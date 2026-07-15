@@ -9,6 +9,7 @@ import 'package:insta_attend/firebase_options.dart';
 import 'API/app_constants.dart';
 import 'Utils/notification_service.dart';
 import 'package:toastification/toastification.dart';
+import 'package:insta_attend/View/pages/no_internet_gate.dart';
 
 // Top-level function to handle background/closed messages
 @pragma('vm:entry-point')
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
             textTheme: GoogleFonts.interTextTheme()
           ),
+          builder: (context, child) => NoInternetGate(child: child!),
           home: SplashScreen(),
         ),
     );
