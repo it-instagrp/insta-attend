@@ -69,90 +69,92 @@ class CreateExpense extends StatelessWidget {
           ),
         ),
       ),
-      body: Container(
-        margin: EdgeInsets.all(15.0),
-        padding: EdgeInsets.all(15.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.0),
-          color: Colors.white,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              isThreeLine: false,
-              horizontalTitleGap: 0,
-              title: Text(
-                "Fill Expense Information",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
+      body: SingleChildScrollView(
+        child: Container(
+          margin: EdgeInsets.all(15.0),
+          padding: EdgeInsets.all(15.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.0),
+            color: Colors.white,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                isThreeLine: false,
+                horizontalTitleGap: 0,
+                title: Text(
+                  "Fill Expense Information",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  "Information about expense details",
+                  style: TextStyle(fontSize: 12, color: kcGrey500),
                 ),
               ),
-              subtitle: Text(
-                "Information about expense details",
-                style: TextStyle(fontSize: 12, color: kcGrey500),
-              ),
-            ),
-
-            // Expense Type Dropdown
-            Align(
-              alignment: Alignment.topLeft,
-              child: Text(
-                "Expense Type",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: kcGrey600,
+        
+              // Expense Type Dropdown
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  "Expense Type",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: kcGrey600,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 5),
-            Obx(
-              () => CustomDropDown(
-                options: controller.expenseType,
-                onChanged: (value) {
-                  controller.selectedExpenseType.value = value ?? '';
-                },
-                hintText:
-                    controller.selectedExpenseType.value.isNotEmpty
-                        ? controller.selectedExpenseType.value
-                        : "Select Expense Type",
-                title: "Expense Type",
+              SizedBox(height: 5),
+              Obx(
+                () => CustomDropDown(
+                  options: controller.expenseType,
+                  onChanged: (value) {
+                    controller.selectedExpenseType.value = value ?? '';
+                  },
+                  hintText:
+                      controller.selectedExpenseType.value.isNotEmpty
+                          ? controller.selectedExpenseType.value
+                          : "Select Expense Type",
+                  title: "Expense Type",
+                ),
               ),
-            ),
-            SizedBox(height: 15),
-
-            // Amount Field
-            CustomTextField(
-              title: "Amount",
-              hintText: "Enter amount",
-              icon: kaExpenseIcon,
-              controller: controller.amountController,
-              isDisabled: false,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-            ),
-            SizedBox(height: 15),
-
-            // Expense Date Field
-            Obx(
-              () => CustomTextField(
-                title: "Expense Date",
-                hintText:
-                    controller.expenseDate.value.isNotEmpty
-                        ? formatDate(controller.expenseDate.value)
-                        : "Select Date",
-                icon: kaDuration,
-                controller: TextEditingController(),
-                isDisabled: true,
-                onTap: () => showDatePickerDialog(context),
+              SizedBox(height: 15),
+        
+              // Amount Field
+              CustomTextField(
+                title: "Amount",
+                hintText: "Enter amount",
+                icon: kaExpenseIcon,
+                controller: controller.amountController,
+                isDisabled: false,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
-            ),
-          ],
+              SizedBox(height: 15),
+        
+              // Expense Date Field
+              Obx(
+                () => CustomTextField(
+                  title: "Expense Date",
+                  hintText:
+                      controller.expenseDate.value.isNotEmpty
+                          ? formatDate(controller.expenseDate.value)
+                          : "Select Date",
+                  icon: kaDuration,
+                  controller: TextEditingController(),
+                  isDisabled: true,
+                  onTap: () => showDatePickerDialog(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
