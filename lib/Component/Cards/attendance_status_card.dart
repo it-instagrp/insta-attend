@@ -218,6 +218,8 @@ class WorkDurationProgressBar extends StatelessWidget {
   static const double _targetHours = 8.0;
 
   Color _progressColor(int totalMinutes) {
+    final targetMinutes = (_targetHours * 60).toInt();
+    if (totalMinutes > targetMinutes) return kcPurple500;
     if (totalMinutes < 4 * 60) return Colors.red;
     if (totalMinutes < 6 * 60) return Colors.yellow;
     return Colors.green;
@@ -247,8 +249,29 @@ class WorkDurationProgressBar extends StatelessWidget {
                 "Today's Work",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text(
-                '${_formatted(totalMinutes)} / ${_targetHours.toStringAsFixed(0)}h',
+              Row(
+                children: [
+                  if (totalMinutes > (_targetHours * 60).toInt())
+                    Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: kcPurple500.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        "Overtime",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: kcPurple500,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    '${_formatted(totalMinutes)} / ${_targetHours.toStringAsFixed(0)}h',
+                  ),
+                ],
               ),
             ],
           ),
