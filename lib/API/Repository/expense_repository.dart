@@ -3,6 +3,7 @@ import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/API/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ExpenseRepository {
   final ApiClient apiClient;
@@ -11,7 +12,14 @@ class ExpenseRepository {
   const ExpenseRepository({required this.sharedPreferences, required this.apiClient});
   
   Future<Response> createExpense(ExpenseRequestDTO request) async{
-    return await apiClient.postData(createExpenseUrl, request.toJson());
+    final List<MultipartBody> multipartFiles = [];
+    if (request.image != null){
+      multipartFiles.add(
+        MultipartBody('image', XFile(request.image!.path),
+        ),
+      );
+    }
+    return await apiClient.postMultipartData(createExpenseUrl, request.toJson(), multipartFiles);
   }
   
   Future<Response> getMyStats() async{

@@ -1,8 +1,10 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:insta_attend/API/DTO/Request/expense_request_dto.dart';
 import 'package:insta_attend/API/Repository/expense_repository.dart';
 import 'package:insta_attend/Model/expense.dart';
@@ -24,11 +26,34 @@ class ExpenseController extends GetxController {
   final List<String> expenseType = ["Travel", "Purchase", "Daily Allowance"];
   final RxString selectedExpenseType = ''.obs;
   RxInt expenseFilter = 0.obs; // 0: Review, 1: Approved, 2: Rejected
+  Rx<File?> pickedReceiptImage = Rx<File?>(null);
 
   final TextEditingController amountController = TextEditingController();
 
   Future<String> getUserId() async {
     return await expenseRepo.sharedPreferences.getString("uid") ?? "";
+  }
+  Future<void> pickReceiptImage(BuildContext context, ImageSource source) async{
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(source: source);
+      if (pickedFile == null) return;
+      final String extension = pickedFile.path.split('.').last.toLowerCase();
+      if(extension != 'jpg' && extension != 'jpeg' && extension != 'png'){
+        showError("Only JPG and PNG format are allowed");
+        return;
+      }
+      final int fileSizeInBytes = await File(pickedFile.path).length();
+      final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+      if (fileSizeInMB > 5){
+        showError("File size exceeds 5 MB: Image not uploaded");
+        return;
+      }
+      pickedReceiptImage.value = File(pickedFile.path);
+    } catch (e) {
+      debugPrint("Error picking receipt image: $e");
+      showError("Something went wrong while picking the image/file");
+    }
   }
 
   Future<void> createExpense() async {
@@ -50,6 +75,7 @@ class ExpenseController extends GetxController {
         expenseBy: userId,
         expenseDate: expenseDate.value,
         expenseStatus: "Pending",
+        image: pickedReceiptImage.value,
       );
 
       Response response = await expenseRepo.createExpense(request);
@@ -66,7 +92,7 @@ class ExpenseController extends GetxController {
         showError(response.body['message']);
       }
     } catch (err) {
-      showError("Something went wrong");
+      debugPrint("Exception in get my expenses: $err");
       if (kDebugMode) log("Exception in create expenses", error: err);
     } finally {
       isLoading.value = false;
@@ -106,7 +132,7 @@ class ExpenseController extends GetxController {
         showError(response.body['message']);
       }
     }catch(err){
-
+      debugPrint("Exception in getMyStats: $err");
     }finally{
       isLoading.value = false;
     }
@@ -116,6 +142,7 @@ class ExpenseController extends GetxController {
     amountController.clear();
     selectedExpenseType.value = '';
     expenseDate.value = '';
+    pickedReceiptImage.value = null;
   }
 
   List<Expense> get filteredExpenses {

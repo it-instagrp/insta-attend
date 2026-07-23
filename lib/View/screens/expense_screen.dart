@@ -10,6 +10,7 @@ import '../../Constant/constant_color.dart';
 import '../../Constant/constant_font.dart';
 import '../../Component/Cards/expense_history_card.dart';
 import '../../Component/Cards/no_content.dart';
+import 'package:insta_attend/Utils/responsive_size.dart';
 
 class ExpenseScreen extends StatelessWidget {
   ExpenseScreen({super.key});
@@ -18,6 +19,9 @@ class ExpenseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ResponsiveSize.init(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.getMyStats();
       controller.getMyExpense();
@@ -29,7 +33,7 @@ class ExpenseScreen extends StatelessWidget {
       child: Stack(
         children: [
           Container(
-            height: 250,
+            height: screenHeight * 0.28,
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(
               color: kcPurple500,
@@ -39,31 +43,27 @@ class ExpenseScreen extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            top: 70,
-            left: 0,
-            right: 0,
-            child: ListTile(
-              title: Text(
-                "Expense Summary",
-                style: kfHeadlineSmall.copyWith(color: Colors.white),
-              ),
-              subtitle: Text(
-                "Claim your expenses here",
-                style: kfLabelLarge.copyWith(color: kcPurple200),
-              ),
-              trailing: Image.asset(kaExpense),
-            ),
-          ),
+
           Positioned(
             left: 0,
             right: 0,
-            top: 150,
-            bottom: 70,
+            top: screenHeight * 0.08,
+            bottom: screenHeight * 0.08,
             child: Column(
               children: [
+                 ListTile(
+                    title: Text(
+                      "Expense Summary",
+                      style: kfHeadlineSmall.copyWith(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      "Claim your expenses here",
+                      style: kfLabelLarge.copyWith(color: kcPurple200),
+                    ),
+                    trailing: Image.asset(kaExpense),
+                  ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: EdgeInsets.symmetric(horizontal: 20.rw),
                   child: Obx(
                     () =>
                         controller.isLoading.value
@@ -84,19 +84,19 @@ class ExpenseScreen extends StatelessWidget {
                             ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.rh),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: EdgeInsets.symmetric(horizontal: 20.rw),
                   child: ToggleCard(
                     items: const ["Review", "Approved", "Rejected"],
                     onSelected:
                         (filter) => controller.expenseFilter.value = filter,
                   ),
                 ),
-                const SizedBox(height: 15),
+                 SizedBox(height: 15.rh),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: EdgeInsets.symmetric(horizontal: 20.rw),
                     child: Obx(() {
                       if (controller.isLoading.value) {
                         return const Center(
@@ -135,8 +135,8 @@ class ExpenseScreen extends StatelessWidget {
             bottom: 0,
             child: Container(
               width: MediaQuery.of(context).size.width,
-              height: 70,
-              padding: const EdgeInsets.all(10.0),
+              height: screenHeight * 0.08,
+              padding: EdgeInsets.all(10.rw),
               color: Colors.white,
               child: MainButton(
                 label: "Create New Expense",

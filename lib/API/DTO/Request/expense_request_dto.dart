@@ -1,16 +1,20 @@
+import 'dart:io';
 class ExpenseRequestDTO {
   String? expenseDate;
   String? expenseType;
   double? expenseAmount;
   String? expenseBy;
   String? expenseStatus;
+  File? image;
 
   ExpenseRequestDTO(
       {this.expenseDate,
         this.expenseType,
         this.expenseAmount,
         this.expenseBy,
-        this.expenseStatus});
+        this.expenseStatus,
+        this.image,
+      });
 
   ExpenseRequestDTO.fromJson(Map<String, dynamic> json) {
     expenseDate = json['expense_date'];

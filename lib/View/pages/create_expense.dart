@@ -10,6 +10,8 @@ import 'package:insta_attend/Controller/expense_controller.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../Constant/constant_font.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class CreateExpense extends StatelessWidget {
   CreateExpense({super.key});
@@ -178,6 +180,47 @@ class CreateExpense extends StatelessWidget {
     }
   }
 
+  void _showImageSourcePicker(BuildContext context){
+    showModalBottomSheet(context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (_) => SafeArea(
+          child: Column(
+           mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 10),
+              Text(
+                "Upload Receipt",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 10),
+              ListTile(
+                leading: Icon(Icons.camera_alt_rounded, color: kcPurple500,),
+                title: Text("Take a photo"),
+                onTap: () {
+                  Navigator.pop(context);
+                  controller.pickReceiptImage(context, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library_rounded, color: kcPurple500),
+                title: Text("Choose from gallery"),
+                onTap: (){
+                  Navigator.pop(context);
+                  controller.pickReceiptImage(context, ImageSource.gallery);
+                },
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
+        ),
+    );
+  }
+
   void showConfirmationDialogue(BuildContext context) {
     showModalBottomSheet(
       barrierColor: Colors.black.withAlpha(180),
@@ -204,6 +247,70 @@ class CreateExpense extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 15),
+                  Obx(() => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Receipt Image",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 5,),
+                      controller.pickedReceiptImage.value != null
+                      ? Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              controller.pickedReceiptImage.value!,
+                              height: 120,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            bottom: 5,
+                            child: InkWell(
+                              onTap: () => controller.pickedReceiptImage.value = null,
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.close, color: Colors.white, size: 16,),
+                              ),
+                            ),
+                          )
+                        ],
+                      ) : InkWell(
+                        onTap: () => _showImageSourcePicker(context),
+                        child: Container(
+                          height: 80,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: kcGrey400),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.upload_outlined, color: kcGrey400 ,),
+                              SizedBox(height: 5,),
+                              Text(
+                                "Upload Receipt",
+                                style: TextStyle(color: kcGrey400, fontSize: 12),
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  )),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
