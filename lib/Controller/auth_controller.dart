@@ -192,6 +192,19 @@ class AuthController extends GetxController {
     }
     return null;
   }
+
+  String? validateNewPassword (String? value) {
+    if (value == null || value.trim().isEmpty){
+      return "Please enter new password";
+    }
+    if (value.length < 6){
+      return "Password must be at least 6 characters";
+    }
+    if (value.length > 12){
+      return "Password must be at most 12 characters";
+    }
+    return null;
+  }
   // personal data from state logic
 
   void snapshotOriginalProfileData() {

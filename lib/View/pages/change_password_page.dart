@@ -12,6 +12,7 @@ class ChangePasswordPage extends StatelessWidget {
   ChangePasswordPage({super.key});
 
   final AuthController controller = Get.find<AuthController>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,9 @@ class ChangePasswordPage extends StatelessWidget {
               : main.MainButton(
             label: "Update Password",
             onTap: () {
-              showUpdateConfirmation(context);
+              if (_formKey.currentState!.validate()){
+                showUpdateConfirmation(context);
+              }
             },
           ),
         ),
@@ -75,34 +78,37 @@ class ChangePasswordPage extends StatelessWidget {
           color: Colors.white,
         ),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              /**** Page Title ****/
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                isThreeLine: false,
-                horizontalTitleGap: 0,
-                title: Text(
-                  "Change Password Form",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                /**** Page Title ****/
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  isThreeLine: false,
+                  horizontalTitleGap: 0,
+                  title: Text(
+                    "Change Password Form",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "Fill information to change your password",
+                    style: TextStyle(fontSize: 12, color: kcGrey500),
                   ),
                 ),
-                subtitle: Text(
-                  "Fill information to change your password",
-                  style: TextStyle(fontSize: 12, color: kcGrey500),
-                ),
-              ),
-              /**** Old Password ****/
-              CustomPasswordField(title: "Current Password", hintText: "Enter Current Password", controller: controller.passwordController),
-              SizedBox(height: 10.0),
-              CustomPasswordField(title: "New Password", hintText: "Enter New Password", controller: controller.confirmPasswordController)
-            ],
+                /**** Old Password ****/
+                CustomPasswordField(title: "Current Password", hintText: "Enter Current Password", controller: controller.passwordController),
+                SizedBox(height: 10.0),
+                CustomPasswordField(title: "New Password", hintText: "Enter New Password", controller: controller.confirmPasswordController, validator: controller.validateNewPassword, autovalidateMode: AutovalidateMode.onUserInteraction)
+              ],
+            ),
           ),
         ),
       ),
