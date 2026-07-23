@@ -150,7 +150,7 @@ class AuthController extends GetxController {
       }
 
       pickedProfileImage.value = finalFile;
-      if(pickedProfileImage.value!.path.isNotEmpty){
+      if (pickedProfileImage.value!.path.isNotEmpty) {
         uploadProfilePicture(context);
       }
       checkProfileFromValidity();
@@ -193,14 +193,14 @@ class AuthController extends GetxController {
     return null;
   }
 
-  String? validateNewPassword (String? value) {
-    if (value == null || value.trim().isEmpty){
+  String? validateNewPassword(String? value) {
+    if (value == null || value.trim().isEmpty) {
       return "Please enter new password";
     }
-    if (value.length < 6){
+    if (value.length < 6) {
       return "Password must be at least 6 characters";
     }
-    if (value.length > 12){
+    if (value.length > 12) {
       return "Password must be at most 12 characters";
     }
     return null;
@@ -550,37 +550,39 @@ class AuthController extends GetxController {
     }
   }
 
-   Future<void> uploadProfilePicture(BuildContext context) async{
-
+  Future<void> uploadProfilePicture(BuildContext context) async {
     /* Action Plan:
     1. Process picked image to convert it into Xfile Multipart body with appropriate file key.
     2. Call API with id and file.
     3. Handle the response and update the UI accordingly.
      */
-       try{
-         //Initialize loading screen
-         isLoading.value = true;
+    try {
+      //Initialize loading screen
+      isLoading.value = true;
 
-         //Fetch User id from session using shared preference
-         final String userId = await authRepo.sharedPreferences.getString("uid") ?? "";
+      //Fetch User id from session using shared preference
+      final String userId =
+          await authRepo.sharedPreferences.getString("uid") ?? "";
 
-         //Call API by passing user id and file
-         Response response = await authRepo.uploadProfilePicture(userId, MultipartBody("avatar", XFile(pickedProfileImage.value!.path)));
+      //Call API by passing user id and file
+      Response response = await authRepo.uploadProfilePicture(
+        userId,
+        MultipartBody("avatar", XFile(pickedProfileImage.value!.path)),
+      );
 
-         //Handle Response
-         if(response.statusCode == 200){
-           showSuccess("Profile picture updated successfully");
-         }
-       }catch(err){
-
-         //Exception toast message
-         showError("Something went wrong");
-         //Debug exception log
-         if(kDebugMode) log("Exception in upload profile picture", error: err);
-       }finally{
-         isLoading.value = false;
-       }
-     }
+      //Handle Response
+      if (response.statusCode == 200) {
+        showSuccess("Profile picture updated successfully");
+      }
+    } catch (err) {
+      //Exception toast message
+      showError("Something went wrong");
+      //Debug exception log
+      if (kDebugMode) log("Exception in upload profile picture", error: err);
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void clearLoginForm() {
     emailController.clear();

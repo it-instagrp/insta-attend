@@ -8,15 +8,16 @@ class Expense {
   String? updatedAt;
   ExpenseBy? expenseBy;
 
-  Expense(
-      {this.id,
-        this.expenseDate,
-        this.expenseType,
-        this.expenseAmount,
-        this.expenseStatus,
-        this.createdAt,
-        this.updatedAt,
-        this.expenseBy});
+  Expense({
+    this.id,
+    this.expenseDate,
+    this.expenseType,
+    this.expenseAmount,
+    this.expenseStatus,
+    this.createdAt,
+    this.updatedAt,
+    this.expenseBy,
+  });
 
   Expense.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -26,9 +27,10 @@ class Expense {
     expenseStatus = json['expense_status'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
-    expenseBy = json['expenseBy'] != null
-        ? new ExpenseBy.fromJson(json['expenseBy'])
-        : null;
+    expenseBy =
+        json['expenseBy'] != null
+            ? new ExpenseBy.fromJson(json['expenseBy'])
+            : null;
   }
 
   Map<String, dynamic> toJson() {

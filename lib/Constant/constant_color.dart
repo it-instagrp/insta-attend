@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 /**** Base Colors ****/
 final Color kcBaseBlack = Color(0xFF1d232e);
 final Color kcBaseWhite = Color(0xFFfff7ec);

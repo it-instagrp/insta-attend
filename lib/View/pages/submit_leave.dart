@@ -25,36 +25,46 @@ class SubmitLeave extends StatelessWidget {
         height: 80,
         color: Colors.white,
         padding: const EdgeInsets.all(15.0),
-        child: main.MainButton(label: "Submit Leave", onTap: ()=>showConfirmationDialogue(context)),
+        child: main.MainButton(
+          label: "Submit Leave",
+          onTap: () => showConfirmationDialogue(context),
+        ),
       ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         leadingWidth: 50,
         leading: InkWell(
-          onTap: ()=>Get.back(),
+          onTap: () => Get.back(),
           child: SizedBox(
-              width: 20,
-              height: 20,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: SvgPicture.asset(kaBackButton, fit: BoxFit.scaleDown, width: 10, height: 10,),
-              )),
+            width: 20,
+            height: 20,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20.0),
+              child: SvgPicture.asset(
+                kaBackButton,
+                fit: BoxFit.scaleDown,
+                width: 10,
+                height: 10,
+              ),
+            ),
+          ),
         ),
         centerTitle: true,
-        title: Text("Submit Leave", style: TextStyle(
-          fontSize:  18,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF101828),
-        ),),
+        title: Text(
+          "Submit Leave",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF101828),
+          ),
+        ),
       ),
       body: Container(
         margin: EdgeInsets.all(15.0),
-        padding: EdgeInsets.all(
-          15.0
-        ),
+        padding: EdgeInsets.all(15.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8.0),
-          color: Colors.white
+          color: Colors.white,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -65,40 +75,61 @@ class SubmitLeave extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               isThreeLine: false,
               horizontalTitleGap: 0,
-              title: Text("Fill Leave Information", style: TextStyle(
-                fontSize: 14,
-                color: Colors.black,
-                fontWeight: FontWeight.w600
-              ),),
-              subtitle: Text("Information about leave details", style: TextStyle(
-                fontSize: 12,
-                color: kcGrey500
-              ),),
+              title: Text(
+                "Fill Leave Information",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                "Information about leave details",
+                style: TextStyle(fontSize: 12, color: kcGrey500),
+              ),
             ),
             Align(
               alignment: Alignment.topLeft,
-              child: Text("Leave Category", style: TextStyle(
+              child: Text(
+                "Leave Category",
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: kcGrey600
-              ),),
+                  color: kcGrey600,
+                ),
+              ),
             ),
-            SizedBox(height: 5,),
-        Obx(() => CustomDropDown(
-          options: LeaveReason.values.map((e) => e.description).toList(),
-          onChanged: (value) {
-            controller.leaveReason.value = LeaveReason.values.firstWhere(
-                  (element) => element.description == value,
-              orElse: () => LeaveReason.other,
-            );
-          },
-          hintText: controller.leaveReason.value.description.isNotEmpty ? controller.leaveReason.value.description : "Select Leave Type",
-          title: "Leave Type",
-        )),
-            SizedBox(
-              height: 15,
+            SizedBox(height: 5),
+            Obx(
+              () => CustomDropDown(
+                options: LeaveReason.values.map((e) => e.description).toList(),
+                onChanged: (value) {
+                  controller.leaveReason.value = LeaveReason.values.firstWhere(
+                    (element) => element.description == value,
+                    orElse: () => LeaveReason.other,
+                  );
+                },
+                hintText:
+                    controller.leaveReason.value.description.isNotEmpty
+                        ? controller.leaveReason.value.description
+                        : "Select Leave Type",
+                title: "Leave Type",
+              ),
             ),
-            Obx(()=>CustomTextField(title: "Leave Duration", hintText: convertDuration(controller.fromDate.value, controller.toDate.value), icon: kaDuration, controller: TextEditingController(), isDisabled: true, onTap: ()=>showDurationRangeDialog(context),))
+            SizedBox(height: 15),
+            Obx(
+              () => CustomTextField(
+                title: "Leave Duration",
+                hintText: convertDuration(
+                  controller.fromDate.value,
+                  controller.toDate.value,
+                ),
+                icon: kaDuration,
+                controller: TextEditingController(),
+                isDisabled: true,
+                onTap: () => showDurationRangeDialog(context),
+              ),
+            ),
           ],
         ),
       ),
@@ -135,66 +166,88 @@ class SubmitLeave extends StatelessWidget {
       showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          content: Container(
-            padding: const EdgeInsets.all(16),
-            width: MediaQuery.of(context).size.width * 0.9,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Leave Duration", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text(convertDuration(controller.fromDate.value, controller.toDate.value), textAlign: TextAlign.center),
-                SizedBox(height: 16),
-                CustomButton(label: "Submit Date", onPressed: (){
-                  Navigator.pop(context);
-                }),
-                SizedBox(height: 16),
-                CustomButton(label: "Clear Range", onPressed: (){
-                  controller.fromDate.value = "";
-                  controller.toDate.value = "";
-                  Navigator.pop(context);
-                },hierarchy: ButtonHierarchy.secondary,)
-              ],
+        builder:
+            (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              content: Container(
+                padding: const EdgeInsets.all(16),
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Leave Duration",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      convertDuration(
+                        controller.fromDate.value,
+                        controller.toDate.value,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 16),
+                    CustomButton(
+                      label: "Submit Date",
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    CustomButton(
+                      label: "Clear Range",
+                      onPressed: () {
+                        controller.fromDate.value = "";
+                        controller.toDate.value = "";
+                        Navigator.pop(context);
+                      },
+                      hierarchy: ButtonHierarchy.secondary,
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
       );
     }
   }
 
-
-  String convertDuration(String from, String to){
-    try{
+  String convertDuration(String from, String to) {
+    try {
       final fromDate = DateFormat("dd MMM").format(DateTime.parse(from));
       final toDate = DateFormat("dd MMM").format(DateTime.parse(to));
-      return  "$fromDate - $toDate";
-    }catch(e){
+      return "$fromDate - $toDate";
+    } catch (e) {
       return "Select Duration";
     }
   }
-
 
   void showConfirmationDialogue(BuildContext context) {
     showCustomBottomSheet(
       context: context,
       title: "Submit Leave",
-      description: "Double-check your leave details to ensure everything is correct. Do you want to proceed?",
+      description:
+          "Double-check your leave details to ensure everything is correct. Do you want to proceed?",
       topIconAsset: kaSubmitLeaveTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : main.MainButton(
-          label: "Submit Leave",
-          onTap: () => controller.requestLeave(context),
-        ),
+        () =>
+            controller.isLoading.value
+                ? Center(
+                  child: CircularProgressIndicator(
+                    strokeCap: StrokeCap.round,
+                    color: kcPurple600,
+                  ),
+                )
+                : main.MainButton(
+                  label: "Submit Leave",
+                  onTap: () => controller.requestLeave(context),
+                ),
       ),
     );
   }

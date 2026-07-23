@@ -33,20 +33,12 @@ class MainButton extends StatelessWidget {
     }
   }
 
-  List<Color> _getColors(){
-
-    switch(buttonType){
+  List<Color> _getColors() {
+    switch (buttonType) {
       case ButtonType.disabled:
-        return [
-          Color(0xFFCAB3FF),
-          Color(0xD06D3AF6)
-        ];
+        return [Color(0xFFCAB3FF), Color(0xD06D3AF6)];
       case ButtonType.normal:
-        return [
-          Color(0xFF8862F2),
-          Color(0xFF7544FC),
-          Color(0xFF5B2ED4)
-        ];
+        return [Color(0xFF8862F2), Color(0xFF7544FC), Color(0xFF5B2ED4)];
     }
   }
 
@@ -67,7 +59,14 @@ class MainButton extends StatelessWidget {
             colors: _getColors(),
           ),
         ),
-        child: Text(label, style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold),),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

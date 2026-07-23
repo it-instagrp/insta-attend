@@ -13,12 +13,9 @@ class OnboardingOne extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-            stops: [0, 1],
-            colors: [
-              kcPurple500,
-              kcBaseWhite
-            ]
-        )
+          stops: [0, 1],
+          colors: [kcPurple500, kcBaseWhite],
+        ),
       ),
       child: SafeArea(
         child: Scaffold(
@@ -27,12 +24,21 @@ class OnboardingOne extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset(kaOnboardingOne, fit: BoxFit.scaleDown, height: 375, width: 315),
-              Align(alignment: Alignment.center, child: Text("Welcome to Workmate!", style: kfHeadlineSmall.copyWith(color: Colors.black))),
-              SizedBox(
-                height: 20,
+              Image.asset(
+                kaOnboardingOne,
+                fit: BoxFit.scaleDown,
+                height: 375,
+                width: 315,
               ),
-              Text("data")
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "Welcome to Workmate!",
+                  style: kfHeadlineSmall.copyWith(color: Colors.black),
+                ),
+              ),
+              SizedBox(height: 20),
+              Text("data"),
             ],
           ),
         ),

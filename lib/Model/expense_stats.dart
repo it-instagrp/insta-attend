@@ -4,11 +4,12 @@ class ExpenseStats {
   int? approvedExpense;
   String? expensePeriod;
 
-  ExpenseStats(
-      {this.totalExpenses,
-        this.expenseInReview,
-        this.approvedExpense,
-        this.expensePeriod});
+  ExpenseStats({
+    this.totalExpenses,
+    this.expenseInReview,
+    this.approvedExpense,
+    this.expensePeriod,
+  });
 
   ExpenseStats.fromJson(Map<String, dynamic> json) {
     totalExpenses = json['totalExpenses'];

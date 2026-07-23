@@ -6,7 +6,13 @@ import 'package:insta_attend/Constant/constant_color.dart';
 class MeetingCard extends StatelessWidget {
   final String taskTitle, deadline, link;
   final List attendee;
-  const MeetingCard({super.key, required this.taskTitle, required this.deadline, required this.link, required this.attendee});
+  const MeetingCard({
+    super.key,
+    required this.taskTitle,
+    required this.deadline,
+    required this.link,
+    required this.attendee,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +21,9 @@ class MeetingCard extends StatelessWidget {
       padding: EdgeInsets.all(13.0),
       height: 85,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.0),
-          color: kcGrey100,
-          border: Border.all(
-              color: kcGrey200
-          )
+        borderRadius: BorderRadius.circular(12.0),
+        color: kcGrey100,
+        border: Border.all(color: kcGrey200),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -34,24 +38,26 @@ class MeetingCard extends StatelessWidget {
                 backgroundColor: kcPurple500,
                 child: SvgPicture.asset(kaTaskIcon),
               ),
-              SizedBox(
-                width: 5,
-              ),
-              Text(taskTitle, style: TextStyle(
+              SizedBox(width: 5),
+              Text(
+                taskTitle,
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black
-              ),),
-              Spacer(),
-              Icon(Icons.watch_later, color: kcGrey300, size: 16,),
-              SizedBox(
-                width: 5,
+                  color: Colors.black,
+                ),
               ),
-              Text(deadline, style: TextStyle(
+              Spacer(),
+              Icon(Icons.watch_later, color: kcGrey300, size: 16),
+              SizedBox(width: 5),
+              Text(
+                deadline,
+                style: TextStyle(
                   color: Color(0xFF475467),
                   fontSize: 12,
-                  fontWeight: FontWeight.w500
-              ),)
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
           Spacer(),
@@ -63,9 +69,13 @@ class MeetingCard extends StatelessWidget {
                 width: 60,
                 height: 25,
                 child: Stack(
-                  children: List.generate(_getAttendeeLength(attendee.length), (index) {
+                  children: List.generate(_getAttendeeLength(attendee.length), (
+                    index,
+                  ) {
                     return Positioned(
-                      left: (index * 15).toDouble(), // Adjust the value to control overlap
+                      left:
+                          (index * 15)
+                              .toDouble(), // Adjust the value to control overlap
                       child: Container(
                         height: 25,
                         width: 25,
@@ -79,14 +89,15 @@ class MeetingCard extends StatelessWidget {
                   }),
                 ),
               ),
-              if (attendee.length > 3) // Only show the + if there are more than 3 attendees
-                Text("+ ${attendee.length - 3}", style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.black
-                )),
+              if (attendee.length >
+                  3) // Only show the + if there are more than 3 attendees
+                Text(
+                  "+ ${attendee.length - 3}",
+                  style: TextStyle(fontSize: 12, color: Colors.black),
+                ),
               Spacer(),
               InkWell(
-                onTap: (){},
+                onTap: () {},
                 child: Container(
                   alignment: Alignment.center,
                   width: 75,
@@ -95,13 +106,16 @@ class MeetingCard extends StatelessWidget {
                     color: kcPurple600,
                     borderRadius: BorderRadius.circular(100.0),
                   ),
-                  child: Text("Join Meet", style: TextStyle(
+                  child: Text(
+                    "Join Meet",
+                    style: TextStyle(
                       fontSize: 10,
                       color: Colors.white,
-                      fontWeight: FontWeight.w500
-                  ),),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ],
@@ -109,8 +123,8 @@ class MeetingCard extends StatelessWidget {
     );
   }
 
-  int _getAttendeeLength(attendeeLength){
-    if(attendeeLength <= 3){
+  int _getAttendeeLength(attendeeLength) {
+    if (attendeeLength <= 3) {
       return attendeeLength;
     } else {
       return 3;

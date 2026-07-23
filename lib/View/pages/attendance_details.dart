@@ -9,10 +9,7 @@ import '../../Model/attendance_detail.dart';
 class AttendanceDetails extends StatefulWidget {
   final String attendanceId;
 
-  const AttendanceDetails({
-    super.key,
-    required this.attendanceId,
-  });
+  const AttendanceDetails({super.key, required this.attendanceId});
 
   @override
   State<AttendanceDetails> createState() => _AttendanceDetailsState();
@@ -46,9 +43,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
         final data = controller.attendanceDetails.value;
 
         if (data == null) {
-          return const Center(
-            child: Text("No attendance details found"),
-          );
+          return const Center(child: Text("No attendance details found"));
         }
 
         return SingleChildScrollView(
@@ -74,22 +69,10 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
               _SectionCard(
                 title: "Attendance Summary",
                 children: [
-                  _InfoRow(
-                    "Check In",
-                    formatTime(data.checkInTime),
-                  ),
-                  _InfoRow(
-                    "Check Out",
-                    formatTime(data.checkOutTime),
-                  ),
-                  _InfoRow(
-                    "Duration",
-                    data.duration,
-                  ),
-                  _InfoRow(
-                    "Status",
-                    data.status,
-                  ),
+                  _InfoRow("Check In", formatTime(data.checkInTime)),
+                  _InfoRow("Check Out", formatTime(data.checkOutTime)),
+                  _InfoRow("Duration", data.duration),
+                  _InfoRow("Status", data.status),
                 ],
               ),
 
@@ -98,17 +81,11 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
               _SectionCard(
                 title: "Location Information",
                 children: [
-                  _LocationTile(
-                    "Check In Location",
-                    data.checkInLocation,
-                  ),
+                  _LocationTile("Check In Location", data.checkInLocation),
 
                   const SizedBox(height: 12),
 
-                  _LocationTile(
-                    "Check Out Location",
-                    data.checkOutLocation,
-                  ),
+                  _LocationTile("Check Out Location", data.checkOutLocation),
                 ],
               ),
             ],
@@ -117,8 +94,6 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
       }),
     );
   }
-
-
 
   String formatTime(String? value) {
     if (value == null || value.isEmpty) return "NA";
@@ -149,24 +124,16 @@ class _HeaderCard extends StatelessWidget {
         children: [
           Text(
             formatDate(data.date),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 10),
 
-          Chip(
-            label: Text(
-              data.status ?? "NA",
-            ),
-          ),
+          Chip(label: Text(data.status ?? "NA")),
         ],
       ),
     );
   }
-
 
   String formatDate(String? date) {
     if (date == null || date.isEmpty) return "NA";
@@ -178,17 +145,13 @@ class _HeaderCard extends StatelessWidget {
       return "NA";
     }
   }
-
 }
 
 class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const _SectionCard({
-    required this.title,
-    required this.children,
-  });
+  const _SectionCard({required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -204,10 +167,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
 
           const Divider(height: 24),
@@ -233,12 +193,7 @@ class _InfoRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 4,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-              ),
-            ),
+            child: Text(label, style: const TextStyle(color: Colors.grey)),
           ),
 
           Expanded(
@@ -246,9 +201,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               value ?? "NA",
               textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -261,10 +214,7 @@ class _LocationTile extends StatelessWidget {
   final String title;
   final String? location;
 
-  const _LocationTile(
-      this.title,
-      this.location,
-      );
+  const _LocationTile(this.title, this.location);
 
   @override
   Widget build(BuildContext context) {
@@ -278,18 +228,11 @@ class _LocationTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
 
           const SizedBox(height: 6),
 
-          Text(
-            location ?? "NA",
-          ),
+          Text(location ?? "NA"),
         ],
       ),
     );

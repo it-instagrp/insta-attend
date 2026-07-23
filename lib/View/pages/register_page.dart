@@ -95,9 +95,11 @@ class RegisterPage extends StatelessWidget {
                         controller: controller.phoneController,
                         keyboardType: TextInputType.number,
                         maxLength: 10,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        validator: (value){
-                          if(value == null || value.trim().isEmpty) {
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Phone Number is required';
                           }
                           if (value.length < 10) {
@@ -107,37 +109,82 @@ class RegisterPage extends StatelessWidget {
                         },
                       ),
                       SizedBox(height: 15),
-                      Obx(() => controller.isDropDownLoading.value
-                          ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600))
-                          : CustomDropDown(
-                        options: controller.departmentList.value.map((dept) => dept.departmentName ?? '').toList(),
-                        onChanged: (selectedName) {
-                          final selectedDept = controller.departmentList.firstWhere(
-                                (dept) => dept.departmentName == selectedName,
-                            orElse: () => Department(id: '', departmentName: ''),
-                          );
-                          controller.selectedDepartment.value = selectedDept.id ?? '';
-                        },
-                        hintText: 'Select Department',
-                        title: 'Department',
-                        isField: true,
-                      )),
+                      Obx(
+                        () =>
+                            controller.isDropDownLoading.value
+                                ? Center(
+                                  child: CircularProgressIndicator(
+                                    strokeCap: StrokeCap.round,
+                                    color: kcPurple600,
+                                  ),
+                                )
+                                : CustomDropDown(
+                                  options:
+                                      controller.departmentList.value
+                                          .map(
+                                            (dept) => dept.departmentName ?? '',
+                                          )
+                                          .toList(),
+                                  onChanged: (selectedName) {
+                                    final selectedDept = controller
+                                        .departmentList
+                                        .firstWhere(
+                                          (dept) =>
+                                              dept.departmentName ==
+                                              selectedName,
+                                          orElse:
+                                              () => Department(
+                                                id: '',
+                                                departmentName: '',
+                                              ),
+                                        );
+                                    controller.selectedDepartment.value =
+                                        selectedDept.id ?? '';
+                                  },
+                                  hintText: 'Select Department',
+                                  title: 'Department',
+                                  isField: true,
+                                ),
+                      ),
                       SizedBox(height: 15),
-                      Obx(() => controller.isDropDownLoading.value
-                          ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple600))
-                          : CustomDropDown(
-                        options: controller.designationList.value.map((role) => role.designationName ?? '').toList(),
-                        onChanged: (selectedName) {
-                          final selectedRole = controller.designationList.firstWhere(
-                                (role) => role.designationName == selectedName,
-                            orElse: () => Designation(id: '', designationName: ''),
-                          );
-                          controller.selectedDesignation.value = selectedRole.id ?? '';
-                        },
-                        hintText: 'Select Designation',
-                        title: 'Designation',
-                        isField: true,
-                      )),
+                      Obx(
+                        () =>
+                            controller.isDropDownLoading.value
+                                ? Center(
+                                  child: CircularProgressIndicator(
+                                    strokeCap: StrokeCap.round,
+                                    color: kcPurple600,
+                                  ),
+                                )
+                                : CustomDropDown(
+                                  options:
+                                      controller.designationList.value
+                                          .map(
+                                            (role) =>
+                                                role.designationName ?? '',
+                                          )
+                                          .toList(),
+                                  onChanged: (selectedName) {
+                                    final selectedRole = controller
+                                        .designationList
+                                        .firstWhere(
+                                          (role) =>
+                                              role.designationName ==
+                                              selectedName,
+                                          orElse:
+                                              () => Designation(
+                                                id: '',
+                                                designationName: '',
+                                              ),
+                                        );
+                                    controller.selectedDesignation.value =
+                                        selectedRole.id ?? '';
+                                  },
+                                  hintText: 'Select Designation',
+                                  title: 'Designation',
+                                  isField: true,
+                                ),
+                      ),
                       SizedBox(height: 15),
                       CustomPasswordField(
                         title: "Password",
@@ -154,15 +201,20 @@ class RegisterPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Obx(() => Checkbox(
-                            value: controller.isConsentGiven.value,
-                            onChanged: (value) => controller.isConsentGiven.value = !controller.isConsentGiven.value,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4.0),
+                          Obx(
+                            () => Checkbox(
+                              value: controller.isConsentGiven.value,
+                              onChanged:
+                                  (value) =>
+                                      controller.isConsentGiven.value =
+                                          !controller.isConsentGiven.value,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              activeColor: kcPurple500,
+                              side: BorderSide(color: kcPurple400),
                             ),
-                            activeColor: kcPurple500,
-                            side: BorderSide(color: kcPurple400),
-                          )),
+                          ),
                           Text(
                             "I agree with ",
                             style: TextStyle(fontSize: 12, color: Colors.black),
@@ -181,19 +233,29 @@ class RegisterPage extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: 20),
-                      Obx(() => controller.isLoading.value
-                          ? Center(child: CircularProgressIndicator(strokeCap: StrokeCap.round, color: kcPurple500))
-                          : MainButton(
-                        label: "Register",
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            if (controller.validateRegisterForm(context)) {
-                              controller.register(context);
-                            }
-                          }
-                        },
-                        buttonSize: ButtonSize.xl,
-                      )),
+                      Obx(
+                        () =>
+                            controller.isLoading.value
+                                ? Center(
+                                  child: CircularProgressIndicator(
+                                    strokeCap: StrokeCap.round,
+                                    color: kcPurple500,
+                                  ),
+                                )
+                                : MainButton(
+                                  label: "Register",
+                                  onTap: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      if (controller.validateRegisterForm(
+                                        context,
+                                      )) {
+                                        controller.register(context);
+                                      }
+                                    }
+                                  },
+                                  buttonSize: ButtonSize.xl,
+                                ),
+                      ),
                     ],
                   ),
                 ),
@@ -211,7 +273,7 @@ class RegisterPage extends StatelessWidget {
                   controller.passwordController.clear();
                   controller.confirmPasswordController.clear();
                   Get.offAll(() => LoginPage());
-                  },
+                },
                 child: Container(
                   width: 40,
                   height: 40,

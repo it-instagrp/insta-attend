@@ -4,7 +4,7 @@ import 'package:insta_attend/Model/version.dart';
 
 import '../Utils/toast_messages.dart';
 
-class VersionController extends GetxController{
+class VersionController extends GetxController {
   final VersionRepository versionRepo;
   VersionController({required this.versionRepo});
 
@@ -24,9 +24,8 @@ class VersionController extends GetxController{
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
 
-        List<Version> list = dataList
-            .map((json) => Version.fromJson(json))
-            .toList();
+        List<Version> list =
+            dataList.map((json) => Version.fromJson(json)).toList();
 
         // Sort by createdAt descending
         list.sort((a, b) {

@@ -6,7 +6,7 @@ import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Model/expense.dart';
 import 'package:intl/intl.dart';
 
-class ExpenseHistoryCard extends StatelessWidget{
+class ExpenseHistoryCard extends StatelessWidget {
   final Expense expense;
   final VoidCallback? onEdit;
   const ExpenseHistoryCard({super.key, required this.expense, this.onEdit});
@@ -45,18 +45,28 @@ class ExpenseHistoryCard extends StatelessWidget{
                   ),
                   const SizedBox(width: 8.0),
                   Text(
-                    _formatHeaderDate(expense.expenseDate ?? expense.createdAt ?? ""),
-                    style: kfLabelMedium.copyWith(color: kcGrey800, fontSize: 13),
+                    _formatHeaderDate(
+                      expense.expenseDate ?? expense.createdAt ?? "",
+                    ),
+                    style: kfLabelMedium.copyWith(
+                      color: kcGrey800,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
-              if ((expense.expenseStatus?.toLowerCase() ?? 'pending') == 'pending')
+              if ((expense.expenseStatus?.toLowerCase() ?? 'pending') ==
+                  'pending')
                 InkWell(
                   onTap: onEdit,
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: Icon(Icons.edit_rounded, size: 18, color: kcPurple500),
+                    child: Icon(
+                      Icons.edit_rounded,
+                      size: 18,
+                      color: kcPurple500,
+                    ),
                   ),
                 ),
             ],
@@ -78,12 +88,18 @@ class ExpenseHistoryCard extends StatelessWidget{
                     children: [
                       Text(
                         "Type",
-                        style: kfBodySmall.copyWith(color: kcGrey500, fontWeight: FontWeight.w500),
+                        style: kfBodySmall.copyWith(
+                          color: kcGrey500,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(height: 4.0),
                       Text(
                         expense.expenseType ?? "N/A",
-                        style: kfTitleMedium.copyWith(color: kcGrey900, fontWeight: FontWeight.bold),
+                        style: kfTitleMedium.copyWith(
+                          color: kcGrey900,
+                          fontWeight: FontWeight.bold,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -94,12 +110,18 @@ class ExpenseHistoryCard extends StatelessWidget{
                   children: [
                     Text(
                       "Total Expense",
-                      style: kfBodySmall.copyWith(color: kcGrey500, fontWeight: FontWeight.w500),
+                      style: kfBodySmall.copyWith(
+                        color: kcGrey500,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 4.0),
                     Text(
                       "₹ ${expense.expenseAmount?.toStringAsFixed(0) ?? '0'}",
-                      style: kfTitleMedium.copyWith(color: kcGrey900, fontWeight: FontWeight.bold),
+                      style: kfTitleMedium.copyWith(
+                        color: kcGrey900,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -119,7 +141,10 @@ class ExpenseHistoryCard extends StatelessWidget{
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _getStatusLabel(expense.expenseStatus, expense.updatedAt ?? expense.createdAt ?? ""),
+                    _getStatusLabel(
+                      expense.expenseStatus,
+                      expense.updatedAt ?? expense.createdAt ?? "",
+                    ),
                     style: kfLabelSmall.copyWith(
                       color: _getStatusColor(expense.expenseStatus),
                       fontWeight: FontWeight.w600,
@@ -149,7 +174,10 @@ class ExpenseHistoryCard extends StatelessWidget{
                     constraints: const BoxConstraints(maxWidth: 80),
                     child: Text(
                       expense.expenseBy?.username ?? "User",
-                      style: kfLabelSmall.copyWith(color: kcGrey800, fontWeight: FontWeight.w600),
+                      style: kfLabelSmall.copyWith(
+                        color: kcGrey800,
+                        fontWeight: FontWeight.w600,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

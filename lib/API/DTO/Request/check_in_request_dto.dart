@@ -17,7 +17,8 @@ class CheckInRequestDTO {
         faceEmbedding = decoded.map((e) => (e as num).toDouble()).toList();
       } else if (embeddingData is List) {
         // If the API sent a proper JSON array [0.1, 0.2...]
-        faceEmbedding = embeddingData.map((e) => (e as num).toDouble()).toList();
+        faceEmbedding =
+            embeddingData.map((e) => (e as num).toDouble()).toList();
       }
     }
   }

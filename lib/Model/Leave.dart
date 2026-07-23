@@ -8,15 +8,16 @@ class Leave {
   String? createdAt;
   String? updatedAt;
 
-  Leave(
-      {this.id,
-        this.userId,
-        this.from,
-        this.to,
-        this.leaveType,
-        this.status,
-        this.createdAt,
-        this.updatedAt});
+  Leave({
+    this.id,
+    this.userId,
+    this.from,
+    this.to,
+    this.leaveType,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Leave.fromJson(Map<String, dynamic> json) {
     id = json['id'];

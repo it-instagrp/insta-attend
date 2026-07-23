@@ -35,19 +35,23 @@ class ExpenseController extends GetxController {
   Future<String> getUserId() async {
     return await expenseRepo.sharedPreferences.getString("uid") ?? "";
   }
-  Future<void> pickReceiptImage(BuildContext context, ImageSource source) async{
+
+  Future<void> pickReceiptImage(
+    BuildContext context,
+    ImageSource source,
+  ) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: source);
       if (pickedFile == null) return;
       final String extension = pickedFile.path.split('.').last.toLowerCase();
-      if(extension != 'jpg' && extension != 'jpeg' && extension != 'png'){
+      if (extension != 'jpg' && extension != 'jpeg' && extension != 'png') {
         showError("Only JPG and PNG format are allowed");
         return;
       }
       final int fileSizeInBytes = await File(pickedFile.path).length();
       final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
-      if (fileSizeInMB > 5){
+      if (fileSizeInMB > 5) {
         showError("File size exceeds 5 MB: Image not uploaded");
         return;
       }
@@ -64,7 +68,8 @@ class ExpenseController extends GetxController {
 
       if (selectedExpenseType.value == expenseType.last &&
           ((double.tryParse(amountController.text.trim()) ?? 0.0) > 300.0)) {
-        showError("Expense more than 300 should be communicated with administration",
+        showError(
+          "Expense more than 300 should be communicated with administration",
         );
         return;
       }
@@ -83,9 +88,7 @@ class ExpenseController extends GetxController {
       Response response = await expenseRepo.createExpense(request);
 
       if (response.statusCode == 201) {
-        showSuccess(
-          "Expense created, waiting for admin approval",
-        );
+        showSuccess("Expense created, waiting for admin approval");
         getMyExpense();
         clearForm();
         Get.back();
@@ -100,17 +103,19 @@ class ExpenseController extends GetxController {
       isLoading.value = false;
     }
   }
+
   void startEditingExpense(Expense expense) {
-    editingExpenseId.value =expense.id;
+    editingExpenseId.value = expense.id;
     amountController.text = expense.expenseAmount?.toStringAsFixed(0) ?? '';
-    selectedExpenseType.value =expense.expenseType ?? '';
+    selectedExpenseType.value = expense.expenseType ?? '';
     expenseDate.value = expense.expenseDate ?? '';
     pickedReceiptImage.value = null;
     Get.to(() => CreateExpense(), transition: Transition.fade);
   }
+
   Future<void> updateExpense() async {
-    try{
-      isLoading.value =true;
+    try {
+      isLoading.value = true;
       final String userId = await getUserId();
       final ExpenseRequestDTO request = ExpenseRequestDTO(
         expenseAmount: double.tryParse(amountController.text.trim()),
@@ -120,8 +125,11 @@ class ExpenseController extends GetxController {
         expenseStatus: "Pending",
         image: pickedReceiptImage.value,
       );
-      Response response = await expenseRepo.updateMyExpense(editingExpenseId.value!, request);
-      if (response.statusCode == 200){
+      Response response = await expenseRepo.updateMyExpense(
+        editingExpenseId.value!,
+        request,
+      );
+      if (response.statusCode == 200) {
         showSuccess("Expense updated successfully");
         getMyExpense();
         clearForm();
@@ -130,8 +138,8 @@ class ExpenseController extends GetxController {
       } else {
         showError(response.body['message']);
       }
-    } catch (err){
-      if(kDebugMode) log("Exception in update expense", error: err);
+    } catch (err) {
+      if (kDebugMode) log("Exception in update expense", error: err);
       showError("Something went wrong");
     } finally {
       isLoading.value = false;
@@ -143,14 +151,28 @@ class ExpenseController extends GetxController {
       isLoading.value = true;
       Response response = await expenseRepo.getMyExpense();
       if (response.statusCode == 200) {
-        List<dynamic> expenseList = response.body['data']['data'] as List<dynamic>;
-        List<Expense> list = expenseList.map((expense)=>Expense.fromJson(expense)).toList();
+        List<dynamic> expenseList =
+            response.body['data']['data'] as List<dynamic>;
+        List<Expense> list =
+            expenseList.map((expense) => Expense.fromJson(expense)).toList();
         myExpenses.assignAll(list);
 
         // Filter based on status
-        reviewExpense.assignAll(list.where((l) => l.expenseStatus?.toLowerCase() == 'pending').toList());
-        approvedExpense.assignAll(list.where((l) => l.expenseStatus?.toLowerCase() == 'approved').toList());
-        rejectedExpense.assignAll(list.where((l) => l.expenseStatus?.toLowerCase() == 'rejected').toList());
+        reviewExpense.assignAll(
+          list
+              .where((l) => l.expenseStatus?.toLowerCase() == 'pending')
+              .toList(),
+        );
+        approvedExpense.assignAll(
+          list
+              .where((l) => l.expenseStatus?.toLowerCase() == 'approved')
+              .toList(),
+        );
+        rejectedExpense.assignAll(
+          list
+              .where((l) => l.expenseStatus?.toLowerCase() == 'rejected')
+              .toList(),
+        );
       }
     } catch (err) {
       showError("Something went wrong");
@@ -160,19 +182,19 @@ class ExpenseController extends GetxController {
     }
   }
 
-  Future<void> getMyStats() async{
-    try{
+  Future<void> getMyStats() async {
+    try {
       isLoading.value = true;
       Response response = await expenseRepo.getMyStats();
 
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         stats.value = ExpenseStats.fromJson(response.body['data']);
       } else {
         showError(response.body['message']);
       }
-    }catch(err){
+    } catch (err) {
       debugPrint("Exception in getMyStats: $err");
-    }finally{
+    } finally {
       isLoading.value = false;
     }
   }

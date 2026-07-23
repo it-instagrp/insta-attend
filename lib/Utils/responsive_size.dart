@@ -10,24 +10,24 @@ class ResponsiveSize {
   static late double screenHeight;
 
   // call once at top of build() to the current device's screen size.
-  static void init(BuildContext context){
+  static void init(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     screenHeight = mediaQuery.size.height;
     screenWidth = mediaQuery.size.width;
   }
 
   //scales horizontal values (padding, width) to this device
-  static double width(double designValue){
+  static double width(double designValue) {
     return (designValue / _designWidth) * screenWidth;
   }
 
   //scales vertical values (height, margin) to this device.
-  static double height(double designValue){
+  static double height(double designValue) {
     return (designValue / _designHeight) * screenHeight;
   }
 
   //scales font size, capped so text isn't too small or too large
-  static double font(double designValue){
+  static double font(double designValue) {
     final widthScale = screenWidth / _designWidth;
     final heightScale = screenHeight / _designHeight;
     final scale = widthScale < heightScale ? widthScale : heightScale;

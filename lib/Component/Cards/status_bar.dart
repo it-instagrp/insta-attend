@@ -138,22 +138,23 @@ class _StatusBarState extends State<StatusBar> {
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                if(_getCount(status)>0)Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: badgeColor,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    '${_getCount(status)}',
-                                    style: TextStyle(
-                                      color: badgeTextColor,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
+                                if (_getCount(status) > 0)
+                                  Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: badgeColor,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      '${_getCount(status)}',
+                                      style: TextStyle(
+                                        color: badgeTextColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                           );

@@ -34,14 +34,15 @@ class MapCard extends StatelessWidget {
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
 
-            markers: location != null
-                ? {
-              Marker(
-                markerId: const MarkerId('currentLocation'),
-                position: location,
-              ),
-            }
-                : {},
+            markers:
+                location != null
+                    ? {
+                      Marker(
+                        markerId: const MarkerId('currentLocation'),
+                        position: location,
+                      ),
+                    }
+                    : {},
 
             onMapCreated: (GoogleMapController mapController) {
               controller.mapController = mapController;
@@ -91,26 +92,18 @@ class MapScreenController extends GetxController {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-        'Location permissions are permanently denied.',
-      );
+      return Future.error('Location permissions are permanently denied.');
     }
 
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    currentLocation.value = LatLng(
-      position.latitude,
-      position.longitude,
-    );
+    currentLocation.value = LatLng(position.latitude, position.longitude);
 
     if (mapController != null) {
       mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          currentLocation.value!,
-          16,
-        ),
+        CameraUpdate.newLatLngZoom(currentLocation.value!, 16),
       );
     }
   }

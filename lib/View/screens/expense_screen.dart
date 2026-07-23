@@ -21,7 +21,6 @@ class ExpenseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     ResponsiveSize.init(context);
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.getMyStats();
       controller.getMyExpense();
@@ -43,7 +42,6 @@ class ExpenseScreen extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             left: 0,
             right: 0,
@@ -51,106 +49,124 @@ class ExpenseScreen extends StatelessWidget {
             bottom: screenHeight * 0.08,
             child: Column(
               children: [
-                 ListTile(
-                    title: Text(
-                      "Expense Summary",
-                      style: kfHeadlineSmall.copyWith(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      "Claim your expenses here",
-                      style: kfLabelLarge.copyWith(color: kcPurple200),
-                    ),
-                    trailing: Image.asset(kaExpense),
-                  ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.rw),
-                  child: Obx(
-                    () =>
-                        controller.isLoading.value
-                            ? const Center(
-                              child: CircularProgressIndicator(
-                                strokeCap: StrokeCap.round,
-                              ),
-                            )
-                            : ExpenseCard(
-                              periodOfExpense:
-                                  controller.stats.value?.expensePeriod ?? "NA",
-                              totalExpense:
-                                  controller.stats.value?.totalExpenses ?? 0,
-                              reviewExpense:
-                                  controller.stats.value?.expenseInReview ?? 0,
-                              approvedExpense:
-                                  controller.stats.value?.approvedExpense ?? 0,
-                            ),
-                  ),
-                ),
+                _buildHeader(),
+                _buildExpenseSummary(),
                 SizedBox(height: 10.rh),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.rw),
-                  child: ToggleCard(
-                    items: const ["Review", "Approved", "Rejected"],
-                    onSelected:
-                        (filter) => controller.expenseFilter.value = filter,
-                  ),
-                ),
-                 SizedBox(height: 15.rh),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.rw),
-                    child: Obx(() {
-                      if (controller.isLoading.value) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            strokeCap: StrokeCap.round,
-                          ),
-                        );
-                      }
-                      final targetExpenses = controller.filteredExpenses;
-                      if (targetExpenses.isEmpty) {
-                        return NoContent(
-                          icon: kaNoExpense,
-                          title: "No Expenses Logged",
-                          description:
-                              "There are no expenses listed under this status filter for the selected tracking period.",
-                        );
-                      }
-                      return ListView.separated(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 20),
-                        itemCount: targetExpenses.length,
-                        separatorBuilder:
-                            (context, index) => const SizedBox(height: 12),
-                        itemBuilder:
-                            (context, index) => ExpenseHistoryCard(
-                              expense: targetExpenses[index],
-                              onEdit: () => controller.startEditingExpense(targetExpenses[index]),
-                            ),
-                      );
-                    }),
-                  ),
-                ),
+                _buildExpenseFilter(),
+                SizedBox(height: 15.rh),
+                _buildExpenseList(),
               ],
             ),
           ),
-          Positioned(
-            bottom: 0,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: screenHeight * 0.08,
-              padding: EdgeInsets.all(10.rw),
-              color: Colors.white,
-              child: MainButton(
-                label: "Create New Expense",
-                onTap: (){
-                  controller.clearForm();
-                  Get.to(() => CreateExpense(), transition: Transition.fade);
-                },
-                buttonSize: ButtonSize.sm,
-              ),
-            ),
-          ),
+          _buildBottomButton(screenHeight),
         ],
       ),
+    );
+  }
+
+  // Builds expense summary card
+  Widget _buildExpenseSummary() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.rw),
+      child: Obx(
+        () =>
+            controller.isLoading.value
+                ? const Center(
+                  child: CircularProgressIndicator(strokeCap: StrokeCap.round),
+                )
+                : ExpenseCard(
+                  periodOfExpense:
+                      controller.stats.value?.expensePeriod ?? "NA",
+                  totalExpense: controller.stats.value?.totalExpenses ?? 0,
+                  reviewExpense: controller.stats.value?.expenseInReview ?? 0,
+                  approvedExpense: controller.stats.value?.approvedExpense ?? 0,
+                ),
+      ),
+    );
+  }
+
+  // Builds expense filter
+  Widget _buildExpenseFilter() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.rw),
+      child: ToggleCard(
+        items: const ["Review", "Approved", "Rejected"],
+        onSelected: (filter) => controller.expenseFilter.value = filter,
+      ),
+    );
+  }
+
+  // Builds expense history list
+  Widget _buildExpenseList() {
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.rw),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(strokeCap: StrokeCap.round),
+            );
+          }
+          final targetExpenses = controller.filteredExpenses;
+          if (targetExpenses.isEmpty) {
+            return NoContent(
+              icon: kaNoExpense,
+              title: "No Expenses Logged",
+              description:
+                  "There are no expenses listed under this status filter for the selected tracking period.",
+            );
+          }
+          return ListView.separated(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 20),
+            itemCount: targetExpenses.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder:
+                (context, index) => ExpenseHistoryCard(
+                  expense: targetExpenses[index],
+                  onEdit:
+                      () =>
+                          controller.startEditingExpense(targetExpenses[index]),
+                ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // Builds create expense button
+  Widget _buildBottomButton(double screenHeight) {
+    return Positioned(
+      bottom: 0,
+      child: Container(
+        width: Get.width,
+        height: screenHeight * 0.08,
+        padding: EdgeInsets.all(10.rw),
+        color: Colors.white,
+        child: MainButton(
+          label: "Create New Expense",
+          onTap: () {
+            controller.clearForm();
+            Get.to(() => CreateExpense(), transition: Transition.fade);
+          },
+          buttonSize: ButtonSize.sm,
+        ),
+      ),
+    );
+  }
+
+  // Builds expense header
+  Widget _buildHeader() {
+    return ListTile(
+      title: Text(
+        "Expense Summary",
+        style: kfHeadlineSmall.copyWith(color: Colors.white),
+      ),
+      subtitle: Text(
+        "Claim your expenses here",
+        style: kfLabelLarge.copyWith(color: kcPurple200),
+      ),
+      trailing: Image.asset(kaExpense),
     );
   }
 }

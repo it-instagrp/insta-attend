@@ -10,7 +10,15 @@ class CustomPasswordField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final AutovalidateMode? autovalidateMode;
-  CustomPasswordField({super.key, required this.title, required this.hintText, required this.controller, this.validator, this.onChanged, this.autovalidateMode});
+  CustomPasswordField({
+    super.key,
+    required this.title,
+    required this.hintText,
+    required this.controller,
+    this.validator,
+    this.onChanged,
+    this.autovalidateMode,
+  });
 
   RxBool isObscure = true.obs;
 
@@ -23,37 +31,67 @@ class CustomPasswordField extends StatelessWidget {
         children: [
           Align(
             alignment: Alignment.topLeft,
-            child: Text(title, style: TextStyle(
+            child: Text(
+              title,
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: kcGrey600
-            ),),
-          ),
-          SizedBox(height: 5,),
-          Obx(()=>TextFormField(
-            obscureText: isObscure.value,
-            controller: controller,
-            validator: validator,
-            onChanged: onChanged,
-            autovalidateMode: autovalidateMode ?? AutovalidateMode.onUserInteraction,
-            decoration: InputDecoration(
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: kcPurple400)
-                ),
-                prefixIcon: SvgPicture.asset(kaPassword, fit: BoxFit.scaleDown, height: 20, width: 20, color: kcPurple400,),
-                suffixIcon: Obx(()=>isObscure.value ? InkWell(onTap: ()=>isObscure.value = false, child: SvgPicture.asset(kaVisible, fit: BoxFit.scaleDown, width: 25, height: 25,)) : InkWell(onTap: ()=>isObscure.value = true, child: SvgPicture.asset(kaNotVisible, fit: BoxFit.scaleDown, width: 25, height: 25,))),
-                hintText: hintText,
-                hintStyle: TextStyle(
-                    fontSize: 14,
-                    color: kcGrey400
-                ),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: kcGrey400)
-                )
+                color: kcGrey600,
+              ),
             ),
-          ))
+          ),
+          SizedBox(height: 5),
+          Obx(
+            () => TextFormField(
+              obscureText: isObscure.value,
+              controller: controller,
+              validator: validator,
+              onChanged: onChanged,
+              autovalidateMode:
+                  autovalidateMode ?? AutovalidateMode.onUserInteraction,
+              decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: kcPurple400),
+                ),
+                prefixIcon: SvgPicture.asset(
+                  kaPassword,
+                  fit: BoxFit.scaleDown,
+                  height: 20,
+                  width: 20,
+                  color: kcPurple400,
+                ),
+                suffixIcon: Obx(
+                  () =>
+                      isObscure.value
+                          ? InkWell(
+                            onTap: () => isObscure.value = false,
+                            child: SvgPicture.asset(
+                              kaVisible,
+                              fit: BoxFit.scaleDown,
+                              width: 25,
+                              height: 25,
+                            ),
+                          )
+                          : InkWell(
+                            onTap: () => isObscure.value = true,
+                            child: SvgPicture.asset(
+                              kaNotVisible,
+                              fit: BoxFit.scaleDown,
+                              width: 25,
+                              height: 25,
+                            ),
+                          ),
+                ),
+                hintText: hintText,
+                hintStyle: TextStyle(fontSize: 14, color: kcGrey400),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: kcGrey400),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

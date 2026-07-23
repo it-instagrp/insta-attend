@@ -5,11 +5,7 @@ class ToggleCard extends StatefulWidget {
   final List<String> items;
   final Function(int index) onSelected;
 
-  const ToggleCard({
-    super.key,
-    required this.items,
-    required this.onSelected,
-  });
+  const ToggleCard({super.key, required this.items, required this.onSelected});
 
   @override
   State<ToggleCard> createState() => _ToggleCardState();

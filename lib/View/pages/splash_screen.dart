@@ -28,7 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Register the new controller
-    final OnboardingController onboardingController = Get.find<OnboardingController>();
+    final OnboardingController onboardingController =
+        Get.find<OnboardingController>();
 
     Future.delayed(const Duration(seconds: 3), () async {
       final String userToken = sharedPreferences.getString("token") ?? "";
@@ -55,7 +56,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Text("InstaAttend", style: kfHeadlineLarge.copyWith(color: kcPurple500),),
+        child: Text(
+          "InstaAttend",
+          style: kfHeadlineLarge.copyWith(color: kcPurple500),
+        ),
       ),
     );
   }

@@ -15,41 +15,47 @@ class AuthRepository {
 
   AuthRepository({required this.apiClient, required this.sharedPreferences});
 
-
-  Future<Response> register(RegisterRequestDTO request) async{
+  Future<Response> register(RegisterRequestDTO request) async {
     return await apiClient.postData(registerUrl, request.toJson());
   }
 
-  Future<Response> login(LoginRequestDTO request) async{
+  Future<Response> login(LoginRequestDTO request) async {
     return await apiClient.postData(loginUrl, request.toJson());
   }
 
-  Future<Response> me(LoginRequestDTO request) async{
+  Future<Response> me(LoginRequestDTO request) async {
     return await apiClient.getData(meUrl);
   }
 
-  Future<Response> updateProfile(UpdateProfileRequestDTO request, String userId) async{
+  Future<Response> updateProfile(
+    UpdateProfileRequestDTO request,
+    String userId,
+  ) async {
     return await apiClient.putData(profileUrl, request.toJson());
   }
 
-  Future<Response> uploadProfilePicture(String userId, MultipartBody file) async{
-    return await apiClient.postMultipartData(uploadProfilePictureUrl, {}, [file]);
+  Future<Response> uploadProfilePicture(
+    String userId,
+    MultipartBody file,
+  ) async {
+    return await apiClient.postMultipartData(uploadProfilePictureUrl, {}, [
+      file,
+    ]);
   }
 
-  Future<Response> changePassword(ChangePasswordRequestDTO request) async{
+  Future<Response> changePassword(ChangePasswordRequestDTO request) async {
     return await apiClient.postData(changePasswordUrl, request.toJson());
   }
 
-  Future<Response> getDepartments() async{
+  Future<Response> getDepartments() async {
     return await apiClient.getData(getDepartmentUrl);
   }
 
-  Future<Response> getDesignations() async{
+  Future<Response> getDesignations() async {
     return await apiClient.getData(getDesignationUrl);
   }
 
-  Future<Response> forgotPassword(ForgotPasswordRequestDto request) async{
+  Future<Response> forgotPassword(ForgotPasswordRequestDto request) async {
     return await apiClient.postData(forgotPasswordUrl, request.toJson());
   }
-
 }

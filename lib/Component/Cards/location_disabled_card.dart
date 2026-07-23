@@ -37,12 +37,10 @@ class _LocationDisabledCardState extends State<LocationDisabledCard>
     super.dispose();
   }
 
-
   void _handleEnable() {
     HapticFeedback.lightImpact();
     widget.onEnablePressed();
   }
-
 
   Future<void> _handleRetry() async {
     HapticFeedback.selectionClick();
@@ -85,7 +83,9 @@ class _LocationDisabledCardState extends State<LocationDisabledCard>
             elevation: 10,
             shadowColor: kLocationCardPrimary.withOpacity(0.25),
             margin: const EdgeInsets.symmetric(horizontal: 28),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
               child: Column(
@@ -93,13 +93,19 @@ class _LocationDisabledCardState extends State<LocationDisabledCard>
                 children: [
                   ScaleTransition(
                     scale: Tween(begin: 1.0, end: 1.12).animate(
-                      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+                      CurvedAnimation(
+                        parent: _pulseController,
+                        curve: Curves.easeInOut,
+                      ),
                     ),
                     child: CircleAvatar(
                       radius: 32,
                       backgroundColor: kcPurple500,
-                      child: const Icon(Icons.location_off_rounded,
-                          color: Colors.white, size: 32),
+                      child: const Icon(
+                        Icons.location_off_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -120,28 +126,32 @@ class _LocationDisabledCardState extends State<LocationDisabledCard>
                   ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 200),
-                    child: _showStillOffMessage
-                        ? Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              size: 16, color: Colors.redAccent),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              'Still Off - Enable it, then tap Retry.',
-                              style: kfTitleSmall.copyWith(
-                                color: Colors.redAccent,
-                                fontWeight: FontWeight.w600,
+                    child:
+                        _showStillOffMessage
+                            ? Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
+                                    size: 16,
+                                    color: Colors.redAccent,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'Still Off - Enable it, then tap Retry.',
+                                      style: kfTitleSmall.copyWith(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                        : const SizedBox.shrink(),
+                            )
+                            : const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 22),
                   SizedBox(
@@ -150,10 +160,13 @@ class _LocationDisabledCardState extends State<LocationDisabledCard>
                     child: FilledButton.icon(
                       onPressed: _handleEnable,
                       icon: const Icon(Icons.settings_rounded, size: 18),
-                      label: Text('Enable Location', style: kfTitleSmall.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      )),
+                      label: Text(
+                        'Enable Location',
+                        style: kfTitleSmall.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       style: FilledButton.styleFrom(
                         backgroundColor: kLocationCardPrimary,
                         shape: RoundedRectangleBorder(
@@ -174,19 +187,23 @@ class _LocationDisabledCardState extends State<LocationDisabledCard>
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: _isRetrying
-                          ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: kLocationCardPrimary,
-                        ),
-                      )
-                          : Text('Retry', style: kfTitleSmall.copyWith(
-                        color: kLocationCardPrimary,
-                        fontWeight: FontWeight.w600,
-                      )),
+                      child:
+                          _isRetrying
+                              ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: kLocationCardPrimary,
+                                ),
+                              )
+                              : Text(
+                                'Retry',
+                                style: kfTitleSmall.copyWith(
+                                  color: kLocationCardPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                     ),
                   ),
                 ],

@@ -120,7 +120,7 @@ class _StatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             Obx(
-                  () => Text(
+              () => Text(
                 controller.attendanceStatus.value,
                 style: TextStyle(
                   fontSize: 20,
@@ -235,8 +235,7 @@ class WorkDurationProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final totalMinutes = _controller.todayWorkDuration.value.inMinutes;
-      final progress =
-      (totalMinutes / (_targetHours * 60)).clamp(0.0, 1.0);
+      final progress = (totalMinutes / (_targetHours * 60)).clamp(0.0, 1.0);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +253,10 @@ class WorkDurationProgressBar extends StatelessWidget {
                   if (totalMinutes > (_targetHours * 60).toInt())
                     Container(
                       margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: kcPurple500.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(4),
@@ -280,8 +282,9 @@ class WorkDurationProgressBar extends StatelessWidget {
           LinearProgressIndicator(
             value: progress,
             backgroundColor: kcGrey200,
-            valueColor:
-            AlwaysStoppedAnimation<Color>(_progressColor(totalMinutes)),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              _progressColor(totalMinutes),
+            ),
             minHeight: 10,
             borderRadius: BorderRadius.circular(5),
           ),

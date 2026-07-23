@@ -18,15 +18,15 @@ class WeeklyAttendance extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: ListView.separated(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: attendance.length,
-          itemBuilder: (context, index){
-        final AttendanceForWeek attendanceForWeek = attendance[index];
-        return _TimeCard(attendance: attendanceForWeek);
-      },
-        separatorBuilder: (context, index){
-            return SizedBox(height: 15,);
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: attendance.length,
+        itemBuilder: (context, index) {
+          final AttendanceForWeek attendanceForWeek = attendance[index];
+          return _TimeCard(attendance: attendanceForWeek);
+        },
+        separatorBuilder: (context, index) {
+          return SizedBox(height: 15);
         },
       ),
     );
@@ -48,7 +48,10 @@ class _TimeCard extends StatelessWidget {
     ];
 
     return InkWell(
-      onTap: ()=>Get.to(()=>AttendanceDetails(attendanceId: attendance.id ?? "NA")),
+      onTap:
+          () => Get.to(
+            () => AttendanceDetails(attendanceId: attendance.id ?? "NA"),
+          ),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -62,21 +65,17 @@ class _TimeCard extends StatelessWidget {
             /**** Card Title ****/
             Text(
               "Date: ${formatDate(attendance.date)}",
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-      
+
             const SizedBox(height: 12),
-      
+
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: items.length,
               padding: EdgeInsets.zero,
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
@@ -117,22 +116,13 @@ class _TimeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: 4),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ],
       ),

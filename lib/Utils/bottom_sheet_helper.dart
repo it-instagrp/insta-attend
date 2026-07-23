@@ -76,7 +76,8 @@ void showCustomBottomSheet({
                       width: double.infinity,
                       child: CustomButton(
                         label: secondaryButtonLabel,
-                        onPressed: onSecondaryAction ?? () => Navigator.pop(context),
+                        onPressed:
+                            onSecondaryAction ?? () => Navigator.pop(context),
                         hierarchy: ButtonHierarchy.secondary,
                         destructive: isSecondaryDestructive,
                       ),
@@ -88,11 +89,7 @@ void showCustomBottomSheet({
             ),
             Positioned(
               top: 0,
-              child: SvgPicture.asset(
-                topIconAsset,
-                width: 100,
-                height: 100,
-              ),
+              child: SvgPicture.asset(topIconAsset, width: 100, height: 100),
             ),
           ],
         ),

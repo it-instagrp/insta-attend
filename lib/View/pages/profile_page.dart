@@ -114,9 +114,7 @@ class ProfilePage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
+                              SizedBox(height: 20.0),
                               /**** Department ****/
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -128,7 +126,12 @@ class ProfilePage extends StatelessWidget {
                                   ),
                                   SizedBox(width: 10.0),
                                   Text(
-                                    controller.currentUser.value.department?.departmentName ?? "NA",
+                                    controller
+                                            .currentUser
+                                            .value
+                                            .department
+                                            ?.departmentName ??
+                                        "NA",
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -163,7 +166,10 @@ class ProfilePage extends StatelessWidget {
                               /**** Personal Data ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>PersonalDataPage(), transition: Transition.fade);
+                                  Get.to(
+                                    () => PersonalDataPage(),
+                                    transition: Transition.fade,
+                                  );
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -183,13 +189,15 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
+                              SizedBox(height: 20.0),
                               /**** Register Face ID Option ****/
                               InkWell(
                                 onTap: () {
@@ -213,17 +221,22 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
+                              SizedBox(height: 20.0),
                               /**** Office Assets ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>OfficeAssetPage(), transition: Transition.fade);
+                                  Get.to(
+                                    () => OfficeAssetPage(),
+                                    transition: Transition.fade,
+                                  );
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -243,7 +256,11 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -273,7 +290,10 @@ class ProfilePage extends StatelessWidget {
                               /**** Change Password ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>ChangePasswordPage(), transition: Transition.fade);
+                                  Get.to(
+                                    () => ChangePasswordPage(),
+                                    transition: Transition.fade,
+                                  );
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -293,17 +313,22 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
+                              SizedBox(height: 20.0),
                               /**** Versioning ****/
                               InkWell(
                                 onTap: () {
-                                  Get.to(()=>VersioningPage(), transition: Transition.fade);
+                                  Get.to(
+                                    () => VersioningPage(),
+                                    transition: Transition.fade,
+                                  );
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -323,13 +348,15 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
+                              SizedBox(height: 20.0),
                               /**** FAQ and Help ****/
                               InkWell(
                                 onTap: () => {},
@@ -351,13 +378,15 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 20.0,
-                              ),
+                              SizedBox(height: 20.0),
                               /**** Logout ****/
                               InkWell(
                                 onTap: () {
@@ -381,7 +410,11 @@ class ProfilePage extends StatelessWidget {
                                       ),
                                     ),
                                     Spacer(),
-                                    Icon(Icons.arrow_forward_ios_rounded, size: 15, color: kcGrey500)
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 15,
+                                      color: kcGrey500,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -395,37 +428,51 @@ class ProfilePage extends StatelessWidget {
 
                 /**** Profile Picture ****/
                 Positioned(
-                    top: -50,
-                    left: 0,
-                    right: 0,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 100,
-                            width: 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(
-                                width: 2,
-                                color: Colors.white
-                              ),
-                              color: kcPurple600
-                            ),
-                            child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Image.asset(kaProfile)),
+                  top: -50,
+                  left: 0,
+                  right: 0,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 100,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(width: 2, color: Colors.white),
+                            color: kcPurple600,
                           ),
-                          Text(controller.currentUser.value.username ?? "NA", style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black
-                          ),),
-                          Text(controller.currentUser.value.designation?.designationName ?? "NA", style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w500, color: kcPurple500
-                          ),),
-                        ],
-                      ),
-                    ))
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            child: Image.asset(kaProfile),
+                          ),
+                        ),
+                        Text(
+                          controller.currentUser.value.username ?? "NA",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          controller
+                                  .currentUser
+                                  .value
+                                  .designation
+                                  ?.designationName ??
+                              "NA",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: kcPurple500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -438,25 +485,26 @@ class ProfilePage extends StatelessWidget {
     showCustomBottomSheet(
       context: context,
       title: "Are you sure?",
-      description: "If you logout you have to login again with your credentials, make sure you remember your login credentials",
+      description:
+          "If you logout you have to login again with your credentials, make sure you remember your login credentials",
       topIconAsset: kaLogoutTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : CustomButton(
-          label: "Yes, Logout",
-          onPressed: () => controller.logout(context),
-          destructive: true,
-        ),
+        () =>
+            controller.isLoading.value
+                ? Center(
+                  child: CircularProgressIndicator(
+                    strokeCap: StrokeCap.round,
+                    color: kcPurple600,
+                  ),
+                )
+                : CustomButton(
+                  label: "Yes, Logout",
+                  onPressed: () => controller.logout(context),
+                  destructive: true,
+                ),
       ),
       secondaryButtonLabel: "No, Keep me here",
       isSecondaryDestructive: true,
     );
   }
-
 }

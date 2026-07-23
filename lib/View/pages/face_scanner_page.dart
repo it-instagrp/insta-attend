@@ -60,7 +60,10 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
 
   void _initAllocatedBuffers() {
     _inputBuffer = Float32List(1 * inputSize * inputSize * 3);
-    _outputBuffer = List.generate(1, (_) => List<double>.filled(outputDimensions, 0.0));
+    _outputBuffer = List.generate(
+      1,
+      (_) => List<double>.filled(outputDimensions, 0.0),
+    );
     _cleanResultEmbedding = List<double>.filled(outputDimensions, 0.0);
   }
 
@@ -77,11 +80,14 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
 
   void _toggleWakelock(bool enable) {
     try {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
       if (enable) {
-        const MethodChannel('plugins.flutter.io/sensors')
-            .invokeMethod('keepOn', true)
-            .catchError((_) {});
+        const MethodChannel(
+          'plugins.flutter.io/sensors',
+        ).invokeMethod('keepOn', true).catchError((_) {});
       }
     } catch (e) {
       debugPrint("Wakelock initiation skipped: $e");
@@ -91,7 +97,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final frontCam = cameras.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.front,
+      (camera) => camera.lensDirection == CameraLensDirection.front,
       orElse: () => cameras.first,
     );
 
@@ -99,7 +105,10 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       frontCam,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.yuv420 : ImageFormatGroup.bgra8888,
+      imageFormatGroup:
+          Platform.isAndroid
+              ? ImageFormatGroup.yuv420
+              : ImageFormatGroup.bgra8888,
     );
 
     try {
@@ -146,8 +155,13 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
             _openEyeBaseline = (currentLeftEye + currentRightEye) / 2;
           }
 
-          double contextThreshold = (_openEyeBaseline! * 0.45).clamp(0.12, 0.28);
-          bool isEyeClosed = currentLeftEye < contextThreshold || currentRightEye < contextThreshold;
+          double contextThreshold = (_openEyeBaseline! * 0.45).clamp(
+            0.12,
+            0.28,
+          );
+          bool isEyeClosed =
+              currentLeftEye < contextThreshold ||
+              currentRightEye < contextThreshold;
 
           if (isEyeClosed) {
             _consecutiveClosedFrames++;
@@ -158,7 +172,8 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
             _consecutiveClosedFrames = 0;
           }
 
-          bool triggerFallback = _fallbackTimerStart != null &&
+          bool triggerFallback =
+              _fallbackTimerStart != null &&
               DateTime.now().difference(_fallbackTimerStart!).inSeconds >= 6;
 
           if (_consecutiveClosedFrames >= 1 || triggerFallback) {
@@ -197,13 +212,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
         int w = face.boundingBox.width.toInt().clamp(1, fixedImage.width - x);
         int h = face.boundingBox.height.toInt().clamp(1, fixedImage.height - y);
 
-        croppedFace = img.copyCrop(
-          fixedImage,
-          x: x,
-          y: y,
-          width: w,
-          height: h,
-        );
+        croppedFace = img.copyCrop(fixedImage, x: x, y: y, width: w, height: h);
 
         final embedding = _extractEmbeddingWithBufferReuse(croppedFace);
         if (mounted) Get.back(result: embedding);
@@ -222,7 +231,11 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
   }
 
   List<double> _extractEmbeddingWithBufferReuse(img.Image faceImage) {
-    img.Image resized = img.copyResize(faceImage, width: inputSize, height: inputSize);
+    img.Image resized = img.copyResize(
+      faceImage,
+      width: inputSize,
+      height: inputSize,
+    );
 
     int pixelIndex = 0;
     for (int y = 0; y < inputSize; y++) {
@@ -235,12 +248,16 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
     }
     resized.clear();
 
-    final Interpreter? interpreterInstance = _recognitionService.getInterpreter();
+    final Interpreter? interpreterInstance =
+        _recognitionService.getInterpreter();
     if (interpreterInstance == null) {
       throw Exception("TFLite Interpreter uninitialized.");
     }
 
-    interpreterInstance.run(_inputBuffer.reshape([1, inputSize, inputSize, 3]), _outputBuffer);
+    interpreterInstance.run(
+      _inputBuffer.reshape([1, inputSize, inputSize, 3]),
+      _outputBuffer,
+    );
 
     double sumSq = 0.0;
     for (int i = 0; i < outputDimensions; i++) {
@@ -276,14 +293,19 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
           final int yIndex = y * yRowStride + x;
           final int uvIndex = (y >> 1) * uvRowStride + (x >> 1) * uvPixelStride;
 
-          if (yIndex >= planeY.length || uvIndex >= planeU.length || uvIndex >= planeV.length) continue;
+          if (yIndex >= planeY.length ||
+              uvIndex >= planeU.length ||
+              uvIndex >= planeV.length)
+            continue;
 
           final yp = planeY[yIndex];
           final up = planeU[uvIndex];
           final vp = planeV[uvIndex];
 
           int r = (yp + 1.370705 * (vp - 128)).round().clamp(0, 255);
-          int g = (yp - 0.337633 * (up - 128) - 0.698001 * (vp - 128)).round().clamp(0, 255);
+          int g = (yp - 0.337633 * (up - 128) - 0.698001 * (vp - 128))
+              .round()
+              .clamp(0, 255);
           int b = (yp + 1.732446 * (up - 128)).round().clamp(0, 255);
 
           res.setPixelRgb(x, y, r, g, b);
@@ -310,7 +332,8 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       final int uvStride = image.planes[1].bytesPerRow;
       final int uvPixelStride = image.planes[1].bytesPerPixel ?? 1;
 
-      final int totalNV21Length = width * height + (2 * ((width + 1) ~/ 2) * ((height + 1) ~/ 2));
+      final int totalNV21Length =
+          width * height + (2 * ((width + 1) ~/ 2) * ((height + 1) ~/ 2));
       final Uint8List nv21Buffer = Uint8List(totalNV21Length);
 
       int idY = 0;
@@ -338,8 +361,10 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
         bytes: nv21Buffer,
         metadata: InputImageMetadata(
           size: Size(width.toDouble(), height.toDouble()),
-          rotation: InputImageRotationValue.fromRawValue(
-              _cameraController!.description.sensorOrientation) ??
+          rotation:
+              InputImageRotationValue.fromRawValue(
+                _cameraController!.description.sensorOrientation,
+              ) ??
               InputImageRotation.rotation0deg,
           format: InputImageFormat.nv21,
           bytesPerRow: width,
@@ -364,7 +389,8 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
           CameraPreview(_cameraController!),
           Center(
             child: Container(
-              width: 220, height: 220,
+              width: 220,
+              height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
@@ -372,9 +398,17 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
             ),
           ),
           const Positioned(
-            bottom: 60, left: 0, right: 0,
-            child: Text("POSITION YOUR FACE & BLINK", textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: Text(
+              "POSITION YOUR FACE & BLINK",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),

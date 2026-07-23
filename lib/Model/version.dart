@@ -6,13 +6,14 @@ class Version {
   String? createdAt;
   String? updatedAt;
 
-  Version(
-      {this.id,
-        this.versionName,
-        this.versionLink,
-        this.features,
-        this.createdAt,
-        this.updatedAt});
+  Version({
+    this.id,
+    this.versionName,
+    this.versionLink,
+    this.features,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Version.fromJson(Map<String, dynamic> json) {
     id = json['id'];

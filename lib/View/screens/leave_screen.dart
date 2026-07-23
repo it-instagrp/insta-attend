@@ -28,85 +28,36 @@ class LeaveScreen extends StatelessWidget {
             height: 250,
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(
-                color: kcPurple500,
-                borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(25.0),
-                    bottomRight: Radius.circular(25.0)
-                )
+              color: kcPurple500,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(25.0),
+                bottomRight: Radius.circular(25.0),
+              ),
             ),
           ),
           Positioned(
-              top: 70,
-              left: 0,
-              right: 0,
-              child: ListTile(
-                title: Text("Leave Summary", style: kfHeadlineSmall.copyWith(color: Colors.white),),
-                subtitle: Text("Submit Leave", style: kfLabelLarge.copyWith(color: kcPurple200),),
-                trailing: Image.asset(kaLeave),
-              )),
+            top: 70,
+            left: 0,
+            right: 0,
+            child: _buildHeader(),
+          ),
           Positioned(
-              left: 0,
-              right: 0,
-              top: 150,
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.8,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0
-                      ),
-                      child: Obx(()=>LeaveCard(usedLeave: controller.approvedLeaves.value.length, availableLeave: (11 - (controller.approvedLeaves.value.length)),)),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0
-                      ),
-                      child: ToggleCard(items: ["Review", "Approved", "Rejected"], onSelected: (filter)=>controller.leaveFilter.value = filter),
-                    ),
-                    Container(
-                      margin: EdgeInsets.all(18.0),
-                      height: 280,
-                      child: Obx(() => controller.isLoading.value
-                          ? Center(
-                        child: CircularProgressIndicator(
-                          strokeCap: StrokeCap.round,
-                          color: kcPurple600,
-                        ),
-                      )
-                          : controller.filteredLeaves.isNotEmpty
-                          ? ListView.separated(
-                        separatorBuilder: (context, index) => SizedBox(height: 10.0),
-                        itemCount: controller.filteredLeaves.length,
-                        itemBuilder: (context, index) {
-                          final leave = controller.filteredLeaves[index];
-                          return LeaveHistoryCard(leave: leave);
-                        },
-                      )
-                          : NoContent(
-                        icon: kaNoLeave,
-                        title: "No Leave Submitted!",
-                        description:
-                        "Ready to catch some fresh air? Click “Submit Leave” and take that well-deserved break!",
-                      )),)
-                  ],
-                ),
-              )),
-          Positioned(
-            bottom: 0,
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: 70,
-                padding: EdgeInsets.all(10.0),
-                color: Colors.white,
-                child: MainButton(label: "Submit Leave", onTap: (){
-                  Get.to(()=>SubmitLeave(), transition: Transition.fade);
-                }, buttonSize: ButtonSize.sm,),
-              )
-          )
+            left: 0,
+            right: 0,
+            top: 150,
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: Column(
+                children: [
+                  _buildLeaveSummary(),
+                  SizedBox(height: 10),
+                  _buildLeaveFilter(),
+                  _buildLeaveHistory(),
+                ],
+              ),
+            ),
+          ),
+          _buildSubmitLeaveButton(context),
         ],
       ),
     );
@@ -120,4 +71,94 @@ class LeaveScreen extends StatelessWidget {
     return 'Period of ${formatter.format(startOfYear)} - ${formatter.format(endOfYear)}';
   }
 
+  // Builds screen header
+  Widget _buildHeader(){
+    return ListTile(
+      title: Text(
+        "Leave Summary",
+        style: kfHeadlineSmall.copyWith(color: Colors.white),
+      ),
+      subtitle: Text(
+        "Submit Leave",
+        style: kfLabelLarge.copyWith(color: kcPurple200),
+      ),
+      trailing: Image.asset(kaLeave),
+    );
+  }
+
+  // Builds leave summary card
+  Widget _buildLeaveSummary(){
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Obx(
+            () => LeaveCard(
+          usedLeave: controller.approvedLeaves.value.length,
+          availableLeave:
+          (11 - (controller.approvedLeaves.value.length)),
+        ),
+      ),
+    );
+  }
+
+  // Builds leave status filter
+  Widget _buildLeaveFilter(){
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: ToggleCard(
+        items: const ["Review", "Approved", "Rejected"],
+        onSelected:
+            (filter) => controller.leaveFilter.value = filter,
+      ),
+    );
+  }
+
+  // Builds leave history section
+  Widget _buildLeaveHistory(){
+    return Container(
+      margin: EdgeInsets.all(18.0),
+      height: 280,
+      child: Obx(() {
+        if (controller.isLoading.value){
+          return Center(
+            child: CircularProgressIndicator(
+              strokeCap: StrokeCap.round,
+              color: kcPurple600,
+            ),
+          );
+        }
+        if (controller.filteredLeaves.isNotEmpty) {
+          return ListView.separated(
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemCount: controller.filteredLeaves.length,
+            itemBuilder: (context, index) {
+              final leave = controller.filteredLeaves[index];
+              return LeaveHistoryCard(leave: leave);
+            },
+          );
+        }
+        return NoContent(icon: kaNoLeave, title: 'No Leave Submitted', description: "Ready to catch some fresh air? Click “Submit Leave” and take that well-deserved break!",);
+      }
+      ),
+    );
+  }
+
+  // Builds submit leave button
+  Widget _buildSubmitLeaveButton(BuildContext context){
+    return Positioned(
+      bottom: 0,
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: 70,
+        padding: EdgeInsets.all(10.0),
+        color: Colors.white,
+        child: MainButton(
+          label: "Submit Leave",
+          onTap: () {
+            Get.to(() => SubmitLeave(), transition: Transition.fade);
+          },
+          buttonSize: ButtonSize.sm,
+        ),
+      ),
+    );
+  }
 }

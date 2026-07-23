@@ -99,7 +99,7 @@ class CreateExpense extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: kcGrey500),
                 ),
               ),
-        
+
               // Expense Type Dropdown
               Align(
                 alignment: Alignment.topLeft,
@@ -127,7 +127,7 @@ class CreateExpense extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 15),
-        
+
               // Amount Field
               CustomTextField(
                 title: "Amount",
@@ -138,7 +138,7 @@ class CreateExpense extends StatelessWidget {
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
               SizedBox(height: 15),
-        
+
               // Expense Date Field
               Obx(
                 () => CustomTextField(

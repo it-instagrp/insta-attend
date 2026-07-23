@@ -4,14 +4,18 @@ import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 
-enum ExpenseType{
-  total, review, approved
-}
+enum ExpenseType { total, review, approved }
 
 class ExpenseCard extends StatelessWidget {
   final String periodOfExpense;
   final int totalExpense, reviewExpense, approvedExpense;
-  const ExpenseCard({super.key, this.periodOfExpense = "1 Jan 2025 - 30 Dec 2024", this.totalExpense = 1010, this.reviewExpense = 445, this.approvedExpense = 555});
+  const ExpenseCard({
+    super.key,
+    this.periodOfExpense = "1 Jan 2025 - 30 Dec 2024",
+    this.totalExpense = 1010,
+    this.reviewExpense = 445,
+    this.approvedExpense = 555,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,23 +31,28 @@ class ExpenseCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Total Expense", style: kfLabelLarge,),
-          SizedBox(
-            height: 5,
-          ),
-          Text("Period $periodOfExpense", style: kfBodySmall,),
-          SizedBox(
-            height: 15,
-          ),
+          Text("Total Expense", style: kfLabelLarge),
+          SizedBox(height: 5),
+          Text("Period $periodOfExpense", style: kfBodySmall),
+          SizedBox(height: 15),
           Row(
             children: [
-              Expanded(child: _buildExpenseSection(ExpenseType.total, totalExpense)),
+              Expanded(
+                child: _buildExpenseSection(ExpenseType.total, totalExpense),
+              ),
               SizedBox(width: 8),
-              Expanded(child: _buildExpenseSection(ExpenseType.review, reviewExpense)),
+              Expanded(
+                child: _buildExpenseSection(ExpenseType.review, reviewExpense),
+              ),
               SizedBox(width: 8),
-              Expanded(child: _buildExpenseSection(ExpenseType.approved, approvedExpense)),
+              Expanded(
+                child: _buildExpenseSection(
+                  ExpenseType.approved,
+                  approvedExpense,
+                ),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -51,11 +60,14 @@ class ExpenseCard extends StatelessWidget {
 
   Widget _buildExpenseSection(ExpenseType type, int amount) {
     return Container(
-      padding: EdgeInsets.all(10.0),       // reduced from 12 → gives text more room
+      padding: EdgeInsets.all(10.0), // reduced from 12 → gives text more room
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
         color: kcGrey25,
-        border: Border.all(color: kcGrey100, width: 1.5),  // reduced from 2 → saves 1px per side
+        border: Border.all(
+          color: kcGrey100,
+          width: 1.5,
+        ), // reduced from 2 → saves 1px per side
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -71,7 +83,8 @@ class ExpenseCard extends StatelessWidget {
                 width: 14,
               ),
               SizedBox(width: 4),
-              Flexible(                     // prevents label from overflowing
+              Flexible(
+                // prevents label from overflowing
                 child: Text(
                   _getExpenseTitle(type),
                   style: kfLabelMedium,
@@ -88,8 +101,8 @@ class ExpenseCard extends StatelessWidget {
     );
   }
 
-  String _getExpenseTitle(ExpenseType type){
-    switch(type){
+  String _getExpenseTitle(ExpenseType type) {
+    switch (type) {
       case ExpenseType.total:
         return "Total";
       case ExpenseType.review:
@@ -99,8 +112,8 @@ class ExpenseCard extends StatelessWidget {
     }
   }
 
-  String _getExpenseIcon(ExpenseType type){
-    switch(type){
+  String _getExpenseIcon(ExpenseType type) {
+    switch (type) {
       case ExpenseType.total:
         return kaTotalExpense;
       case ExpenseType.review:

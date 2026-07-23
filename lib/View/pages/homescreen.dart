@@ -16,7 +16,6 @@ class Homescreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.transparent,
@@ -32,8 +31,9 @@ class Homescreen extends StatelessWidget {
           context: context,
         ),
         body: Container(
-            color: Color(0xFFF1F3F8),
-            child: Obx(()=>screens[controller.selectedIndex.value])),
+          color: Color(0xFFF1F3F8),
+          child: Obx(() => screens[controller.selectedIndex.value]),
+        ),
       ),
     );
   }
@@ -44,5 +44,5 @@ final List<Widget> screens = [
   // AttendanceScreen(),
   // TaskScreen(),
   ExpenseScreen(),
-  LeaveScreen()
+  LeaveScreen(),
 ];

@@ -5,11 +5,12 @@ import 'package:insta_attend/API/Repository/leave_repository.dart';
 import 'package:insta_attend/Model/Leave.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
 
-enum LeaveReason{
+enum LeaveReason {
   sick('Sick Leave'),
   vacation('Vacation'),
   personal('Personal Leave'),
   other('Other');
+
   final String description;
   const LeaveReason(this.description);
 }
@@ -41,20 +42,27 @@ class LeaveController extends GetxController {
   Future<void> getMyLeaves() async {
     isLoading.value = true;
     try {
-      final String userId = leaveRepository.sharedPreferences.getString("uid") ?? "";
+      final String userId =
+          leaveRepository.sharedPreferences.getString("uid") ?? "";
       Response response = await leaveRepository.getLeaveList(userId);
 
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
-        List<Leave> leaves = dataList.map((json) => Leave.fromJson(json)).toList();
+        List<Leave> leaves =
+            dataList.map((json) => Leave.fromJson(json)).toList();
 
         allLeaves.assignAll(leaves);
 
         // Filter based on status
-        reviewLeaves.assignAll(leaves.where((l) => l.status?.toLowerCase() == 'pending').toList());
-        approvedLeaves.assignAll(leaves.where((l) => l.status?.toLowerCase() == 'approved').toList());
-        rejectedLeaves.assignAll(leaves.where((l) => l.status?.toLowerCase() == 'rejected').toList());
-
+        reviewLeaves.assignAll(
+          leaves.where((l) => l.status?.toLowerCase() == 'pending').toList(),
+        );
+        approvedLeaves.assignAll(
+          leaves.where((l) => l.status?.toLowerCase() == 'approved').toList(),
+        );
+        rejectedLeaves.assignAll(
+          leaves.where((l) => l.status?.toLowerCase() == 'rejected').toList(),
+        );
       } else {
         showError(response.body['message']);
       }
@@ -73,7 +81,8 @@ class LeaveController extends GetxController {
         showError("Please select a leave duration");
         return;
       }
-      final String userId = leaveRepository.sharedPreferences.getString("uid") ?? "";
+      final String userId =
+          leaveRepository.sharedPreferences.getString("uid") ?? "";
       final ApplyLeaveRequestDTO request = ApplyLeaveRequestDTO(
         from: fromDate.value,
         to: toDate.value,

@@ -59,7 +59,8 @@ class AttendanceController extends GetxController {
   /**** Get department's latitude and longitude from user ****/
   Future<void> getLatLong(BuildContext context) async {
     try {
-      final String latLong = authController.currentUser.value.department?.departmentLatLong ?? "";
+      final String latLong =
+          authController.currentUser.value.department?.departmentLatLong ?? "";
       final List<String> positionArray = latLong.split(", ");
       lat.value = double.tryParse(positionArray[0]) ?? 0.0;
       long.value = double.tryParse(positionArray[1]) ?? 0.0;
@@ -82,12 +83,19 @@ class AttendanceController extends GetxController {
       }
     }
 
-    return await Geolocator.getCurrentPosition(locationSettings: LocationSettings(accuracy: LocationAccuracy.best));
+    return await Geolocator.getCurrentPosition(
+      locationSettings: LocationSettings(accuracy: LocationAccuracy.best),
+    );
   }
 
   /**** Check if user is within 200 meters of office location ****/
   bool isInRange(double userLat, double userLng, double geoLat, double geoLng) {
-    double distanceInMeters = Geolocator.distanceBetween(userLat, userLng, geoLat, geoLng);
+    double distanceInMeters = Geolocator.distanceBetween(
+      userLat,
+      userLng,
+      geoLat,
+      geoLng,
+    );
     return distanceInMeters <= 200;
   }
 
@@ -102,28 +110,38 @@ class AttendanceController extends GetxController {
     if (serverMessage.toLowerCase().contains("face not registered")) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text("Face Profile Required"),
-          content: const Text("Your face biometric profile is missing from the server records. Would you like to scan and register your face now?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: kcGrey500)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kcPurple600,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+        builder:
+            (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                authController.enrollUserFace(context);
-              },
-              child: const Text("Register Now", style: TextStyle(color: Colors.white)),
+              title: const Text("Face Profile Required"),
+              content: const Text(
+                "Your face biometric profile is missing from the server records. Would you like to scan and register your face now?",
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Cancel", style: TextStyle(color: kcGrey500)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kcPurple600,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    authController.enrollUserFace(context);
+                  },
+                  child: const Text(
+                    "Register Now",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     } else {
       showError(serverMessage);
@@ -132,7 +150,9 @@ class AttendanceController extends GetxController {
 
   /**** Mark user Clock In ****/
   void clockIn(BuildContext context) async {
-    final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: false));
+    final dynamic faceResult = await Get.to(
+      () => FaceScannerPage(isRegistration: false),
+    );
 
     if (faceResult != null && faceResult is List<double>) {
       isLoading.value = true;
@@ -141,35 +161,59 @@ class AttendanceController extends GetxController {
         Position position = await getCurrentLocation();
 
         if (authController.currentUser.value.geofencing == true) {
-          bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+          bool inRange = isInRange(
+            position.latitude,
+            position.longitude,
+            lat.value,
+            long.value,
+          );
 
           if (inRange) {
-            Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
-                checkInLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
-                faceEmbedding: faceResult
-            ));
+            Response response = await attendanceRepo.clockIn(
+              CheckInRequestDTO(
+                checkInLocation:
+                    authController
+                        .currentUser
+                        .value
+                        .department
+                        ?.departmentAddress ??
+                    "N/A",
+                faceEmbedding: faceResult,
+              ),
+            );
 
             if (response.statusCode == 200 || response.statusCode == 201) {
               showSuccess("Marked Clock In");
               getMyAttendance();
             } else {
-              _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
+              _handleAttendanceError(
+                context,
+                response.body['message'] ?? "Error occurred",
+              );
             }
           } else {
             showError("You are not in office premises");
           }
         } else {
-          String address = await getAddressFromLatLng(position.latitude, position.longitude);
-          Response response = await attendanceRepo.clockIn(CheckInRequestDTO(
+          String address = await getAddressFromLatLng(
+            position.latitude,
+            position.longitude,
+          );
+          Response response = await attendanceRepo.clockIn(
+            CheckInRequestDTO(
               checkInLocation: address,
-              faceEmbedding: faceResult
-          ));
+              faceEmbedding: faceResult,
+            ),
+          );
 
           if (response.statusCode == 200 || response.statusCode == 201) {
             showSuccess("Marked Clock In");
             getMyAttendance();
           } else {
-            _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
+            _handleAttendanceError(
+              context,
+              response.body['message'] ?? "Error occurred",
+            );
           }
         }
       } catch (e) {
@@ -184,42 +228,68 @@ class AttendanceController extends GetxController {
 
   /**** Mark user Clock Out ****/
   void clockOut(BuildContext context) async {
-    final dynamic faceResult = await Get.to(() => const FaceScannerPage(isRegistration: false));
+    final dynamic faceResult = await Get.to(
+      () => const FaceScannerPage(isRegistration: false),
+    );
 
     if (faceResult != null && faceResult is List<double>) {
       isLoading.value = true;
       try {
         Position position = await getCurrentLocation();
         if (authController.currentUser.value.geofencing == true) {
-          bool inRange = isInRange(position.latitude, position.longitude, lat.value, long.value);
+          bool inRange = isInRange(
+            position.latitude,
+            position.longitude,
+            lat.value,
+            long.value,
+          );
 
           if (inRange) {
-            Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
-              checkOutLocation: authController.currentUser.value.department?.departmentAddress ?? "N/A",
-              faceEmbedding: faceResult,
-            ));
+            Response response = await attendanceRepo.clockOut(
+              CheckOutRequestDTO(
+                checkOutLocation:
+                    authController
+                        .currentUser
+                        .value
+                        .department
+                        ?.departmentAddress ??
+                    "N/A",
+                faceEmbedding: faceResult,
+              ),
+            );
 
             if (response.statusCode == 200 || response.statusCode == 201) {
               showSuccess("Marked Clock Out");
               getMyAttendance();
             } else {
-              _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
+              _handleAttendanceError(
+                context,
+                response.body['message'] ?? "Error occurred",
+              );
             }
           } else {
             showError("You are not in office premises");
           }
         } else {
-          String address = await getAddressFromLatLng(position.latitude, position.longitude);
-          Response response = await attendanceRepo.clockOut(CheckOutRequestDTO(
-            checkOutLocation: address,
-            faceEmbedding: faceResult,
-          ));
+          String address = await getAddressFromLatLng(
+            position.latitude,
+            position.longitude,
+          );
+          Response response = await attendanceRepo.clockOut(
+            CheckOutRequestDTO(
+              checkOutLocation: address,
+              faceEmbedding: faceResult,
+            ),
+          );
 
           if (response.statusCode == 200 || response.statusCode == 201) {
             showSuccess("Marked Clock Out");
             getMyAttendance();
           } else {
-            _handleAttendanceError(context, response.body['message'] ?? "Error occurred");
+            _handleAttendanceError(
+              context,
+              response.body['message'] ?? "Error occurred",
+            );
           }
         }
       } catch (e) {
@@ -243,16 +313,21 @@ class AttendanceController extends GetxController {
           employee's attendance to be displayed.
           Falls back to SharedPreferences uid if currentUser id is null.
        ****/
-      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
+      final String userId =
+          authController.currentUser.value.id ??
+          sharedPreferences.getString("uid") ??
+          "";
       log("UID from session: $userId");
       Response response = await attendanceRepo.getMyAttendance(userId);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         List<dynamic> data = response.body['data'];
-        attendance.value = data.map((json) => Attendance.fromJson(json)).toList();
+        attendance.value =
+            data.map((json) => Attendance.fromJson(json)).toList();
 
         String today = DateTime.now().toIso8601String().substring(0, 10);
-        var todayRecords = attendance.where((record) => record.date == today).toList();
+        var todayRecords =
+            attendance.where((record) => record.date == today).toList();
 
         // If there are records for today, process the latest one
         if (todayRecords.isNotEmpty) {
@@ -261,7 +336,8 @@ class AttendanceController extends GetxController {
           checkInTime.value = latestRecord.checkInTime ?? "";
           checkInAddress.value = latestRecord.checkInLocation ?? "";
 
-          if (latestRecord.checkOutTime != null && latestRecord.checkOutTime!.isNotEmpty) {
+          if (latestRecord.checkOutTime != null &&
+              latestRecord.checkOutTime!.isNotEmpty) {
             // User has checked out
             attendanceStatus.value = "Checked Out";
             isCheckIn.value = true;
@@ -270,7 +346,9 @@ class AttendanceController extends GetxController {
             updateTodayDuration();
             _durationTimer?.cancel();
 
-            print("Status: ${attendanceStatus.value}, CheckIn: ${isCheckIn}, Check Out Time: ${checkOutTime.value}, Check in Time: ${checkInTime.value}");
+            print(
+              "Status: ${attendanceStatus.value}, CheckIn: ${isCheckIn}, Check Out Time: ${checkOutTime.value}, Check in Time: ${checkInTime.value}",
+            );
           } else {
             // User is currently checked in
             attendanceStatus.value = "Checked In";
@@ -281,7 +359,9 @@ class AttendanceController extends GetxController {
             _startDurationTimer();
 
             // Debugging statement added here
-            print("Status: ${attendanceStatus.value}, CheckIn Time: ${checkInTime.value}, CheckIn Address: ${checkInAddress.value}");
+            print(
+              "Status: ${attendanceStatus.value}, CheckIn Time: ${checkInTime.value}, CheckIn Address: ${checkInAddress.value}",
+            );
           }
         } else {
           // No attendance records for today
@@ -295,7 +375,9 @@ class AttendanceController extends GetxController {
           _durationTimer?.cancel();
         }
       } else {
-        debugPrint("Failed to fetch attendance. Status Code: ${response.statusCode}");
+        debugPrint(
+          "Failed to fetch attendance. Status Code: ${response.statusCode}",
+        );
       }
     } catch (err) {
       debugPrint("Error while fetching attendance: $err");
@@ -313,17 +395,25 @@ class AttendanceController extends GetxController {
 
   void updateTodayDuration() {
     String today = DateTime.now().toIso8601String().substring(0, 10);
-    var todayRecords = attendance.where((record) => record.date == today).toList();
+    var todayRecords =
+        attendance.where((record) => record.date == today).toList();
 
     if (todayRecords.isNotEmpty) {
       final latestRecord = todayRecords.last;
       if (latestRecord.checkInTime != null) {
-        DateTime checkInDateTime = DateTime.parse(latestRecord.checkInTime!).toLocal();
-        if (latestRecord.checkOutTime != null && latestRecord.checkOutTime!.isNotEmpty) {
-          DateTime checkOutDateTime = DateTime.parse(latestRecord.checkOutTime!).toLocal();
-          todayWorkDuration.value = checkOutDateTime.difference(checkInDateTime);
+        DateTime checkInDateTime =
+            DateTime.parse(latestRecord.checkInTime!).toLocal();
+        if (latestRecord.checkOutTime != null &&
+            latestRecord.checkOutTime!.isNotEmpty) {
+          DateTime checkOutDateTime =
+              DateTime.parse(latestRecord.checkOutTime!).toLocal();
+          todayWorkDuration.value = checkOutDateTime.difference(
+            checkInDateTime,
+          );
         } else {
-          todayWorkDuration.value = DateTime.now().toLocal().difference(checkInDateTime);
+          todayWorkDuration.value = DateTime.now().toLocal().difference(
+            checkInDateTime,
+          );
         }
       }
     } else {
@@ -351,7 +441,8 @@ class AttendanceController extends GetxController {
   /**** Get today’s total work duration ****/
   String getTodayDuration() {
     String today = DateTime.now().toIso8601String().substring(0, 10);
-    var todayRecords = attendance.where((record) => record.date == today).toList();
+    var todayRecords =
+        attendance.where((record) => record.date == today).toList();
     return calculateTotalDuration(todayRecords);
   }
 
@@ -360,12 +451,13 @@ class AttendanceController extends GetxController {
     DateTime now = DateTime.now();
     DateTime startOfMonth = DateTime(now.year, now.month, 1);
 
-    var monthlyRecords = attendance.where((record) {
-      if (record.date == null) return false;
-      DateTime recordDate = DateTime.parse(record.date!);
-      return recordDate.isAfter(startOfMonth.subtract(Duration(days: 1))) &&
-          recordDate.isBefore(now.add(Duration(days: 1)));
-    }).toList();
+    var monthlyRecords =
+        attendance.where((record) {
+          if (record.date == null) return false;
+          DateTime recordDate = DateTime.parse(record.date!);
+          return recordDate.isAfter(startOfMonth.subtract(Duration(days: 1))) &&
+              recordDate.isBefore(now.add(Duration(days: 1)));
+        }).toList();
 
     return calculateTotalDuration(monthlyRecords);
   }
@@ -375,10 +467,13 @@ class AttendanceController extends GetxController {
     try {
       isWeeklyAttendanceLoading.value = true;
       // CHANGED - use in-memory currentUser id first, fall back to SharedPreferences
-      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
+      final String userId =
+          authController.currentUser.value.id ??
+          sharedPreferences.getString("uid") ??
+          "";
 
       // ADDED - skip the api call entirely if no valid userId is available
-      if(userId.isEmpty){
+      if (userId.isEmpty) {
         debugPrint("getMyWeekAttendance: userId is empty, skipping call");
         return;
       }
@@ -388,14 +483,16 @@ class AttendanceController extends GetxController {
 
         // 3. SOLUTION: Explicitly cast the mapped results into a strongly-typed List
         final List<AttendanceForWeek> parsedList = List<AttendanceForWeek>.from(
-            attendanceData.map((atd) => AttendanceForWeek.fromJson(atd))
+          attendanceData.map((atd) => AttendanceForWeek.fromJson(atd)),
         );
 
         // 4. Assign the properly typed list to your reactive RxList variable
         weeklyAttendance.assignAll(parsedList);
       } else {
         // CHANGED - log instead of showing popup for a background fetch
-        debugPrint("getMyWeekAttendance failed: ${response.statusCode} - ${response.body}");
+        debugPrint(
+          "getMyWeekAttendance failed: ${response.statusCode} - ${response.body}",
+        );
       }
     } catch (err) {
       debugPrint("Exception in get my weekly attendance: $err");
@@ -405,13 +502,17 @@ class AttendanceController extends GetxController {
     }
   }
 
-    Future<void> getAttendanceDetails(String attendanceId) async{
+  Future<void> getAttendanceDetails(String attendanceId) async {
     try {
       isAttendanceDetailsLoading.value = true;
-      Response response = await attendanceRepo.getAttendanceDetails(attendanceId);
-      if(response.statusCode == 200) {
-        attendanceDetails.value = AttendanceDetail.fromJson(response.body['data']);
-      } else{
+      Response response = await attendanceRepo.getAttendanceDetails(
+        attendanceId,
+      );
+      if (response.statusCode == 200) {
+        attendanceDetails.value = AttendanceDetail.fromJson(
+          response.body['data'],
+        );
+      } else {
         showError(response.body['message'] ?? "Failed to load details");
       }
     } catch (err) {
@@ -420,6 +521,5 @@ class AttendanceController extends GetxController {
     } finally {
       isAttendanceDetailsLoading.value = false;
     }
-
-    }
+  }
 }

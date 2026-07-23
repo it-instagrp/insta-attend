@@ -255,24 +255,31 @@ class PersonalDataPage extends StatelessWidget {
   }
 
   void showUpdateConfirmation(BuildContext context) {
-    showCustomBottomSheet(context: context, title: "Update Profile", description: "Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.", topIconAsset: kaUpdateTop, primaryButton: SizedBox(
-      height: 45,
-      width: MediaQuery.of(context).size.width,
-      child: Obx(
-            () =>
-        controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : main.MainButton(
-          label: "Yes, Update Profile",
-          onTap: () => controller.updateProfile(context),
+    showCustomBottomSheet(
+      context: context,
+      title: "Update Profile",
+      description:
+          "Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.",
+      topIconAsset: kaUpdateTop,
+      primaryButton: SizedBox(
+        height: 45,
+        width: MediaQuery.of(context).size.width,
+        child: Obx(
+          () =>
+              controller.isLoading.value
+                  ? Center(
+                    child: CircularProgressIndicator(
+                      strokeCap: StrokeCap.round,
+                      color: kcPurple600,
+                    ),
+                  )
+                  : main.MainButton(
+                    label: "Yes, Update Profile",
+                    onTap: () => controller.updateProfile(context),
+                  ),
         ),
       ),
-    ));
+    );
   }
 
   void _showImageSourcePicker(BuildContext context) {
@@ -301,7 +308,10 @@ class PersonalDataPage extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.photo_library_rounded, color: kcPurple500),
+                  leading: Icon(
+                    Icons.photo_library_rounded,
+                    color: kcPurple500,
+                  ),
                   title: const Text("Choose from Gallery"),
                   onTap: () {
                     Navigator.pop(context);

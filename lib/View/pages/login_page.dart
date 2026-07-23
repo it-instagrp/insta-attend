@@ -82,27 +82,32 @@ class LoginPage extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Obx(
-                    () => controller.isLoading.value
-                    ? Center(
-                  child: CircularProgressIndicator(
-                    strokeCap: StrokeCap.round,
-                    color: kcPurple500,
-                  ),
-                )
-                    : Obx(() => MainButton(                               // WRAP in Obx
-                  label: "Login",
-                  buttonType: controller.isLoginFormValid.value
-                      ? ButtonType.normal
-                      : ButtonType.disabled,                          // ADD
-                  onTap: () {
-                    if (_formKey.currentState!.validate()) {
-                      controller.login(context);
-                    }
-                  },
-                  buttonSize: ButtonSize.xl,
-                )),
+                () =>
+                    controller.isLoading.value
+                        ? Center(
+                          child: CircularProgressIndicator(
+                            strokeCap: StrokeCap.round,
+                            color: kcPurple500,
+                          ),
+                        )
+                        : Obx(
+                          () => MainButton(
+                            // WRAP in Obx
+                            label: "Login",
+                            buttonType:
+                                controller.isLoginFormValid.value
+                                    ? ButtonType.normal
+                                    : ButtonType.disabled, // ADD
+                            onTap: () {
+                              if (_formKey.currentState!.validate()) {
+                                controller.login(context);
+                              }
+                            },
+                            buttonSize: ButtonSize.xl,
+                          ),
+                        ),
               ),
-              SizedBox(height: 30,),
+              SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -111,7 +116,7 @@ class LoginPage extends StatelessWidget {
                     width: MediaQuery.of(context).size.width * 0.3,
                     color: kcGrey400,
                   ),
-                  Text("or", style: kfBodyMedium,),
+                  Text("or", style: kfBodyMedium),
                   Container(
                     height: 1,
                     width: MediaQuery.of(context).size.width * 0.3,
@@ -119,22 +124,25 @@ class LoginPage extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("Don't Have Account? ", style: kfTitleSmall,),
+                  Text("Don't Have Account? ", style: kfTitleSmall),
                   InkWell(
-                    onTap: ()
-                    {
+                    onTap: () {
                       controller.emailController.clear();
                       controller.passwordController.clear();
                       Get.to(() => RegisterPage());
                     },
-                    child: Text("Sign up", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
+                    child: Text(
+                      "Sign up",
+                      style: kfTitleSmall.copyWith(
+                        color: kcPurple500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -143,12 +151,18 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("Forgot Password? ", style: kfTitleSmall,),
+                  Text("Forgot Password? ", style: kfTitleSmall),
                   InkWell(
-                    onTap: (){
+                    onTap: () {
                       showForgotPasswordScreen(context: context);
                     },
-                    child: Text("Click Here", style: kfTitleSmall.copyWith(color: kcPurple500, fontWeight: FontWeight.w600),),
+                    child: Text(
+                      "Click Here",
+                      style: kfTitleSmall.copyWith(
+                        color: kcPurple500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -163,7 +177,8 @@ class LoginPage extends StatelessWidget {
     showCustomBottomSheet(
       context: context,
       title: "Forgot Password",
-      description: "A verification link will be sent to your email to reset your password.",
+      description:
+          "A verification link will be sent to your email to reset your password.",
       topIconAsset: kaForgotPasswordTop,
       showSecondaryButton: false,
       additionalContent: Form(
@@ -178,22 +193,23 @@ class LoginPage extends StatelessWidget {
         ),
       ),
       primaryButton: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : MainButton(
-          label: "Send Email",
-          onTap: () {
-            if (_forgotPasswordFormKey.currentState!.validate()){
-              controller.forgotPassword(context);
-            }
-          },
-          buttonSize: ButtonSize.lg,
-        ),
+        () =>
+            controller.isLoading.value
+                ? Center(
+                  child: CircularProgressIndicator(
+                    strokeCap: StrokeCap.round,
+                    color: kcPurple600,
+                  ),
+                )
+                : MainButton(
+                  label: "Send Email",
+                  onTap: () {
+                    if (_forgotPasswordFormKey.currentState!.validate()) {
+                      controller.forgotPassword(context);
+                    }
+                  },
+                  buttonSize: ButtonSize.lg,
+                ),
       ),
     );
   }
