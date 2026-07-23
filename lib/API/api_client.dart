@@ -23,9 +23,9 @@ class ApiClient extends GetxService {
   ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
     liveToken = sharedPreferences.getString(token) ?? "";
     if (kDebugMode) {
-      print('Token: $token');
+      print('Token: $liveToken');
     }
-    updateHeader(token);
+    updateHeader(liveToken);
   }
 
   void updateHeader(String token) {

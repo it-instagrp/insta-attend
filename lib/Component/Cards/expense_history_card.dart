@@ -6,10 +6,10 @@ import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Model/expense.dart';
 import 'package:intl/intl.dart';
 
-class ExpenseHistoryCard extends StatelessWidget {
+class ExpenseHistoryCard extends StatelessWidget{
   final Expense expense;
-
-  const ExpenseHistoryCard({super.key, required this.expense});
+  final VoidCallback? onEdit;
+  const ExpenseHistoryCard({super.key, required this.expense, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -32,19 +32,33 @@ class ExpenseHistoryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SvgPicture.asset(
-                kaFaq,
-                fit: BoxFit.scaleDown,
-                height: 18,
-                width: 18,
-                colorFilter: ColorFilter.mode(kcPurple500, BlendMode.srcIn),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    kaFaq,
+                    fit: BoxFit.scaleDown,
+                    height: 18,
+                    width: 18,
+                    colorFilter: ColorFilter.mode(kcPurple500, BlendMode.srcIn),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Text(
+                    _formatHeaderDate(expense.expenseDate ?? expense.createdAt ?? ""),
+                    style: kfLabelMedium.copyWith(color: kcGrey800, fontSize: 13),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8.0),
-              Text(
-                _formatHeaderDate(expense.expenseDate ?? expense.createdAt ?? ""),
-                style: kfLabelMedium.copyWith(color: kcGrey800, fontSize: 13),
-              ),
+              if ((expense.expenseStatus?.toLowerCase() ?? 'pending') == 'pending')
+                InkWell(
+                  onTap: onEdit,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(Icons.edit_rounded, size: 18, color: kcPurple500),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12.0),

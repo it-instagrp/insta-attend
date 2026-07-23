@@ -10,6 +10,7 @@ import 'package:insta_attend/API/Repository/expense_repository.dart';
 import 'package:insta_attend/Model/expense.dart';
 import 'package:insta_attend/Model/expense_stats.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
+import 'package:insta_attend/View/pages/create_expense.dart';
 
 class ExpenseController extends GetxController {
   final ExpenseRepository expenseRepo;
@@ -27,6 +28,7 @@ class ExpenseController extends GetxController {
   final RxString selectedExpenseType = ''.obs;
   RxInt expenseFilter = 0.obs; // 0: Review, 1: Approved, 2: Rejected
   Rx<File?> pickedReceiptImage = Rx<File?>(null);
+  final RxnString editingExpenseId = RxnString();
 
   final TextEditingController amountController = TextEditingController();
 
@@ -98,6 +100,43 @@ class ExpenseController extends GetxController {
       isLoading.value = false;
     }
   }
+  void startEditingExpense(Expense expense) {
+    editingExpenseId.value =expense.id;
+    amountController.text = expense.expenseAmount?.toStringAsFixed(0) ?? '';
+    selectedExpenseType.value =expense.expenseType ?? '';
+    expenseDate.value = expense.expenseDate ?? '';
+    pickedReceiptImage.value = null;
+    Get.to(() => CreateExpense(), transition: Transition.fade);
+  }
+  Future<void> updateExpense() async {
+    try{
+      isLoading.value =true;
+      final String userId = await getUserId();
+      final ExpenseRequestDTO request = ExpenseRequestDTO(
+        expenseAmount: double.tryParse(amountController.text.trim()),
+        expenseType: selectedExpenseType.value,
+        expenseBy: userId,
+        expenseDate: expenseDate.value,
+        expenseStatus: "Pending",
+        image: pickedReceiptImage.value,
+      );
+      Response response = await expenseRepo.updateMyExpense(editingExpenseId.value!, request);
+      if (response.statusCode == 200){
+        showSuccess("Expense updated successfully");
+        getMyExpense();
+        clearForm();
+        Get.back();
+        Get.back();
+      } else {
+        showError(response.body['message']);
+      }
+    } catch (err){
+      if(kDebugMode) log("Exception in update expense", error: err);
+      showError("Something went wrong");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   Future<void> getMyExpense() async {
     try {
@@ -143,6 +182,7 @@ class ExpenseController extends GetxController {
     selectedExpenseType.value = '';
     expenseDate.value = '';
     pickedReceiptImage.value = null;
+    editingExpenseId.value = null;
   }
 
   List<Expense> get filteredExpenses {
