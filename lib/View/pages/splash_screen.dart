@@ -13,7 +13,7 @@ import '../../Model/User.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  SplashScreen({super.key});
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -27,13 +27,17 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _navigateToNextScreen();
+  }
+
+  Future<void> _navigateToNextScreen() async {
     // Register the new controller
     final OnboardingController onboardingController =
-        Get.find<OnboardingController>();
+    Get.find<OnboardingController>();
 
     Future.delayed(const Duration(seconds: 3), () async {
-      final String userToken = sharedPreferences.getString("token") ?? "";
-      final String userJson = sharedPreferences.getString("user") ?? "";
+      final userToken = sharedPreferences.getString("token") ?? "";
+      final userJson = sharedPreferences.getString("user") ?? "";
 
       if (userToken.isNotEmpty && userJson.isNotEmpty) {
         apiClient.updateHeader(userToken);

@@ -32,6 +32,11 @@ class LeaveController extends GetxController {
   RxList<Leave> rejectedLeaves = <Leave>[].obs;
 
   final TextEditingController reasonController = TextEditingController();
+  void clearLeaveForm() {
+    fromDate.value = "";
+    toDate.value = "";
+    leaveReason.value = LeaveReason.other;
+  }
 
   @override
   void onInit() {
@@ -93,6 +98,7 @@ class LeaveController extends GetxController {
 
       if (response.statusCode == 200) {
         showSuccess("Leave Requested Successfully");
+        clearLeaveForm();
         getMyLeaves();
         Navigator.pop(context);
         Navigator.pop(context);

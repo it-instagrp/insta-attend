@@ -9,27 +9,26 @@ class CustomBottomNavigationBar extends StatefulWidget {
   final Function(int index) onSelectIndex;
   final BuildContext context;
 
-  CustomBottomNavigationBar({
-    super.key,
-    required this.onSelectIndex,
-    required this.context,
-  });
+  CustomBottomNavigationBar({super.key, required this.onSelectIndex, required this.context});
 
   @override
-  State<CustomBottomNavigationBar> createState() =>
-      _CustomBottomNavigationBarState();
+  State<CustomBottomNavigationBar> createState() => _CustomBottomNavigationBarState();
 }
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   final HomescreenController controller = Get.find<HomescreenController>();
   final authController = Get.find<AuthController>();
+  final List<String> corporateList = [
+    "Corporate Office",
+    "IT Department"
+  ];
 
   final List<String> icons = [
     kaHomeHollow,
     // kaAttendanceHollow,
     // kaTaskHollow,
     kaExpenseHollow,
-    kaLeaveHollow,
+    kaLeaveHollow
   ];
 
   final List<String> selectedIcons = [
@@ -37,15 +36,14 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
     // kaAttendanceFilled,
     // kaTaskFilled,
     kaExpenseFilled,
-    kaLeaveFilled,
+    kaLeaveFilled
   ];
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final user = authController.currentUser.value;
-      final bool isCorporate =
-          user.department?.departmentName == "Corporate Office";
+      final bool isCorporate = corporateList.contains(user.department?.departmentName);
 
       final List<int> visibleIndexes = [
         0,
@@ -60,7 +58,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
         // "Attendance",
         // "Tasks",
         "Expense",
-        "Leave",
+        "Leave"
       ];
 
       return Container(
@@ -70,26 +68,24 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
         color: const Color(0xFF1C2020),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children:
-              visibleIndexes.map((index) {
-                final isSelected = controller.selectedIndex.value == index;
-                return GestureDetector(
-                  onTap: () {
-                    controller.selectedIndex.value = index;
-                    widget.onSelectIndex(index);
-                  },
-                  child: BottomBarItem(
-                    index: index,
-                    iconPath: isSelected ? selectedIcons[index] : icons[index],
-                    isSelected: isSelected,
-                    onTap: () {
-                      controller.selectedIndex.value = index;
-                      widget.onSelectIndex(index);
-                    },
-                    title: titles[index],
-                  ),
-                );
-              }).toList(),
+          children: visibleIndexes.map((index) {
+            final isSelected = controller.selectedIndex.value == index;
+            return GestureDetector(
+              onTap: () {
+                controller.selectedIndex.value = index;
+                widget.onSelectIndex(index);
+              },
+              child: BottomBarItem(
+                index: index,
+                iconPath: isSelected ? selectedIcons[index] : icons[index],
+                isSelected: isSelected,
+                onTap: () {
+                  controller.selectedIndex.value = index;
+                  widget.onSelectIndex(index);
+                }, title: titles[index],
+              ),
+            );
+          }).toList(),
         ),
       );
     });
@@ -115,11 +111,11 @@ class BottomBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min, // ← shrink-wraps the column
+      mainAxisSize: MainAxisSize.min,        // ← shrink-wraps the column
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SvgPicture.asset(iconPath, height: 25, width: 25),
-        const SizedBox(height: 4), // ← fixed gap instead of spaceBetween
+        const SizedBox(height: 4),           // ← fixed gap instead of spaceBetween
         Container(
           height: 2,
           width: 12,
@@ -128,7 +124,7 @@ class BottomBarItem extends StatelessWidget {
             color: isSelected ? Colors.white : Colors.transparent,
           ),
         ),
-        const SizedBox(height: 4), // ← fixed gap instead of spaceBetween
+        const SizedBox(height: 4),           // ← fixed gap instead of spaceBetween
         Text(
           title,
           style: TextStyle(

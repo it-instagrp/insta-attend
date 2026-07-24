@@ -19,50 +19,26 @@ class ChangePasswordPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3F8),
       appBar: _buildAppBar(),
-      bottomNavigationBar: _buildBottomButton(context),
-      body: Container(
-        margin: const EdgeInsets.all(15.0),
-        padding: const EdgeInsets.all(15.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildFormHeader(),
-                _buildPasswordFields(),
-              ],
-            ),
-          ),
-        ),
-      ),
+      body: _buildBody(),
+      bottomNavigationBar: _buildBottomButton(),
     );
   }
 
-  // Builds the app bar with back navigation.
-  PreferredSizeWidget _buildAppBar() {
+  // App bar with back button and title
+  AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
       centerTitle: true,
       leadingWidth: 50,
       leading: InkWell(
         onTap: Get.back,
-        child: SizedBox(
-          width: 20,
-          height: 20,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 20.0),
-            child: SvgPicture.asset(
-              kaBackButton,
-              fit: BoxFit.scaleDown,
-              width: 10,
-              height: 10,
-            ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: SvgPicture.asset(
+            kaBackButton,
+            fit: BoxFit.scaleDown,
+            width: 10,
+            height: 10,
           ),
         ),
       ),
@@ -77,11 +53,36 @@ class ChangePasswordPage extends StatelessWidget {
     );
   }
 
-  // Displays the form title and description.
+  // Main form body
+  Widget _buildBody() {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildFormHeader(),
+              const SizedBox(height: 20),
+              _buildPasswordFields(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Form title and description
   Widget _buildFormHeader() {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      horizontalTitleGap: 0,
       title: const Text(
         "Change Password Form",
         style: TextStyle(
@@ -92,15 +93,12 @@ class ChangePasswordPage extends StatelessWidget {
       ),
       subtitle: Text(
         "Fill information to change your password",
-        style: TextStyle(
-          fontSize: 12,
-          color: kcGrey500,
-        ),
+        style: TextStyle(fontSize: 12, color: kcGrey500),
       ),
     );
   }
 
-  // Builds the password input fields.
+  // Password input fields (Current & New)
   Widget _buildPasswordFields() {
     return Column(
       children: [
@@ -121,52 +119,54 @@ class ChangePasswordPage extends StatelessWidget {
     );
   }
 
-  // Builds the bottom action button for updating password.
-  Widget _buildBottomButton(BuildContext context) {
+  // Bottom update button with loading state
+  Widget _buildBottomButton() {
     return Container(
       height: 80,
       color: Colors.white,
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15),
       child: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : main.MainButton(
-          label: "Update Password",
-          onTap: () {
-            if (_formKey.currentState!.validate()) {
-              showUpdateConfirmation(context);
-            }
-          },
-        ),
+        () =>
+            controller.isLoading.value
+                ? _buildLoadingIndicator()
+                : main.MainButton(
+                  label: "Update Password",
+                  onTap: () {
+                    if (_formKey.currentState!.validate()) {
+                      _showUpdateConfirmation();
+                    }
+                  },
+                ),
       ),
     );
   }
 
-  // Shows a confirmation bottom sheet before updating the password.
-  void showUpdateConfirmation(BuildContext context) {
+  // Reusable loading indicator
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: CircularProgressIndicator(
+        strokeCap: StrokeCap.round,
+        color: kcPurple600,
+      ),
+    );
+  }
+
+  // Confirmation dialog before updating password
+  void _showUpdateConfirmation() {
     showCustomBottomSheet(
-      context: context,
+      context: Get.context!,
       title: "Update Password",
       description:
-      "Are you sure you want to update your password? To ensure your account safety we will send verification code to your email",
+          "Are you sure you want to update your password? To ensure your account safety we will send verification code to your email",
       topIconAsset: kaUpdatePasswordTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : main.MainButton(
-          label: "Yes, Update Password",
-          onTap: () => controller.changePassword(context),
-        ),
+        () =>
+            controller.isLoading.value
+                ? _buildLoadingIndicator()
+                : main.MainButton(
+                  label: "Yes, Update Password",
+                  onTap: () => controller.changePassword(Get.context!),
+                ),
       ),
     );
   }

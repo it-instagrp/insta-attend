@@ -28,74 +28,162 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF5F7FA),
-      appBar: AppBar(
-        title: const Text("Attendance Details"),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Obx(() {
-        if (controller.isAttendanceDetailsLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(strokeCap: StrokeCap.round),
-          );
-        }
-
-        final data = controller.attendanceDetails.value;
-
-        if (data == null) {
-          return const Center(child: Text("No attendance details found"));
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _HeaderCard(data),
-
-              const SizedBox(height: 16),
-
-              _SectionCard(
-                title: "Employee Information",
-                children: [
-                  _InfoRow("Employee", data.employeeName),
-                  _InfoRow("Department", data.department),
-                  _InfoRow("Designation", data.designation),
-                  _InfoRow("Email", data.user?.email),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              _SectionCard(
-                title: "Attendance Summary",
-                children: [
-                  _InfoRow("Check In", formatTime(data.checkInTime)),
-                  _InfoRow("Check Out", formatTime(data.checkOutTime)),
-                  _InfoRow("Duration", data.duration),
-                  _InfoRow("Status", data.status),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              _SectionCard(
-                title: "Location Information",
-                children: [
-                  _LocationTile("Check In Location", data.checkInLocation),
-
-                  const SizedBox(height: 12),
-
-                  _LocationTile("Check Out Location", data.checkOutLocation),
-                ],
-              ),
-            ],
-          ),
-        );
-      }),
+      appBar: _buildAppBar(),
+      body: _buildBody(),
     );
   }
 
-  String formatTime(String? value) {
+  // App bar with title
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text("Attendance Details"),
+      centerTitle: true,
+      elevation: 0,
+    );
+  }
+
+  // Main body with loading and data states
+  Widget _buildBody() {
+    return Obx(() {
+      if (controller.isAttendanceDetailsLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(strokeCap: StrokeCap.round),
+        );
+      }
+
+      final data = controller.attendanceDetails.value;
+
+      if (data == null) {
+        return const Center(child: Text("No attendance details found"));
+      }
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildHeaderCard(data),
+            const SizedBox(height: 16),
+            _buildEmployeeSection(data),
+            const SizedBox(height: 16),
+            _buildAttendanceSummarySection(data),
+            const SizedBox(height: 16),
+            _buildLocationSection(data),
+          ],
+        ),
+      );
+    });
+  }
+
+  // Header card with date and status
+  Widget _buildHeaderCard(AttendanceDetail data) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: _buildCardDecoration(),
+      child: Column(
+        children: [
+          Text(
+            _formatDate(data.date),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Chip(label: Text(data.status ?? "NA")),
+        ],
+      ),
+    );
+  }
+
+  // Employee information section
+  Widget _buildEmployeeSection(AttendanceDetail data) {
+    return _SectionCard(
+      title: "Employee Information",
+      children: [
+        _buildInfoRow("Employee", data.employeeName),
+        _buildInfoRow("Department", data.department),
+        _buildInfoRow("Designation", data.designation),
+        _buildInfoRow("Email", data.user?.email),
+      ],
+    );
+  }
+
+  // Attendance summary section
+  Widget _buildAttendanceSummarySection(AttendanceDetail data) {
+    return _SectionCard(
+      title: "Attendance Summary",
+      children: [
+        _buildInfoRow("Check In", _formatTime(data.checkInTime)),
+        _buildInfoRow("Check Out", _formatTime(data.checkOutTime)),
+        _buildInfoRow("Duration", data.duration),
+        _buildInfoRow("Status", data.status),
+      ],
+    );
+  }
+
+  // Location information section
+  Widget _buildLocationSection(AttendanceDetail data) {
+    return _SectionCard(
+      title: "Location Information",
+      children: [
+        _buildLocationTile("Check In Location", data.checkInLocation),
+        const SizedBox(height: 12),
+        _buildLocationTile("Check Out Location", data.checkOutLocation),
+      ],
+    );
+  }
+
+  // Reusable info row widget
+  Widget _buildInfoRow(String label, String? value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(label, style: const TextStyle(color: Colors.grey)),
+          ),
+          Expanded(
+            flex: 6,
+            child: Text(
+              value ?? "NA",
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Reusable location tile widget
+  Widget _buildLocationTile(String title, String? location) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: kcGrey50),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Text(location ?? "NA"),
+        ],
+      ),
+    );
+  }
+
+  // Reusable white card decoration
+  BoxDecoration _buildCardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+    );
+  }
+
+  // Format time from ISO string to readable format
+  String _formatTime(String? value) {
     if (value == null || value.isEmpty) return "NA";
 
     try {
@@ -104,42 +192,13 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
       return "NA";
     }
   }
-}
 
-class _HeaderCard extends StatelessWidget {
-  final AttendanceDetail data;
-
-  const _HeaderCard(this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            formatDate(data.date),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-
-          const SizedBox(height: 10),
-
-          Chip(label: Text(data.status ?? "NA")),
-        ],
-      ),
-    );
-  }
-
-  String formatDate(String? date) {
+  // Format date from ISO string to readable format
+  String _formatDate(String? date) {
     if (date == null || date.isEmpty) return "NA";
 
     try {
-      final DateTime parsedDate = DateTime.parse(date);
+      final parsedDate = DateTime.parse(date);
       return DateFormat('dd-MM-yyyy').format(parsedDate);
     } catch (_) {
       return "NA";
@@ -147,6 +206,7 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
+// Section card wrapper for consistent styling
 class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
@@ -169,70 +229,8 @@ class _SectionCard extends StatelessWidget {
             title,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
-
           const Divider(height: 24),
-
           ...children,
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String? value;
-
-  const _InfoRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 4,
-            child: Text(label, style: const TextStyle(color: Colors.grey)),
-          ),
-
-          Expanded(
-            flex: 6,
-            child: Text(
-              value ?? "NA",
-              textAlign: TextAlign.end,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LocationTile extends StatelessWidget {
-  final String title;
-  final String? location;
-
-  const _LocationTile(this.title, this.location);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: kcGrey50),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-
-          const SizedBox(height: 6),
-
-          Text(location ?? "NA"),
         ],
       ),
     );

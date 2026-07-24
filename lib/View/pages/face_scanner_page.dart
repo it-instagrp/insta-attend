@@ -62,7 +62,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
     _inputBuffer = Float32List(1 * inputSize * inputSize * 3);
     _outputBuffer = List.generate(
       1,
-      (_) => List<double>.filled(outputDimensions, 0.0),
+          (_) => List<double>.filled(outputDimensions, 0.0),
     );
     _cleanResultEmbedding = List<double>.filled(outputDimensions, 0.0);
   }
@@ -85,19 +85,19 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
         overlays: SystemUiOverlay.values,
       );
       if (enable) {
-        const MethodChannel(
-          'plugins.flutter.io/sensors',
-        ).invokeMethod('keepOn', true).catchError((_) {});
+        const MethodChannel('plugins.flutter.io/sensors')
+            .invokeMethod('keepOn', true)
+            .catchError((_) {});
       }
     } catch (e) {
-      debugPrint("Wakelock initiation skipped: $e");
+      debugPrint("Wakelock error: $e");
     }
   }
 
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final frontCam = cameras.firstWhere(
-      (camera) => camera.lensDirection == CameraLensDirection.front,
+          (camera) => camera.lensDirection == CameraLensDirection.front,
       orElse: () => cameras.first,
     );
 
@@ -105,10 +105,9 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       frontCam,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup:
-          Platform.isAndroid
-              ? ImageFormatGroup.yuv420
-              : ImageFormatGroup.bgra8888,
+      imageFormatGroup: Platform.isAndroid
+          ? ImageFormatGroup.yuv420
+          : ImageFormatGroup.bgra8888,
     );
 
     try {
@@ -142,41 +141,39 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       if (faces.isNotEmpty) {
         Face face = faces.first;
 
+        // Check face size is reasonable
         if (face.boundingBox.width < 60 || face.boundingBox.height < 60) {
           _isProcessing = false;
           return;
         }
 
-        double? currentLeftEye = face.leftEyeOpenProbability;
-        double? currentRightEye = face.rightEyeOpenProbability;
+        double? leftEye = face.leftEyeOpenProbability;
+        double? rightEye = face.rightEyeOpenProbability;
 
-        if (currentLeftEye != null && currentRightEye != null) {
+        if (leftEye != null && rightEye != null) {
+          // Set baseline on first detection
           if (_openEyeBaseline == null) {
-            _openEyeBaseline = (currentLeftEye + currentRightEye) / 2;
+            _openEyeBaseline = (leftEye + rightEye) / 2;
           }
 
-          double contextThreshold = (_openEyeBaseline! * 0.45).clamp(
-            0.12,
-            0.28,
-          );
-          bool isEyeClosed =
-              currentLeftEye < contextThreshold ||
-              currentRightEye < contextThreshold;
+          // Calculate eye closure threshold
+          double threshold = (_openEyeBaseline! * 0.45).clamp(0.12, 0.28);
+          bool isEyeClosed = leftEye < threshold || rightEye < threshold;
 
           if (isEyeClosed) {
             _consecutiveClosedFrames++;
           } else {
-            if (currentLeftEye > _openEyeBaseline!) {
-              _openEyeBaseline = (currentLeftEye + currentRightEye) / 2;
+            if (leftEye > _openEyeBaseline!) {
+              _openEyeBaseline = (leftEye + rightEye) / 2;
             }
             _consecutiveClosedFrames = 0;
           }
 
-          bool triggerFallback =
-              _fallbackTimerStart != null &&
+          // Check if blink detected or timeout reached
+          bool fallbackTimeout = _fallbackTimerStart != null &&
               DateTime.now().difference(_fallbackTimerStart!).inSeconds >= 6;
 
-          if (_consecutiveClosedFrames >= 1 || triggerFallback) {
+          if (_consecutiveClosedFrames >= 1 || fallbackTimeout) {
             _isCaptured = true;
             _timeoutTimer?.cancel();
             await _cameraController?.stopImageStream();
@@ -218,7 +215,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
         if (mounted) Get.back(result: embedding);
       }
     } catch (e) {
-      debugPrint("Embedding Extraction Fail: $e");
+      debugPrint("Embedding Extraction Error: $e");
       _isCaptured = false;
       _isProcessing = false;
       _fallbackTimerStart = DateTime.now();
@@ -237,6 +234,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       height: inputSize,
     );
 
+    // Fill input buffer with normalized RGB
     int pixelIndex = 0;
     for (int y = 0; y < inputSize; y++) {
       for (int x = 0; x < inputSize; x++) {
@@ -249,16 +247,18 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
     resized.clear();
 
     final Interpreter? interpreterInstance =
-        _recognitionService.getInterpreter();
+    _recognitionService.getInterpreter();
     if (interpreterInstance == null) {
       throw Exception("TFLite Interpreter uninitialized.");
     }
 
+    // Run model inference
     interpreterInstance.run(
       _inputBuffer.reshape([1, inputSize, inputSize, 3]),
       _outputBuffer,
     );
 
+    // L2 normalize the embedding
     double sumSq = 0.0;
     for (int i = 0; i < outputDimensions; i++) {
       double val = _outputBuffer[0][i];
@@ -291,12 +291,12 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
           final int yIndex = y * yRowStride + x;
-          final int uvIndex = (y >> 1) * uvRowStride + (x >> 1) * uvPixelStride;
+          final int uvIndex =
+              (y >> 1) * uvRowStride + (x >> 1) * uvPixelStride;
 
           if (yIndex >= planeY.length ||
               uvIndex >= planeU.length ||
-              uvIndex >= planeV.length)
-            continue;
+              uvIndex >= planeV.length) continue;
 
           final yp = planeY[yIndex];
           final up = planeU[uvIndex];
@@ -313,12 +313,11 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
       }
       return res;
     } catch (e) {
-      debugPrint("Hardware Conversion Error: $e");
+      debugPrint("YUV Conversion Error: $e");
       return null;
     }
   }
 
-  // CORRECTED: Fixed hardware padding removal step manually rebuilds contiguous NV21 layout structure
   InputImage? _convertCameraImage(CameraImage image) {
     try {
       final int width = image.width;
@@ -336,6 +335,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
           width * height + (2 * ((width + 1) ~/ 2) * ((height + 1) ~/ 2));
       final Uint8List nv21Buffer = Uint8List(totalNV21Length);
 
+      // Copy Y plane
       int idY = 0;
       for (int y = 0; y < height; y++) {
         int rowStart = y * yStride;
@@ -344,6 +344,7 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
         }
       }
 
+      // Copy UV planes in NV21 format
       int idUV = width * height;
       final int uvHeight = (height + 1) ~/ 2;
       final int uvWidth = (width + 1) ~/ 2;
@@ -361,17 +362,16 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
         bytes: nv21Buffer,
         metadata: InputImageMetadata(
           size: Size(width.toDouble(), height.toDouble()),
-          rotation:
-              InputImageRotationValue.fromRawValue(
-                _cameraController!.description.sensorOrientation,
-              ) ??
+          rotation: InputImageRotationValue.fromRawValue(
+            _cameraController!.description.sensorOrientation,
+          ) ??
               InputImageRotation.rotation0deg,
           format: InputImageFormat.nv21,
           bytesPerRow: width,
         ),
       );
     } catch (e) {
-      debugPrint("MLKit Input Frame Conversion Error: $e");
+      debugPrint("MLKit Conversion Error: $e");
       return null;
     }
   }
@@ -379,7 +379,9 @@ class _FaceScannerPageState extends State<FaceScannerPage> {
   @override
   Widget build(BuildContext context) {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Scaffold(

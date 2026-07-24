@@ -9,7 +9,6 @@ import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/View/pages/register_page.dart';
-
 import '../../Utils/bottom_sheet_helper.dart';
 
 class LoginPage extends StatelessWidget {
