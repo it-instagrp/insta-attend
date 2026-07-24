@@ -31,6 +31,7 @@ class AttendanceController extends GetxController {
 
   RxList<Attendance> attendance = <Attendance>[].obs;
   RxBool isLoading = false.obs;
+  RxBool isClockingLoading = false.obs;
   RxBool isWeeklyAttendanceLoading = false.obs;
   RxBool isAttendanceDetailsLoading = false.obs;
   RxString attendanceStatus = "No Check-in".obs;
@@ -43,12 +44,6 @@ class AttendanceController extends GetxController {
   Timer? _durationTimer;
   final RxList<AttendanceForWeek> weeklyAttendance = <AttendanceForWeek>[].obs;
   final Rxn<AttendanceDetail> attendanceDetails = Rxn<AttendanceDetail>();
-  @override
-  void onInit() {
-    super.onInit();
-    getMyWeekAttendance();
-    getMyAttendance();
-  }
 
   @override
   void onClose() {
@@ -135,7 +130,7 @@ class AttendanceController extends GetxController {
     final dynamic faceResult = await Get.to(() => FaceScannerPage(isRegistration: false));
 
     if (faceResult != null && faceResult is List<double>) {
-      isLoading.value = true;
+      isClockingLoading.value = true;
       try {
         await getLatLong(context);
         Position position = await getCurrentLocation();
@@ -175,7 +170,7 @@ class AttendanceController extends GetxController {
       } catch (e) {
         debugPrint("Error: $e");
       } finally {
-        isLoading.value = false;
+        isClockingLoading.value = false;
       }
     } else {
       showError("Face verification cancelled or failed");
@@ -187,7 +182,7 @@ class AttendanceController extends GetxController {
     final dynamic faceResult = await Get.to(() => const FaceScannerPage(isRegistration: false));
 
     if (faceResult != null && faceResult is List<double>) {
-      isLoading.value = true;
+      isClockingLoading.value = true;
       try {
         Position position = await getCurrentLocation();
         if (authController.currentUser.value.geofencing == true) {

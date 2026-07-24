@@ -18,6 +18,10 @@ class CustomBottomNavigationBar extends StatefulWidget {
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   final HomescreenController controller = Get.find<HomescreenController>();
   final authController = Get.find<AuthController>();
+  final List<String> corporateList = [
+    "Corporate Office",
+    "IT Department"
+  ];
 
   final List<String> icons = [
     kaHomeHollow,
@@ -39,7 +43,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   Widget build(BuildContext context) {
     return Obx(() {
       final user = authController.currentUser.value;
-      final bool isCorporate = user.department?.departmentName == "Corporate Office";
+      final bool isCorporate = corporateList.contains(user.department?.departmentName);
 
       final List<int> visibleIndexes = [
         0,

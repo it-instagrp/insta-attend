@@ -13,11 +13,27 @@ import '../../Constant/constant_font.dart';
 import '../../Controller/auth_controller.dart';
 import '../../View/pages/profile_page.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   Home({super.key});
 
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   final AuthController controller = Get.find<AuthController>();
+
   final AttendanceController attendanceController = Get.find<AttendanceController>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      attendanceController.getMyWeekAttendance();
+      attendanceController.getMyAttendance();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +61,6 @@ class Home extends StatelessWidget {
   }
 
   // ─── Profile section ────────────────────────────────────────────────────────
-
   Widget _buildProfileSection(BuildContext context) {
     return SizedBox(
       height: 80,
@@ -125,7 +140,6 @@ class Home extends StatelessWidget {
   }
 
   // ─── Welcome banner ─────────────────────────────────────────────────────────
-
   Widget _buildWorkSummarySection() {
     return Container(
       height: 100,
@@ -174,7 +188,6 @@ class Home extends StatelessWidget {
   }
 
   // ─── Popovers ────────────────────────────────────────────────────────────────
-
   void _showNotifications(BuildContext context) {
     showPopover(
       arrowHeight: 0,
