@@ -70,7 +70,7 @@ class ExpenseScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 20.rw),
       child: Obx(
         () =>
-            controller.isLoading.value
+            controller.isExpenseLoading.value
                 ? const Center(
                   child: CircularProgressIndicator(strokeCap: StrokeCap.round),
                 )
@@ -102,7 +102,7 @@ class ExpenseScreen extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.rw),
         child: Obx(() {
-          if (controller.isLoading.value) {
+          if (controller.isExpenseLoading.value) {
             return const Center(
               child: CircularProgressIndicator(strokeCap: StrokeCap.round),
             );

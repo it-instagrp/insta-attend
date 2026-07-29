@@ -90,7 +90,7 @@ class PersonalDataPage extends StatelessWidget {
       color: Colors.white,
       padding: const EdgeInsets.all(15),
       child: Obx(
-            () => controller.isLoading.value
+            () => controller.isUpdateProfileLoading.value
             ? _buildLoadingIndicator()
             : main.MainButton(
           label: "Update",
@@ -311,7 +311,7 @@ class PersonalDataPage extends StatelessWidget {
         height: 45,
         width: MediaQuery.of(context).size.width,
         child: Obx(
-              () => controller.isLoading.value
+              () => controller.isUpdateProfileLoading.value
               ? _buildLoadingIndicator()
               : main.MainButton(
             label: "Yes, Update Profile",

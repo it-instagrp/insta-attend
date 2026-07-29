@@ -1,31 +1,30 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:insta_attend/API/DTO/Request/change_password_request_dto.dart';
+import 'package:insta_attend/API/DTO/Request/forgot_password_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/Repository/auth_repository.dart';
 import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/Model/User.dart';
+import 'package:insta_attend/Model/department.dart';
+import 'package:insta_attend/Model/designation.dart';
+import 'package:insta_attend/Utils/fcm_service.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
+import 'package:insta_attend/View/pages/face_scanner_page.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../Model/department.dart';
-import '../Model/designation.dart';
-import '../Utils/fcm_service.dart';
-import '../View/pages/face_scanner_page.dart';
-import 'package:insta_attend/API/DTO/Request/forgot_password_request_dto.dart';
-import 'dart:typed_data';
-import 'package:flutter/rendering.dart';
-import 'package:image_picker/image_picker.dart';
 
 class AuthController extends GetxController {
   final AuthRepository authRepo;
@@ -35,35 +34,49 @@ class AuthController extends GetxController {
 
   File? profileImage;
 
+  /******* Loading State Variables *******/
   RxBool isLoading = false.obs;
+  RxBool isLoginPageLoading = false.obs;
+  RxBool isRegisterPageLoading = false.obs;
+  RxBool isForgotPasswordLoading = false.obs;
+  RxBool isLogOutLoading = false.obs;
+  RxBool isUploadProfileImageLoading = false.obs;
+  RxBool isChangePasswordLoading = false.obs;
+  RxBool isUpdateProfileLoading = false.obs;
+  RxBool isFaceRegisterLoading = false.obs;
   RxBool isDropDownLoading = false.obs;
+
+  /******* Reactive Data Models & State *******/
   var currentUser = User().obs;
   var selectedDepartment = ''.obs;
   var selectedDesignation = ''.obs;
   RxBool isConsentGiven = false.obs;
+
   RxList<Department> departmentList = <Department>[].obs;
   RxList<Designation> designationList = <Designation>[].obs;
   RxList<double> newFaceEmbedding = <double>[].obs;
+
   RxBool isLoginFormValid = false.obs;
   RxBool isProfileFormValid = false.obs;
   RxBool hasProfileChanges = false.obs;
+
   RxString originalFirstName = "".obs;
   RxString originalLastName = "".obs;
   RxString originalEmail = "".obs;
   RxString originalPhone = "".obs;
-  //- holds the locally picked profile photo for preview and upload
+
+  // Holds locally picked profile photo for preview/upload
   Rx<File?> pickedProfileImage = Rx<File?>(null);
 
+  /******* Text Editing Controllers *******/
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  final TextEditingController forgotPasswordEmailController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController forgotPasswordEmailController = TextEditingController();
 
   String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -91,18 +104,17 @@ class AuthController extends GetxController {
     isLoginFormValid.value = emailValid && passwordValid;
   }
 
-  // validates - format(JPG/PNG),size(max 5 MB),resolution (800x800px)
-
+  /// Pick and crop user profile photo with format, resolution, and size validations.
   Future<void> pickProfilePhoto(
-    BuildContext context,
-    ImageSource source,
-  ) async {
+      BuildContext context,
+      ImageSource source,
+      ) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: source);
 
-      //user canceled - do nothing
-      if (pickedFile == null) return;
+      if (pickedFile == null) return; // User canceled
+
       final File file = File(pickedFile.path);
       final String extension = pickedFile.path.split('.').last.toLowerCase();
       if (extension != 'jpg' && extension != 'jpeg' && extension != 'png') {
@@ -110,11 +122,9 @@ class AuthController extends GetxController {
         return;
       }
 
-      //open crop screen after checking format
-
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: file.path,
-        aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1), // square crop
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Square crop
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: "Crop Profile Photo",
@@ -133,7 +143,7 @@ class AuthController extends GetxController {
 
       final File finalFile = File(croppedFile.path);
 
-      // validate size
+      // Validate size (max 5 MB)
       final int fileSizeInBytes = await finalFile.length();
       final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
       if (fileSizeInMB > 5) {
@@ -141,7 +151,7 @@ class AuthController extends GetxController {
         return;
       }
 
-      // validate resolution
+      // Validate resolution (min 800x800)
       final Uint8List imageBytes = await finalFile.readAsBytes();
       final decodedImage = await decodeImageFromList(imageBytes);
       if (decodedImage.width < 800 || decodedImage.height < 800) {
@@ -161,11 +171,9 @@ class AuthController extends GetxController {
     }
   }
 
-  // validates first name/last name: required letters only, max 50 char.
-
   String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return "This fild is required";
+      return "This field is required";
     }
     final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
     if (!nameRegex.hasMatch(value.trim())) {
@@ -176,8 +184,6 @@ class AuthController extends GetxController {
     }
     return null;
   }
-
-  // validate Phone - required digits only, exact 10 digits
 
   String? validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -205,7 +211,6 @@ class AuthController extends GetxController {
     }
     return null;
   }
-  // personal data from state logic
 
   void snapshotOriginalProfileData() {
     originalFirstName.value = firstNameController.text.trim();
@@ -214,8 +219,6 @@ class AuthController extends GetxController {
     originalPhone.value = phoneController.text.trim();
     hasProfileChanges.value = false;
   }
-
-  // Re- runs all fields validators + change-detection.
 
   void checkProfileFromValidity() {
     final firstNameValid = validateName(firstNameController.text) == null;
@@ -227,20 +230,17 @@ class AuthController extends GetxController {
 
     hasProfileChanges.value =
         firstNameController.text.trim() != originalFirstName.value ||
-        lastNameController.text.trim() != originalLastName.value ||
-        emailController.text.trim() != originalEmail.value ||
-        phoneController.text.trim() != originalPhone.value;
+            lastNameController.text.trim() != originalLastName.value ||
+            emailController.text.trim() != originalEmail.value ||
+            phoneController.text.trim() != originalPhone.value;
   }
 
   Future<void> pickAndScanFace(BuildContext context) async {
-    // Navigate to the FaceScannerPage for high-quality embedding extraction
     final dynamic result = await Get.to(
-      () => const FaceScannerPage(isRegistration: true),
+          () => const FaceScannerPage(isRegistration: true),
     );
 
     if (result != null && result is List<double>) {
-      // Store the 192-dimension embedding for the profile update
-      // Assuming you have a variable to hold the new embedding in your controller
       newFaceEmbedding.value = result;
       showSuccess("Face scanned successfully. Ready to update profile.");
     } else {
@@ -249,58 +249,58 @@ class AuthController extends GetxController {
   }
 
   bool validateRegisterForm(BuildContext context) {
-    isLoading.value = true;
+    isRegisterPageLoading.value = true;
     if (usernameController.text.trim().isEmpty) {
       showError("Please enter your name");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (emailController.text.trim().isEmpty) {
       showError("Please enter your email");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (phoneController.text.trim().isEmpty) {
       showError("Please enter your phone number");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (selectedDepartment.value.isEmpty) {
       showError("Please select your department");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (selectedDesignation.value.isEmpty) {
       showError("Please select your designation");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (passwordController.text.trim().isEmpty) {
       showError("Please enter your password");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (confirmPasswordController.text.trim().isEmpty) {
       showError("Please confirm your password");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (passwordController.text.trim() !=
         confirmPasswordController.text.trim()) {
       showError("Password do not match");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
     } else if (!isConsentGiven.value) {
       showError("Please accept the terms & conditions");
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
       return false;
-    } else {
-      return true;
     }
+    return true;
   }
 
   Future<void> register(BuildContext context) async {
     try {
       final dynamic faceResult = await Get.to(
-        () => FaceScannerPage(isRegistration: true),
+            () => const FaceScannerPage(isRegistration: true),
       );
       if (faceResult == null) {
         showError("Face enrollment is required to register");
         return;
       }
+
       final RegisterRequestDTO request = RegisterRequestDTO(
         username: usernameController.text.trim(),
         email: emailController.text.trim(),
@@ -317,12 +317,14 @@ class AuthController extends GetxController {
         final User user = User.fromJson(response.body['data']['user']);
         currentUser.value = user;
         final String token = response.body['data']['token'];
+
         authRepo.apiClient.updateHeader(token);
         await authRepo.sharedPreferences.setString("token", token);
         await authRepo.sharedPreferences.setString(
           "user",
           jsonEncode(user.toJson()),
         );
+
         clearRegisterForm();
         Get.offAll(() => Homescreen(), transition: Transition.fade);
       } else {
@@ -330,20 +332,20 @@ class AuthController extends GetxController {
       }
     } catch (err) {
       showError("Something went wrong");
-      print("Internal Exception: ${err.toString()}");
+      debugPrint("Internal Exception in register: $err");
     } finally {
-      isLoading.value = false;
+      isRegisterPageLoading.value = false;
     }
   }
 
   Future<void> enrollUserFace(BuildContext context) async {
     try {
       final dynamic faceResult = await Get.to(
-        () => const FaceScannerPage(isRegistration: true),
+            () => const FaceScannerPage(isRegistration: true),
       );
 
       if (faceResult != null && faceResult is List<double>) {
-        isLoading.value = true;
+        isFaceRegisterLoading.value = true;
         final UpdateProfileRequestDTO request = UpdateProfileRequestDTO(
           faceEmbedding: faceResult,
         );
@@ -363,7 +365,7 @@ class AuthController extends GetxController {
           showSuccess("Face biometric profile updated successfully");
         } else {
           showError(
-            response.body['message'] ??
+            response.body?['message'] ??
                 "Failed to update face biometric profile",
           );
         }
@@ -372,14 +374,14 @@ class AuthController extends GetxController {
       }
     } catch (err) {
       showError("Something went wrong during enrollment");
-      debugPrint("Exception in enrollUserFace: ${err.toString()}");
+      debugPrint("Exception in enrollUserFace: $err");
     } finally {
-      isLoading.value = false;
+      isFaceRegisterLoading.value = false;
     }
   }
 
   Future<void> login(BuildContext context) async {
-    isLoading.value = true;
+    isLoginPageLoading.value = true;
     try {
       if (emailController.text.isEmpty) {
         showError("Please enter email");
@@ -398,7 +400,7 @@ class AuthController extends GetxController {
         final LoginRequestDTO request = LoginRequestDTO(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
-          fcmToken: fcmToken, // Pass token to request
+          fcmToken: fcmToken,
         );
 
         Response response = await authRepo.login(request);
@@ -408,30 +410,33 @@ class AuthController extends GetxController {
           showSuccess("Login Successful");
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
+
           currentUser.value = User.fromJson(responseBody['data']['user']);
           authRepo.apiClient.updateHeader(userToken);
+
           await authRepo.sharedPreferences.setString("token", userToken);
           await authRepo.sharedPreferences.setString("user", user);
           await authRepo.sharedPreferences.setString(
             "uid",
             responseBody['data']['user']['id'],
           );
+
           clearLoginForm();
           Get.offAll(() => Homescreen(), transition: Transition.fade);
         } else {
-          showError(responseBody['message']);
+          showError(responseBody?['message'] ?? "Login failed");
         }
       }
     } catch (err) {
       showError("Something went wrong");
-      if (kDebugMode) print("Exception in Login: ${err.toString()}");
+      if (kDebugMode) debugPrint("Exception in Login: $err");
     } finally {
-      isLoading.value = false;
+      isLoginPageLoading.value = false;
     }
   }
 
   Future<void> forgotPassword(BuildContext context) async {
-    isLoading.value = true;
+    isForgotPasswordLoading.value = true;
     try {
       final ForgotPasswordRequestDto request = ForgotPasswordRequestDto(
         email: forgotPasswordEmailController.text.trim(),
@@ -440,51 +445,50 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         Get.back();
         showSuccess(
-          response.body['message'] ??
+          response.body?['message'] ??
               "If account exists, a reset link has been sent",
         );
         forgotPasswordEmailController.clear();
       } else {
-        showError(response.body['message'] ?? "Unable to send reset link");
+        showError(response.body?['message'] ?? "Unable to send reset link");
       }
     } catch (err) {
       showError("Something went wrong");
-      if (kDebugMode) print("Exception in forgotPassword: ${err.toString()}");
+      if (kDebugMode) debugPrint("Exception in forgotPassword: $err");
     } finally {
-      isLoading.value = false;
+      isForgotPasswordLoading.value = false;
     }
   }
 
   Future<void> logout(BuildContext context) async {
     try {
-      await sharedPreferences.clear().then((_) {
-        print("Shared Preferences cleared");
-      });
+      await sharedPreferences.clear();
       emailController.clear();
       passwordController.clear();
       usernameController.clear();
       phoneController.clear();
       confirmPasswordController.clear();
+
       Get.offAll(() => LoginPage(), transition: Transition.fade);
-      showSuccess("logged out");
+      showSuccess("Logged out successfully");
     } catch (err) {
       showError("Something went wrong");
-      if (kDebugMode) print("Exception: ${err.toString()}");
+      if (kDebugMode) debugPrint("Exception in logout: $err");
     } finally {
-      isLoading.value = false;
+      isLogOutLoading.value = false;
     }
   }
 
   Future<void> updateProfile(BuildContext context) async {
-    isLoading.value = true;
+    isUpdateProfileLoading.value = true;
     try {
       final UpdateProfileRequestDTO request = UpdateProfileRequestDTO(
         username:
-            "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
+        "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
         email: emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
         faceEmbedding:
-            newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null,
+        newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null,
         profilePhoto: pickedProfileImage.value,
       );
 
@@ -498,30 +502,28 @@ class AuthController extends GetxController {
         pickedProfileImage.value = null;
         showSuccess("Profile Updated Successfully");
 
-        // Update local currentUser data so the UI reflects changes immediately
         currentUser.value.username = request.username;
         currentUser.value.email = request.email;
         currentUser.value.phoneNumber = request.phoneNumber;
 
-        // Update session storage
         await sharedPreferences.setString(
           "user",
           jsonEncode(currentUser.value.toJson()),
         );
       } else {
-        showError(response.body['message']);
+        showError(response.body?['message'] ?? "Failed to update profile");
       }
     } catch (err) {
       showError("Something went wrong");
-      print("Exception: " + err.toString());
+      debugPrint("Exception in updateProfile: $err");
     } finally {
-      isLoading.value = false;
+      isUpdateProfileLoading.value = false;
       Get.back();
     }
   }
 
   Future<void> changePassword(BuildContext context) async {
-    isLoading.value = true;
+    isChangePasswordLoading.value = true;
     try {
       if (passwordController.text.isEmpty ||
           confirmPasswordController.text.isEmpty) {
@@ -540,47 +542,35 @@ class AuthController extends GetxController {
         confirmPasswordController.clear();
         showSuccess("Password Changed Successfully");
       } else {
-        showError(response.body['message']);
+        showError(response.body?['message'] ?? "Failed to change password");
       }
     } catch (err) {
       showError("Something went wrong");
-      print("Exception: " + err.toString());
+      debugPrint("Exception in changePassword: $err");
     } finally {
-      isLoading.value = false;
+      isChangePasswordLoading.value = false;
     }
   }
 
   Future<void> uploadProfilePicture(BuildContext context) async {
-    /* Action Plan:
-    1. Process picked image to convert it into Xfile Multipart body with appropriate file key.
-    2. Call API with id and file.
-    3. Handle the response and update the UI accordingly.
-     */
     try {
-      //Initialize loading screen
-      isLoading.value = true;
+      isUploadProfileImageLoading.value = true;
 
-      //Fetch User id from session using shared preference
-      final String userId =
-          await authRepo.sharedPreferences.getString("uid") ?? "";
+      final String userId = sharedPreferences.getString("uid") ?? "";
 
-      //Call API by passing user id and file
       Response response = await authRepo.uploadProfilePicture(
         userId,
         MultipartBody("avatar", XFile(pickedProfileImage.value!.path)),
       );
 
-      //Handle Response
       if (response.statusCode == 200) {
         showSuccess("Profile picture updated successfully");
       }
     } catch (err) {
-      //Exception toast message
       showError("Something went wrong");
-      //Debug exception log
       if (kDebugMode) log("Exception in upload profile picture", error: err);
     } finally {
-      isLoading.value = false;
+      isUploadProfileImageLoading.value = false;
     }
   }
 
@@ -602,16 +592,16 @@ class AuthController extends GetxController {
 
   Future<void> getDepartment() async {
     try {
-      Response response = await authRepo.getDepartments();
       isDropDownLoading.value = true;
+      Response response = await authRepo.getDepartments();
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
         List<Department> departments =
-            dataList.map((json) => Department.fromJson(json)).toList();
+        dataList.map((json) => Department.fromJson(json)).toList();
         departmentList.assignAll(departments);
       }
     } catch (err) {
-      if (kDebugMode) print("Exception: ${err.toString()}");
+      if (kDebugMode) debugPrint("Exception in getDepartment: $err");
       showError("Something went wrong");
     } finally {
       isDropDownLoading.value = false;
@@ -625,11 +615,11 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
         List<Designation> designations =
-            dataList.map((json) => Designation.fromJson(json)).toList();
+        dataList.map((json) => Designation.fromJson(json)).toList();
         designationList.assignAll(designations);
       }
     } catch (err) {
-      if (kDebugMode) print("Exception: ${err.toString()}");
+      if (kDebugMode) debugPrint("Exception in getDesignation: $err");
       showError("Something went wrong");
     } finally {
       isDropDownLoading.value = false;

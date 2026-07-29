@@ -131,7 +131,7 @@ class AttendanceScreen extends StatelessWidget {
   Widget _buildAttendanceButton(BuildContext context) {
     return Obx(
       () =>
-          controller.isLoading.value
+          controller.isAttendanceLoading.value
               ? Center(
                 child: CircularProgressIndicator(
                   color: kcPurple600,

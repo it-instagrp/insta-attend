@@ -91,7 +91,7 @@ class VersioningPage extends StatelessWidget {
     return Expanded(
         child: Obx(
               () =>
-          controller.isLoading.value
+          controller.isVersionLoading.value
               ? Center(
             child: CircularProgressIndicator(
               strokeCap: StrokeCap.round,

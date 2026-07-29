@@ -365,7 +365,7 @@ class ProfilePage extends StatelessWidget {
       "If you logout you have to login again with your credentials, make sure you remember your login credentials",
       topIconAsset: kaLogoutTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
+            () => controller.isLogOutLoading.value
             ? Center(
           child: CircularProgressIndicator(
             strokeCap: StrokeCap.round,

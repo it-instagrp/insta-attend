@@ -17,311 +17,267 @@ class ApiClient extends GetxService {
   static final String noInternetMessage = 'Unable to connect to server'.tr;
   final int timeoutInSeconds = 40;
 
-  String liveToken = token;
+  String _token = "";
   late Map<String, String> _mainHeaders;
+  bool _isRedirectingToLogin = false;
 
   ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
-    liveToken = sharedPreferences.getString(token) ?? "";
+    _token = sharedPreferences.getString(token) ?? "";
     if (kDebugMode) {
-      print('Token: $liveToken');
+      debugPrint('ApiClient Initialized with Token: $_token');
     }
-    updateHeader(liveToken);
+    updateHeader(_token);
   }
 
-  void updateHeader(String token) {
+  /// Dynamically updates authorization headers when user logs in or refreshes token
+  void updateHeader(String newDynamicToken) {
+    _token = newDynamicToken;
     _mainHeaders = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
+      'Authorization': 'Bearer $_token',
     };
     if (kDebugMode) {
-      print('Updated Headers: $_mainHeaders');
       log('Updated Headers: $_mainHeaders');
     }
   }
 
-  // Modified getData method with optional id parameter
+  /// GET Request
   Future<Response> getData(
-    String uri, {
-    String? id,
-    Map<String, dynamic>? query,
-    Map<String, String>? headers,
+  String uri, {
+  String? id,
+  Map<String, dynamic>? query,
+  Map<String, String>? headers,
   }) async {
-    try {
-      // Append ID to URI if provided
-      final String finalUri = id != null ? '$uri/$id' : uri;
-
-      if (kDebugMode) {
-        print('====> API Call: $appBaseUrl$finalUri\nHeader: $_mainHeaders');
-      }
-
-      Uri url = Uri.parse(appBaseUrl + finalUri);
-      if (query != null) {
-        url = url.replace(queryParameters: query);
-      }
-
-      http.Response response = await http
-          .get(url, headers: headers ?? _mainHeaders)
-          .timeout(Duration(seconds: timeoutInSeconds));
-
-      return handleResponse(response, finalUri);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error: $e');
-      }
-      return Response(statusCode: 1, statusText: noInternetMessage);
-    }
+  try {
+  final String finalUri = id != null ? '$uri/$id' : uri;
+  Uri url = Uri.parse(appBaseUrl + finalUri);
+  if (query != null) {
+  url = url.replace(queryParameters: query);
   }
 
-  // Modified putData (update) method with optional id parameter
-  Future<Response> putData(
-    String uri,
-    dynamic body, {
-    String? id,
-    Map<String, String>? headers,
-  }) async {
-    try {
-      // Append ID to URI if provided
-      final String finalUri = id != null ? '$uri/$id' : uri;
-
-      if (kDebugMode) {
-        print('====> API Call: $appBaseUrl$finalUri\nHeader: $_mainHeaders');
-        print('====> API Body: $body');
-      }
-
-      http.Response response = await http
-          .put(
-            Uri.parse(appBaseUrl + finalUri),
-            body: jsonEncode(body),
-            headers: headers ?? _mainHeaders,
-          )
-          .timeout(Duration(seconds: timeoutInSeconds));
-
-      return handleResponse(response, finalUri);
-    } catch (e) {
-      print('Error: $e');
-      return Response(statusCode: 1, statusText: noInternetMessage);
-    }
+  if (kDebugMode) {
+  debugPrint('====> API GET Call: $url');
   }
 
-  // Modified deleteData method with optional id parameter
-  Future<Response> deleteData(
-    String uri, {
-    String? id,
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
-    try {
-      // Append ID to URI if provided
-      final String finalUri = id != null ? '$uri/$id' : uri;
+  http.Response response = await http
+      .get(url, headers: headers ?? _mainHeaders)
+      .timeout(Duration(seconds: timeoutInSeconds));
 
-      Uri url = Uri.parse(appBaseUrl + finalUri);
-      if (queryParameters != null) {
-        url = url.replace(queryParameters: queryParameters);
-      }
-
-      if (kDebugMode) {
-        print('====> API Call: $url\nHeader: $_mainHeaders');
-      }
-
-      http.Response response = await http
-          .delete(url, headers: headers ?? _mainHeaders)
-          .timeout(Duration(seconds: timeoutInSeconds));
-
-      return handleResponse(response, finalUri);
-    } catch (e) {
-      print('Error: $e');
-      return Response(statusCode: 1, statusText: "No Internet connection");
-    }
+  return handleResponse(response, finalUri);
+  } catch (e) {
+  debugPrint('ApiClient GET Error: $e');
+  return Response(statusCode: 1, statusText: noInternetMessage);
+  }
   }
 
-  // Also modify the postData for consistency
+  /// POST Request
   Future<Response> postData(
-    String uri,
-    dynamic body, {
-    String? id,
-    Map<String, String>? headers,
-    int? timeout,
+  String uri,
+  dynamic body, {
+  String? id,
+  Map<String, String>? headers,
+  int? timeout,
   }) async {
-    try {
-      // Append ID to URI if provided
-      final String finalUri = id != null ? '$uri/$id' : uri;
+  try {
+  final String finalUri = id != null ? '$uri/$id' : uri;
 
-      if (kDebugMode) {
-        log('====> API Call: $appBaseUrl$finalUri\nHeader: $_mainHeaders');
-        print('====> API Body: $body');
-      }
-
-      http.Response response = await http
-          .post(
-            Uri.parse(appBaseUrl + finalUri),
-            body: jsonEncode(body),
-            headers: headers ?? _mainHeaders,
-          )
-          .timeout(Duration(seconds: timeout ?? timeoutInSeconds));
-
-      return handleResponse(response, finalUri);
-    } catch (e) {
-      print('Error: $e');
-      return Response(statusCode: 1, statusText: noInternetMessage);
-    }
+  if (kDebugMode) {
+  log('====> API POST Call: $appBaseUrl$finalUri');
+  log('====> API Body: ${jsonEncode(body)}');
   }
 
+  http.Response response = await http
+      .post(
+  Uri.parse(appBaseUrl + finalUri),
+  body: jsonEncode(body),
+  headers: headers ?? _mainHeaders,
+  )
+      .timeout(Duration(seconds: timeout ?? timeoutInSeconds));
+
+  return handleResponse(response, finalUri);
+  } catch (e) {
+  debugPrint('ApiClient POST Error: $e');
+  return Response(statusCode: 1, statusText: noInternetMessage);
+  }
+  }
+
+  /// PUT Request
+  Future<Response> putData(
+  String uri,
+  dynamic body, {
+  String? id,
+  Map<String, String>? headers,
+  }) async {
+  try {
+  final String finalUri = id != null ? '$uri/$id' : uri;
+
+  if (kDebugMode) {
+  debugPrint('====> API PUT Call: $appBaseUrl$finalUri');
+  }
+
+  http.Response response = await http
+      .put(
+  Uri.parse(appBaseUrl + finalUri),
+  body: jsonEncode(body),
+  headers: headers ?? _mainHeaders,
+  )
+      .timeout(Duration(seconds: timeoutInSeconds));
+
+  return handleResponse(response, finalUri);
+  } catch (e) {
+  debugPrint('ApiClient PUT Error: $e');
+  return Response(statusCode: 1, statusText: noInternetMessage);
+  }
+  }
+
+  /// DELETE Request
+  Future<Response> deleteData(
+  String uri, {
+  String? id,
+  Map<String, dynamic>? queryParameters,
+  Map<String, String>? headers,
+  }) async {
+  try {
+  final String finalUri = id != null ? '$uri/$id' : uri;
+
+  Uri url = Uri.parse(appBaseUrl + finalUri);
+  if (queryParameters != null) {
+  url = url.replace(queryParameters: queryParameters);
+  }
+
+  if (kDebugMode) {
+  debugPrint('====> API DELETE Call: $url');
+  }
+
+  http.Response response = await http
+      .delete(url, headers: headers ?? _mainHeaders)
+      .timeout(Duration(seconds: timeoutInSeconds));
+
+  return handleResponse(response, finalUri);
+  } catch (e) {
+  debugPrint('ApiClient DELETE Error: $e');
+  return Response(statusCode: 1, statusText: noInternetMessage);
+  }
+  }
+
+  /// Multipart POST Request
   Future<Response> postMultipartData(
-    String uri,
-    Map<String, dynamic> body,
-    List<MultipartBody> multipartBody, {
-    Map<String, String>? headers,
+  String uri,
+  Map<String, dynamic> body,
+  List<MultipartBody> multipartBody, {
+  Map<String, String>? headers,
   }) async {
-    try {
-      if (kDebugMode) {
-        print('====> API Call:  $appBaseUrl$uri\nHeader: $_mainHeaders');
-        print('====> API Body: $body with ${multipartBody.length} pictures');
-      }
-      http.MultipartRequest request = http.MultipartRequest(
-        'POST',
-        Uri.parse(appBaseUrl + uri),
-      );
-      request.headers.addAll(_mainHeaders);
-      for (MultipartBody multipart in multipartBody) {
-        if (multipart.file != null) {
-          Uint8List list = await multipart.file!.readAsBytes();
-          request.files.add(
-            http.MultipartFile(
-              multipart.key,
-              multipart.file!.readAsBytes().asStream(),
-              list.length,
-              filename: '${DateTime.now().toString()}.png',
-            ),
-          );
-        }
-      }
+  try {
+  if (kDebugMode) {
+  debugPrint('====> API Multipart Call: $appBaseUrl$uri');
+  }
+  http.MultipartRequest request = http.MultipartRequest(
+  'POST',
+  Uri.parse(appBaseUrl + uri),
+  );
+  request.headers.addAll(headers ?? _mainHeaders);
 
-      final requestBody = _processReportFields(body);
-
-      request.fields.addAll(requestBody);
-      print("response" + body.toString());
-      http.Response response = await http.Response.fromStream(
-        await request.send(),
-      );
-      print("response");
-      print("response" + response.body);
-      return handleResponse(response, uri);
-    } catch (e) {
-      print('Error: $e');
-      return Response(statusCode: 1, statusText: noInternetMessage);
-    }
+  for (MultipartBody multipart in multipartBody) {
+  if (multipart.file != null) {
+  Uint8List list = await multipart.file!.readAsBytes();
+  request.files.add(
+  http.MultipartFile(
+  multipart.key,
+  multipart.file!.readAsBytes().asStream(),
+  list.length,
+  filename: '${DateTime.now().millisecondsSinceEpoch}.png',
+  ),
+  );
+  }
   }
 
-  Future<Response> putMultipartData(
-    String uri,
-    Map<String, dynamic> body,
-    List<MultipartBody> multipartBody, {
-    Map<String, String>? headers,
-  }) async {
-    try {
-      if (kDebugMode) {
-        print('====> API Call:  $appBaseUrl$uri\nHeader: $_mainHeaders');
-        print('====> API Body: $body with ${multipartBody.length} pictures');
-      }
-      http.MultipartRequest request = http.MultipartRequest(
-        'PUT',
-        Uri.parse(appBaseUrl + uri),
-      );
-      request.headers.addAll(_mainHeaders);
-      for (MultipartBody multipart in multipartBody) {
-        if (multipart.file != null) {
-          Uint8List list = await multipart.file!.readAsBytes();
-          request.files.add(
-            http.MultipartFile(
-              multipart.key,
-              multipart.file!.readAsBytes().asStream(),
-              list.length,
-              filename: '${DateTime.now().toString()}.png',
-            ),
-          );
-        }
-      }
+  final requestBody = _processReportFields(body);
+  request.fields.addAll(requestBody);
 
-      final requestBody = _processReportFields(body);
+  http.Response response = await http.Response.fromStream(
+  await request.send(),
+  );
 
-      request.fields.addAll(requestBody);
-      print("response" + body.toString());
-      http.Response response = await http.Response.fromStream(
-        await request.send(),
-      );
-      print("response");
-      print("response" + response.body);
-      return handleResponse(response, uri);
-    } catch (e) {
-      print('Error: $e');
-      return Response(statusCode: 1, statusText: noInternetMessage);
-    }
+  return handleResponse(response, uri);
+  } catch (e) {
+  debugPrint('ApiClient Multipart Error: $e');
+  return Response(statusCode: 1, statusText: noInternetMessage);
+  }
   }
 
+  /// Handles and Normalizes HTTP Responses Globally
   Response handleResponse(http.Response response, String uri) {
-    dynamic body;
-    try {
-      body = jsonDecode(response.body);
-    } catch (e) {
-      body = response.body;
-      print("===>${body}");
-    }
+  dynamic body;
+  try {
+  body = jsonDecode(response.body);
+  } catch (e) {
+  body = response.body;
+  }
 
-    Response response0 = Response(
-      body: body ?? response.body,
-      bodyString: response.body.toString(),
-      request: Request(
-        headers: response.request!.headers,
-        method: response.request!.method,
-        url: response.request!.url,
-      ),
-      headers: response.headers,
-      statusCode: response.statusCode,
-      statusText: response.reasonPhrase,
-    );
+  Response response0 = Response(
+  body: body ?? response.body,
+  bodyString: response.body.toString(),
+  request: Request(
+  headers: response.request?.headers ?? {},
+  method: response.request?.method ?? '',
+  url: response.request?.url ?? Uri(),
+  ),
+  headers: response.headers,
+  statusCode: response.statusCode,
+  statusText: response.reasonPhrase,
+  );
 
-    if (kDebugMode) {
-      print('====> API Response Handling Start');
-      print('====> Response Headers: ${response0.headers}');
-      print('====> Response Body: ${response0.bodyString}');
-    }
+  if (kDebugMode) {
+  debugPrint('====> API [$uri] Status: ${response0.statusCode}');
+  }
 
-    if (response0.statusCode == 401) {
-      // Clear token or user info if needed
-      sharedPreferences.clear();
+  // Handle 401 Unauthorized Session Expiration
+  if (response0.statusCode == 401) {
+  _clearSessionData();
+  return Response(
+  statusCode: 401,
+  statusText: "Unauthorized: Redirected to Login",
+  );
+  }
 
-      // Navigate to login screen
-      Future.delayed(Duration.zero, () {
-        Get.offAll(() => LoginPage(), transition: Transition.fade);
-      });
-      return Response(
-        statusCode: 401,
-        statusText: "Unauthorized: Redirected to Login",
-      );
-    }
+  if (response0.statusCode != 200 &&
+  response0.body != null &&
+  response0.body is! String) {
+  if (response0.body.toString().startsWith('{errors: [{code:')) {
+  ErrorResponse errorResponse = ErrorResponse.fromJson(response0.body);
+  response0 = Response(
+  statusCode: response0.statusCode,
+  body: response0.body,
+  statusText: errorResponse.error,
+  );
+  } else if (response0.body.toString().startsWith('{message')) {
+  response0 = Response(
+  statusCode: response0.statusCode,
+  body: response0.body,
+  statusText: response0.body['message'],
+  );
+  }
+  } else if (response0.statusCode != 200 && response0.body == null) {
+  response0 = Response(statusCode: 0, statusText: noInternetMessage);
+  }
 
-    if (response0.statusCode != 200 &&
-        response0.body != null &&
-        response0.body is! String) {
-      if (response0.body.toString().startsWith('{errors: [{code:')) {
-        ErrorResponse errorResponse = ErrorResponse.fromJson(response0.body);
-        response0 = Response(
-          statusCode: response0.statusCode,
-          body: response0.body,
-          statusText: errorResponse.error,
-        );
-      } else if (response0.body.toString().startsWith('{message')) {
-        response0 = Response(
-          statusCode: response0.statusCode,
-          body: response0.body,
-          statusText: response0.body['message'],
-        );
-      }
-    } else if (response0.statusCode != 200 && response0.body == null) {
-      response0 = Response(statusCode: 0, statusText: noInternetMessage);
-    }
+  return response0;
+  }
 
-    return response0;
+  /// Clears user authentication session safely without destroying non-auth preferences
+  void _clearSessionData() {
+  // Prevent multiple concurrent 401 calls from spamming redirect navigation
+  if (_isRedirectingToLogin) return;
+  _isRedirectingToLogin = true;
+
+  // Clear specific auth keys rather than destroying SharedPreferences completely
+  sharedPreferences.remove(token);
+  updateHeader("");
+
+  Future.delayed(Duration.zero, () {
+  Get.offAll(() => LoginPage(), transition: Transition.fade);
+  _isRedirectingToLogin = false;
+  });
   }
 }
 

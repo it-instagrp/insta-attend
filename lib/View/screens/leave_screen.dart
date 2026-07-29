@@ -118,7 +118,7 @@ class LeaveScreen extends StatelessWidget {
       margin: EdgeInsets.all(18.0),
       height: 280,
       child: Obx(() {
-        if (controller.isLoading.value){
+        if (controller.isLeaveLoading.value){
           return Center(
             child: CircularProgressIndicator(
               strokeCap: StrokeCap.round,

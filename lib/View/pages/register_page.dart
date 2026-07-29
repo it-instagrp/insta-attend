@@ -243,7 +243,7 @@ class RegisterPage extends StatelessWidget {
   // Register button with loading state
   Widget _buildRegisterButton() {
     return Obx(
-          () => controller.isLoading.value
+          () => controller.isRegisterPageLoading.value
           ? _buildLoadingIndicator()
           : MainButton(
         label: "Register",

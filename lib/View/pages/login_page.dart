@@ -82,7 +82,7 @@ class LoginPage extends StatelessWidget {
               SizedBox(height: 20),
               Obx(
                 () =>
-                    controller.isLoading.value
+                    controller.isLoginPageLoading.value
                         ? Center(
                           child: CircularProgressIndicator(
                             strokeCap: StrokeCap.round,
@@ -193,7 +193,7 @@ class LoginPage extends StatelessWidget {
       ),
       primaryButton: Obx(
         () =>
-            controller.isLoading.value
+            controller.isForgotPasswordLoading.value
                 ? Center(
                   child: CircularProgressIndicator(
                     strokeCap: StrokeCap.round,

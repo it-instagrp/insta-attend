@@ -80,7 +80,7 @@ class TotalWorkingHourCard extends StatelessWidget {
             child: SizedBox(
               width: double.maxFinite,
               child: Obx(() {
-                if (_attendanceController.isLoading.value) {
+                if (_attendanceController.isAttendanceLoading.value) {
                   return Center(
                     child: CircularProgressIndicator(
                       color: kcPurple600,

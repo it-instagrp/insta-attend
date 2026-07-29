@@ -142,7 +142,7 @@ class SubmitLeave extends StatelessWidget {
     );
   }
 
-  // Leave duration date range field
+// Leave duration date range field
   Widget _buildLeaveDurationField() {
     return Obx(
           () => CustomTextField(
@@ -307,7 +307,7 @@ class SubmitLeave extends StatelessWidget {
       "Double-check your leave details to ensure everything is correct. Do you want to proceed?",
       topIconAsset: kaSubmitLeaveTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
+            () => controller.isLeaveLoading.value
             ? _buildLoadingIndicator()
             : main.MainButton(
           label: "Submit Leave",
@@ -318,18 +318,32 @@ class SubmitLeave extends StatelessWidget {
   }
 
   bool _validateForm() {
-    if (controller.leaveReason.value == LeaveReason.other){
-      Get.snackbar("Validation", "Please select leave category.",
-      snackPosition: SnackPosition.BOTTOM,
+    // Check if leave reason description is empty or set to default/other
+    if (controller.leaveReason.value.description.isEmpty ||
+        controller.leaveReason.value == LeaveReason.other) {
+      Get.snackbar(
+        "Validation",
+        "Please select a leave category.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
       );
       return false;
     }
-    if (controller.fromDate.value.isEmpty || controller.toDate.value.isEmpty){
-      Get.snackbar("Validation", "Please select leave duration",
-      snackPosition: SnackPosition.BOTTOM,
+
+    // Check date duration
+    if (controller.fromDate.value.trim().isEmpty ||
+        controller.toDate.value.trim().isEmpty) {
+      Get.snackbar(
+        "Validation",
+        "Please select leave duration.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
       );
       return false;
     }
+
     return true;
   }
 }

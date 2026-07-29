@@ -127,7 +127,7 @@ class ChangePasswordPage extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Obx(
         () =>
-            controller.isLoading.value
+            controller.isChangePasswordLoading.value
                 ? _buildLoadingIndicator()
                 : main.MainButton(
                   label: "Update Password",

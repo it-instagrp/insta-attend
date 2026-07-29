@@ -411,7 +411,7 @@ class CreateExpense extends StatelessWidget {
           height: 45,
           width: MediaQuery.of(context).size.width,
           child: Obx(
-                () => controller.isLoading.value
+                () => controller.isExpenseLoading.value
                 ? _buildLoadingIndicator()
                 : main.MainButton(
               label: controller.editingExpenseId.value != null
