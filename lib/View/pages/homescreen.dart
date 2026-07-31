@@ -3,11 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/Component/Cards/bottom_navigation_bar.dart';
 import 'package:insta_attend/Controller/homescreen_controller.dart';
-import 'package:insta_attend/View/screens/attendance_screen.dart';
 import 'package:insta_attend/View/screens/expense_screen.dart';
 import 'package:insta_attend/View/screens/home.dart';
 import 'package:insta_attend/View/screens/leave_screen.dart';
-import 'package:insta_attend/View/screens/task_screen.dart';
+import 'package:insta_attend/View/screens/attendance_overview_screen.dart';
 
 class Homescreen extends StatelessWidget {
   Homescreen({super.key});
@@ -31,7 +30,7 @@ class Homescreen extends StatelessWidget {
           context: context,
         ),
         body: Container(
-          color: Color(0xFFF1F3F8),
+          color: const Color(0xFFF1F3F8),
           child: Obx(() => screens[controller.selectedIndex.value]),
         ),
       ),
@@ -39,10 +38,10 @@ class Homescreen extends StatelessWidget {
   }
 }
 
+// Ensure this order matches the Bottom Navigation Bar items EXACTLY
 final List<Widget> screens = [
-  Home(),
-  // AttendanceScreen(),
-  // TaskScreen(),
-  ExpenseScreen(),
-  LeaveScreen(),
+  Home(),                          // Index 0: Home
+  const AttendanceOverviewPage(),  // Index 1: Attendance Details
+  ExpenseScreen(),                 // Index 2: Expense
+  LeaveScreen(),                   // Index 3: Leave
 ];
