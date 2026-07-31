@@ -25,16 +25,14 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
 
   final List<String> icons = [
     kaHomeHollow,
-    // kaAttendanceHollow,
-    // kaTaskHollow,
+    kaAttendanceHollow,
     kaExpenseHollow,
     kaLeaveHollow
   ];
 
   final List<String> selectedIcons = [
     kaHomeFilled,
-    // kaAttendanceFilled,
-    // kaTaskFilled,
+    kaAttendanceFilled,
     kaExpenseFilled,
     kaLeaveFilled
   ];
@@ -46,17 +44,15 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
       final bool isCorporate = corporateList.contains(user.department?.departmentName);
 
       final List<int> visibleIndexes = [
-        0,
-        1,
-        // if (isCorporate) 2,
-        // if (isCorporate) 3,
-        if (isCorporate) 2,
+        0, // Home
+        1, // Attendance
+        2, // Expense
+        if (isCorporate) 3, // Leave
       ];
 
       final List<String> titles = [
         "Home",
-        // "Attendance",
-        // "Tasks",
+        "Attendance",
         "Expense",
         "Leave"
       ];
@@ -82,7 +78,8 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                 onTap: () {
                   controller.selectedIndex.value = index;
                   widget.onSelectIndex(index);
-                }, title: titles[index],
+                },
+                title: titles[index],
               ),
             );
           }).toList(),
@@ -111,11 +108,11 @@ class BottomBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,        // ← shrink-wraps the column
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SvgPicture.asset(iconPath, height: 25, width: 25),
-        const SizedBox(height: 4),           // ← fixed gap instead of spaceBetween
+        const SizedBox(height: 4),
         Container(
           height: 2,
           width: 12,
@@ -124,7 +121,7 @@ class BottomBarItem extends StatelessWidget {
             color: isSelected ? Colors.white : Colors.transparent,
           ),
         ),
-        const SizedBox(height: 4),           // ← fixed gap instead of spaceBetween
+        const SizedBox(height: 4),
         Text(
           title,
           style: TextStyle(

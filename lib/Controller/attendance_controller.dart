@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Response;
+import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:insta_attend/API/DTO/Request/check_in_request_dto.dart';
-import 'package:insta_attend/API/DTO/Request/check_out_request_dto.dart';
-import 'package:insta_attend/API/Repository/attendance_repository.dart';
+
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/Model/Attendance.dart';
 import 'package:insta_attend/Model/attendance_detail.dart';
@@ -17,8 +16,14 @@ import '../Constant/constant_color.dart';
 import '../View/pages/face_scanner_page.dart';
 
 class AttendanceController extends GetxController {
-  final AttendanceRepository attendanceRepo;
-  AttendanceController({required this.attendanceRepo});
+  // --- Direct Dio HTTP Setup ---
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://api.ams.instagrp.in/api/', // TODO: Replace with your actual base URL
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
 
   final AuthController authController = Get.find<AuthController>();
   final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
@@ -33,6 +38,7 @@ class AttendanceController extends GetxController {
   final RxBool isClockingLoading = false.obs;
   final RxBool isWeeklyAttendanceLoading = false.obs;
   final RxBool isAttendanceDetailsLoading = false.obs;
+  final RxBool isExporting = false.obs;
 
   final RxString attendanceStatus = "No Check-in".obs;
   final RxString checkInTime = "".obs;
@@ -47,13 +53,28 @@ class AttendanceController extends GetxController {
   final RxList<AttendanceForWeek> weeklyAttendance = <AttendanceForWeek>[].obs;
   final Rxn<AttendanceDetail> attendanceDetails = Rxn<AttendanceDetail>();
 
+  // Claude's added map/summary structures
+  final RxMap<String, String> attendanceStatusMap = <String, String>{}.obs;
+  final RxInt presentDays = 0.obs;
+  final RxInt halfDays = 0.obs;
+  final RxInt absentDays = 0.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    getMyAttendance();
+  }
+
   @override
   void onClose() {
     _durationTimer?.cancel();
     super.onClose();
   }
 
-  /// Get department's latitude and longitude from user session
+  // ==========================================
+  // LOCATION & HELPER METHODS
+  // ==========================================
+
   Future<void> getLatLong(BuildContext context) async {
     try {
       final String latLong =
@@ -72,7 +93,6 @@ class AttendanceController extends GetxController {
     }
   }
 
-  /// Get current user GPS location
   Future<Position> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -92,7 +112,6 @@ class AttendanceController extends GetxController {
     );
   }
 
-  /// Check if user is within radius (meters) of office location
   bool isInRange(double userLat, double userLng, double geoLat, double geoLng, {double maxDistanceMeters = 200.0}) {
     double distanceInMeters = Geolocator.distanceBetween(
       userLat,
@@ -103,7 +122,6 @@ class AttendanceController extends GetxController {
     return distanceInMeters <= maxDistanceMeters;
   }
 
-  /// Convert lat/lng to readable address string
   Future<String> getAddressFromLatLng(double lat, double lng) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
@@ -158,7 +176,10 @@ class AttendanceController extends GetxController {
     }
   }
 
-  /// Mark user Clock In
+  // ==========================================
+  // CLOCK IN & CLOCK OUT LOGIC
+  // ==========================================
+
   void clockIn(BuildContext context) async {
     final dynamic faceResult = await Get.to(
           () => const FaceScannerPage(isRegistration: false),
@@ -193,22 +214,34 @@ class AttendanceController extends GetxController {
           );
         }
 
-        Response response = await attendanceRepo.clockIn(
-          CheckInRequestDTO(
-            checkInLocation: locationAddress,
-            faceEmbedding: faceResult,
-          ),
+        final response = await _dio.post(
+          '/attendance/clock-in',
+          data: {
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'checkInLocation': locationAddress,
+            'faceEmbedding': faceResult,
+            'timestamp': DateTime.now().toIso8601String(),
+          },
         );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           showSuccess("Marked Clock In");
           getMyAttendance();
         } else {
-          _handleAttendanceError(
-            context,
-            response.body?['message'] ?? "Error occurred during clock in",
-          );
+          String msg = "Error occurred during clock in";
+          if (response.data is Map && response.data['message'] != null) {
+            msg = response.data['message'];
+          }
+          _handleAttendanceError(context, msg);
         }
+      } on DioException catch (e) {
+        debugPrint("Dio error during clock in: $e");
+        String errorMsg = "Failed to complete clock in process";
+        if (e.response?.data is Map && e.response?.data['message'] != null) {
+          errorMsg = e.response?.data['message'];
+        }
+        _handleAttendanceError(context, errorMsg);
       } catch (e) {
         debugPrint("Error during clock in: $e");
         showError("Failed to complete clock in process");
@@ -220,7 +253,6 @@ class AttendanceController extends GetxController {
     }
   }
 
-  /// Mark user Clock Out
   void clockOut(BuildContext context) async {
     final dynamic faceResult = await Get.to(
           () => const FaceScannerPage(isRegistration: false),
@@ -253,22 +285,34 @@ class AttendanceController extends GetxController {
           );
         }
 
-        Response response = await attendanceRepo.clockOut(
-          CheckOutRequestDTO(
-            checkOutLocation: locationAddress,
-            faceEmbedding: faceResult,
-          ),
+        final response = await _dio.post(
+          '/attendance/clock-out',
+          data: {
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'checkOutLocation': locationAddress,
+            'faceEmbedding': faceResult,
+            'timestamp': DateTime.now().toIso8601String(),
+          },
         );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           showSuccess("Marked Clock Out");
           getMyAttendance();
         } else {
-          _handleAttendanceError(
-            context,
-            response.body?['message'] ?? "Error occurred during clock out",
-          );
+          String msg = "Error occurred during clock out";
+          if (response.data is Map && response.data['message'] != null) {
+            msg = response.data['message'];
+          }
+          _handleAttendanceError(context, msg);
         }
+      } on DioException catch (e) {
+        debugPrint("Dio error during clock out: $e");
+        String errorMsg = "Failed to complete clock out process";
+        if (e.response?.data is Map && e.response?.data['message'] != null) {
+          errorMsg = e.response?.data['message'];
+        }
+        _handleAttendanceError(context, errorMsg);
       } catch (e) {
         debugPrint("Error during clock out: $e");
         showError("Failed to complete clock out process");
@@ -280,7 +324,10 @@ class AttendanceController extends GetxController {
     }
   }
 
-  /// Fetch user attendance and check today's status
+  // ==========================================
+  // FETCHING DATA & EXPORTS
+  // ==========================================
+
   void getMyAttendance() async {
     isAttendanceLoading.value = true;
     try {
@@ -292,11 +339,18 @@ class AttendanceController extends GetxController {
       }
 
       log("Fetching attendance for UID: $userId");
-      Response response = await attendanceRepo.getMyAttendance(userId);
+      final response = await _dio.get('/attendance/user/$userId');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        List<dynamic> data = response.body['data'] ?? [];
+        List<dynamic> data = [];
+        if (response.data is Map && response.data['data'] != null) {
+          data = response.data['data'];
+        }
+
         attendance.value = data.map((json) => Attendance.fromJson(json)).toList();
+
+        _calculateSummary();
+        _generateStatusMap();
 
         String today = DateTime.now().toIso8601String().substring(0, 10);
         var todayRecords = attendance.where((record) => record.date == today).toList();
@@ -342,6 +396,145 @@ class AttendanceController extends GetxController {
     }
   }
 
+  void _calculateSummary() {
+    int p = 0, h = 0, a = 0;
+    for (var record in attendance) {
+      final status = (record.status ?? '').toLowerCase();
+      if (status.contains('present') && !status.contains('half')) {
+        p++;
+      } else if (status.contains('half')) {
+        h++;
+      } else if (status.contains('absent')) {
+        a++;
+      }
+    }
+    presentDays.value = p;
+    halfDays.value = h;
+    absentDays.value = a;
+  }
+
+  void _generateStatusMap() {
+    final map = <String, String>{};
+    for (var record in attendance) {
+      if (record.date != null && record.status != null) {
+        final dateString = record.date!.split(' ')[0];
+        map[dateString] = record.status!;
+      }
+    }
+    attendanceStatusMap.value = map;
+  }
+
+  Future<void> getMyWeekAttendance() async {
+    try {
+      isWeeklyAttendanceLoading.value = true;
+      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
+
+      if (userId.isEmpty) {
+        debugPrint("getMyWeekAttendance: userId is empty, skipping");
+        return;
+      }
+
+      final response = await _dio.get('/attendance/weekly/$userId');
+      if (response.statusCode == 200) {
+        List<dynamic> attendanceData = [];
+        if (response.data is Map && response.data['data'] != null) {
+          attendanceData = response.data['data'];
+        }
+
+        final List<AttendanceForWeek> parsedList = List<AttendanceForWeek>.from(
+          attendanceData.map((atd) => AttendanceForWeek.fromJson(atd)),
+        );
+        weeklyAttendance.assignAll(parsedList);
+      } else {
+        debugPrint("getMyWeekAttendance failed: ${response.statusCode}");
+      }
+    } catch (err) {
+      debugPrint("Exception in getMyWeekAttendance: $err");
+    } finally {
+      isWeeklyAttendanceLoading.value = false;
+    }
+  }
+
+  Future<void> getAttendanceDetails(String attendanceId) async {
+    try {
+      isAttendanceDetailsLoading.value = true;
+      final response = await _dio.get('/attendance/$attendanceId');
+
+      if (response.statusCode == 200 && response.data is Map && response.data['data'] != null) {
+        attendanceDetails.value = AttendanceDetail.fromJson(response.data['data']);
+      } else {
+        String msg = "Failed to load details";
+        if (response.data is Map && response.data['message'] != null) {
+          msg = response.data['message'];
+        }
+        showError(msg);
+      }
+    } catch (err) {
+      showError("Something went wrong");
+      debugPrint("Exception in getAttendanceDetails: $err");
+    } finally {
+      isAttendanceDetailsLoading.value = false;
+    }
+  }
+
+  Future<void> exportAttendancePDF({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      isExporting.value = true;
+      final response = await _dio.post(
+        '/attendance/export/pdf',
+        data: {
+          'from': startDate.toIso8601String(),
+          'to': endDate.toIso8601String(),
+        },
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      if (response.statusCode == 200) {
+        showSuccess('PDF exported successfully');
+      } else {
+        showError('Failed to export PDF');
+      }
+    } catch (e) {
+      showError('Error exporting PDF: $e');
+    } finally {
+      isExporting.value = false;
+    }
+  }
+
+  Future<void> exportAttendanceExcel({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      isExporting.value = true;
+      final response = await _dio.post(
+        '/attendance/export/excel',
+        data: {
+          'from': startDate.toIso8601String(),
+          'to': endDate.toIso8601String(),
+        },
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      if (response.statusCode == 200) {
+        showSuccess('Excel exported successfully');
+      } else {
+        showError('Failed to export Excel');
+      }
+    } catch (e) {
+      showError('Error exporting Excel: $e');
+    } finally {
+      isExporting.value = false;
+    }
+  }
+
+  // ==========================================
+  // DURATION CALCULATIONS
+  // ==========================================
+
   void _startDurationTimer() {
     _durationTimer?.cancel();
     _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -373,7 +566,6 @@ class AttendanceController extends GetxController {
     }
   }
 
-  /// Calculate total duration from list of attendance records
   String calculateTotalDuration(List<Attendance> attendanceList) {
     int totalMinutes = attendanceList.fold(0, (sum, record) {
       if (record.duration != null && record.duration!.contains(":")) {
@@ -392,14 +584,12 @@ class AttendanceController extends GetxController {
     return "${totalHours.toString().padLeft(2, '0')}:${remainingMinutes.toString().padLeft(2, '0')}";
   }
 
-  /// Get today’s total work duration
   String getTodayDuration() {
     String today = DateTime.now().toIso8601String().substring(0, 10);
     var todayRecords = attendance.where((record) => record.date == today).toList();
     return calculateTotalDuration(todayRecords);
   }
 
-  /// Get current month's total work duration
   String getMonthlyDuration() {
     DateTime now = DateTime.now();
     DateTime startOfMonth = DateTime(now.year, now.month, 1);
@@ -413,52 +603,5 @@ class AttendanceController extends GetxController {
     }).toList();
 
     return calculateTotalDuration(monthlyRecords);
-  }
-
-  /// Fetch weekly summary records
-  Future<void> getMyWeekAttendance() async {
-    try {
-      isWeeklyAttendanceLoading.value = true;
-      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
-
-      if (userId.isEmpty) {
-        debugPrint("getMyWeekAttendance: userId is empty, skipping");
-        return;
-      }
-
-      Response response = await attendanceRepo.getWeeklyAttendance(userId);
-      if (response.statusCode == 200) {
-        final List<dynamic> attendanceData = response.body['data'] ?? [];
-        final List<AttendanceForWeek> parsedList = List<AttendanceForWeek>.from(
-          attendanceData.map((atd) => AttendanceForWeek.fromJson(atd)),
-        );
-        weeklyAttendance.assignAll(parsedList);
-      } else {
-        debugPrint("getMyWeekAttendance failed: ${response.statusCode}");
-      }
-    } catch (err) {
-      debugPrint("Exception in getMyWeekAttendance: $err");
-    } finally {
-      isWeeklyAttendanceLoading.value = false;
-    }
-  }
-
-  /// Get detailed view of specific attendance record
-  Future<void> getAttendanceDetails(String attendanceId) async {
-    try {
-      isAttendanceDetailsLoading.value = true;
-      Response response = await attendanceRepo.getAttendanceDetails(attendanceId);
-
-      if (response.statusCode == 200 && response.body['data'] != null) {
-        attendanceDetails.value = AttendanceDetail.fromJson(response.body['data']);
-      } else {
-        showError(response.body?['message'] ?? "Failed to load details");
-      }
-    } catch (err) {
-      showError("Something went wrong");
-      debugPrint("Exception in getAttendanceDetails: $err");
-    } finally {
-      isAttendanceDetailsLoading.value = false;
-    }
   }
 }
