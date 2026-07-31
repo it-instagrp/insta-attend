@@ -20,14 +20,15 @@ class AssetController extends GetxController {
       Response response = await assetRepo.getMyAssets();
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
-        List<Asset> list = dataList.map((json) => Asset.fromJson(json)).toList();
+        List<Asset> list =
+            dataList.map((json) => Asset.fromJson(json)).toList();
         assets.assignAll(list);
       } else {
         showError(response.body['message']);
       }
     } catch (err) {
       showError("Something went wrong");
-      print("Exception: "+err.toString());
+      print("Exception: " + err.toString());
     } finally {
       isLoading.value = false;
     }

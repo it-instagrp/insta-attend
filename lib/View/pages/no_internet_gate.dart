@@ -123,7 +123,8 @@ class _NoInternetPage extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kcPurple500,
-                      foregroundColor: Colors.white, // FIX: was kcPurple500 (invisible text)
+                      foregroundColor:
+                          Colors.white, // FIX: was kcPurple500 (invisible text)
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -131,19 +132,22 @@ class _NoInternetPage extends StatelessWidget {
                       elevation: 0,
                     ),
                     onPressed: isChecking ? null : onRetry,
-                    child: isChecking
-                        ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
-                      ),
-                    )
-                        : const Text(
-                      'Retry',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
+                    child:
+                        isChecking
+                            ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Text(
+                              'Retry',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
                   ),
                 ),
               ],

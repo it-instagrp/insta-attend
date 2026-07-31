@@ -16,102 +16,110 @@ class VersioningPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF1F3F8),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        leadingWidth: 50,
-        leading: InkWell(
-          onTap: () => Get.back(),
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: SvgPicture.asset(
-                kaBackButton,
-                fit: BoxFit.scaleDown,
-                width: 10,
-                height: 10,
+      appBar: _buildAppBar(),
+      body: Container(
+        margin: EdgeInsets.all(15.0),
+        padding: EdgeInsets.all(15.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.0),
+          color: Colors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /**** Page Title ****/
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              isThreeLine: false,
+              horizontalTitleGap: 0,
+              title: Text(
+                "App Version List",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              subtitle: Text(
+                "Download latest version of app from list",
+                style: TextStyle(fontSize: 12, color: kcGrey500),
+              ),
+            ),
+            SizedBox(height: 10),
+            _buildVersionList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build app bar
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      leadingWidth: 50,
+      leading: InkWell(
+        onTap: () => Get.back(),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20.0),
+            child: SvgPicture.asset(
+              kaBackButton,
+              fit: BoxFit.scaleDown,
+              width: 10,
+              height: 10,
             ),
           ),
         ),
-        centerTitle: true,
-        title: Text(
-          "App Versions",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF101828),
-          ),
+      ),
+      centerTitle: true,
+      title: Text(
+        "App Versions",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF101828),
         ),
       ),
-        body: Container(
-          margin: EdgeInsets.all(15.0),
-          padding: EdgeInsets.all(15.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.0),
-            color: Colors.white,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /**** Page Title ****/
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                isThreeLine: false,
-                horizontalTitleGap: 0,
-                title: Text(
-                  "App Version List",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(
-                  "Download latest version of app from list",
-                  style: TextStyle(fontSize: 12, color: kcGrey500),
-                ),
-              ),
-
-              SizedBox(height: 10),
-
-              /**** Version List ****/
-              Expanded(
-                child: Obx(
-                      () => controller.isLoading.value
-                      ? Center(
-                    child: CircularProgressIndicator(
-                      strokeCap: StrokeCap.round,
-                      color: kcPurple600,
-                    ),
-                  )
-                      : controller.versionList.isEmpty
-                      ? Center(
-                    child: Text(
-                      "No Version Found",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )
-                      : ListView.separated(
-                    itemBuilder: (context, index) {
-                      return VersionCard(
-                        version: controller.versionList[index],
-                      );
-                    },
-                    separatorBuilder: (context, index) =>
-                        SizedBox(height: 15.0),
-                    itemCount: controller.versionList.length,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        )
     );
+  }
+
+  Widget _buildVersionList() {
+    /**** Version List ****/
+    return Expanded(
+        child: Obx(
+              () =>
+          controller.isVersionLoading.value
+              ? Center(
+            child: CircularProgressIndicator(
+              strokeCap: StrokeCap.round,
+              color: kcPurple600,
+            ),
+          )
+              : controller.versionList.isEmpty
+              ? Center(
+            child: Text(
+              "No Version Found",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          )
+              : ListView.separated(
+            itemBuilder: (context, index) {
+              return VersionCard(
+                version: controller.versionList[index],
+              );
+            },
+            separatorBuilder:
+                (context, index) => SizedBox(height: 15.0),
+            itemCount: controller.versionList.length,
+          ),
+        ),
+      );
   }
 }

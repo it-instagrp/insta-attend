@@ -5,12 +5,13 @@ class Designation {
   String? createdAt;
   String? updatedAt;
 
-  Designation(
-      {this.id,
-        this.designationName,
-        this.adminAccess,
-        this.createdAt,
-        this.updatedAt});
+  Designation({
+    this.id,
+    this.designationName,
+    this.adminAccess,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Designation.fromJson(Map<String, dynamic> json) {
     id = json['id'];

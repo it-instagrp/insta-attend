@@ -15,22 +15,23 @@ class AttendanceDetail {
   String? updatedAt;
   User? user;
 
-  AttendanceDetail(
-      {this.id,
-        this.employeeId,
-        this.employeeName,
-        this.department,
-        this.designation,
-        this.date,
-        this.checkInTime,
-        this.checkInLocation,
-        this.checkOutTime,
-        this.checkOutLocation,
-        this.status,
-        this.duration,
-        this.createdAt,
-        this.updatedAt,
-        this.user});
+  AttendanceDetail({
+    this.id,
+    this.employeeId,
+    this.employeeName,
+    this.department,
+    this.designation,
+    this.date,
+    this.checkInTime,
+    this.checkInLocation,
+    this.checkOutTime,
+    this.checkOutLocation,
+    this.status,
+    this.duration,
+    this.createdAt,
+    this.updatedAt,
+    this.user,
+  });
 
   AttendanceDetail.fromJson(Map<String, dynamic> json) {
     id = json['id'];

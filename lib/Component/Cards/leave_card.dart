@@ -13,11 +13,15 @@ enum LeaveType {
   const LeaveType(this.description);
 }
 
-
 class LeaveCard extends StatelessWidget {
   final String periodOfLeave;
   final int availableLeave, usedLeave;
-  const LeaveCard({super.key, this.periodOfLeave = "1 Jan 2025 - 30 Dec 2024", this.availableLeave = 11, this.usedLeave = 2});
+  const LeaveCard({
+    super.key,
+    this.periodOfLeave = "1 Jan 2025 - 30 Dec 2024",
+    this.availableLeave = 11,
+    this.usedLeave = 2,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,14 +37,10 @@ class LeaveCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Total Leave", style: kfLabelLarge,),
-          SizedBox(
-            height: 5,
-          ),
-          Text("Period $periodOfLeave", style: kfBodySmall,),
-          SizedBox(
-            height: 15,
-          ),
+          Text("Total Leave", style: kfLabelLarge),
+          SizedBox(height: 5),
+          Text("Period $periodOfLeave", style: kfBodySmall),
+          SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -48,23 +48,20 @@ class LeaveCard extends StatelessWidget {
               _buildLeaveSection(LeaveType.available, availableLeave),
               _buildLeaveSection(LeaveType.used, usedLeave),
             ],
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLeaveSection(LeaveType type, int amount){
+  Widget _buildLeaveSection(LeaveType type, int amount) {
     return Container(
       padding: EdgeInsets.all(12.0),
       width: 140,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.0),
-          color: kcGrey25,
-          border: Border.all(
-              color: kcGrey100,
-              width: 2
-          )
+        borderRadius: BorderRadius.circular(8.0),
+        color: kcGrey25,
+        border: Border.all(color: kcGrey100, width: 2),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -74,22 +71,25 @@ class LeaveCard extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SvgPicture.asset(_getLeaveIcon(type), fit: BoxFit.scaleDown, height: 15, width: 15,),
-              SizedBox(width: 5,),
-              Text(type.description, style: kfLabelMedium,),
+              SvgPicture.asset(
+                _getLeaveIcon(type),
+                fit: BoxFit.scaleDown,
+                height: 15,
+                width: 15,
+              ),
+              SizedBox(width: 5),
+              Text(type.description, style: kfLabelMedium),
             ],
           ),
-          SizedBox(
-            height: 5,
-          ),
-          Text("${amount.toString()}", style: kfTitleLarge,)
+          SizedBox(height: 5),
+          Text("${amount.toString()}", style: kfTitleLarge),
         ],
       ),
     );
   }
 
-  String _getLeaveIcon(LeaveType type){
-    switch(type){
+  String _getLeaveIcon(LeaveType type) {
+    switch (type) {
       case LeaveType.available:
         return kaApprovedExpense;
       case LeaveType.used:

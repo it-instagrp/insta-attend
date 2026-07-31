@@ -1,6 +1,5 @@
 // {message: "Category of error", error: "Actual Error"}
 
-
 class ErrorResponse {
   String? message;
   String? error;

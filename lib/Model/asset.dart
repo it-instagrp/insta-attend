@@ -9,16 +9,17 @@ class Asset {
   String? createdAt;
   String? updatedAt;
 
-  Asset(
-      {this.id,
-        this.userId,
-        this.assetName,
-        this.assetBrand,
-        this.assetWarrantyStatus,
-        this.allotedDate,
-        this.returnDate,
-        this.createdAt,
-        this.updatedAt});
+  Asset({
+    this.id,
+    this.userId,
+    this.assetName,
+    this.assetBrand,
+    this.assetWarrantyStatus,
+    this.allotedDate,
+    this.returnDate,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Asset.fromJson(Map<String, dynamic> json) {
     id = json['id'];

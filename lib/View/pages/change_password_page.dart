@@ -17,122 +17,156 @@ class ChangePasswordPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF1F3F8),
-      bottomNavigationBar: Container(
-        height: 80,
+      backgroundColor: const Color(0xFFF1F3F8),
+      appBar: _buildAppBar(),
+      body: _buildBody(),
+      bottomNavigationBar: _buildBottomButton(),
+    );
+  }
+
+  // App bar with back button and title
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      centerTitle: true,
+      leadingWidth: 50,
+      leading: InkWell(
+        onTap: Get.back,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: SvgPicture.asset(
+            kaBackButton,
+            fit: BoxFit.scaleDown,
+            width: 10,
+            height: 10,
+          ),
+        ),
+      ),
+      title: const Text(
+        "Change Password",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF101828),
+        ),
+      ),
+    );
+  }
+
+  // Main form body
+  Widget _buildBody() {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
         color: Colors.white,
-        padding: const EdgeInsets.all(15.0),
-        child: Obx(
-              () =>
-          controller.isLoading.value
-              ? Center(
-            child: CircularProgressIndicator(
-              strokeCap: StrokeCap.round,
-              color: kcPurple600,
-            ),
-          )
-              : main.MainButton(
-            label: "Update Password",
-            onTap: () {
-              if (_formKey.currentState!.validate()){
-                showUpdateConfirmation(context);
-              }
-            },
-          ),
-        ),
+        borderRadius: BorderRadius.circular(8),
       ),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        leadingWidth: 50,
-        leading: InkWell(
-          onTap: () => Get.back(),
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: SvgPicture.asset(
-                kaBackButton,
-                fit: BoxFit.scaleDown,
-                width: 10,
-                height: 10,
-              ),
-            ),
-          ),
-        ),
-        centerTitle: true,
-        title: Text(
-          "Change Password",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF101828),
-          ),
-        ),
-      ),
-      body: Container(
-        margin: EdgeInsets.all(15.0),
-        padding: EdgeInsets.all(15.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.0),
-          color: Colors.white,
-        ),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                /**** Page Title ****/
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  isThreeLine: false,
-                  horizontalTitleGap: 0,
-                  title: Text(
-                    "Change Password Form",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "Fill information to change your password",
-                    style: TextStyle(fontSize: 12, color: kcGrey500),
-                  ),
-                ),
-                /**** Old Password ****/
-                CustomPasswordField(title: "Current Password", hintText: "Enter Current Password", controller: controller.passwordController),
-                SizedBox(height: 10.0),
-                CustomPasswordField(title: "New Password", hintText: "Enter New Password", controller: controller.confirmPasswordController, validator: controller.validateNewPassword, autovalidateMode: AutovalidateMode.onUserInteraction)
-              ],
-            ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildFormHeader(),
+              const SizedBox(height: 20),
+              _buildPasswordFields(),
+            ],
           ),
         ),
       ),
     );
   }
 
-  void showUpdateConfirmation(BuildContext context) {
+  // Form title and description
+  Widget _buildFormHeader() {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: const Text(
+        "Change Password Form",
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+      subtitle: Text(
+        "Fill information to change your password",
+        style: TextStyle(fontSize: 12, color: kcGrey500),
+      ),
+    );
+  }
+
+  // Password input fields (Current & New)
+  Widget _buildPasswordFields() {
+    return Column(
+      children: [
+        CustomPasswordField(
+          title: "Current Password",
+          hintText: "Enter Current Password",
+          controller: controller.passwordController,
+        ),
+        const SizedBox(height: 10),
+        CustomPasswordField(
+          title: "New Password",
+          hintText: "Enter New Password",
+          controller: controller.confirmPasswordController,
+          validator: controller.validateNewPassword,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+        ),
+      ],
+    );
+  }
+
+  // Bottom update button with loading state
+  Widget _buildBottomButton() {
+    return Container(
+      height: 80,
+      color: Colors.white,
+      padding: const EdgeInsets.all(15),
+      child: Obx(
+        () =>
+            controller.isChangePasswordLoading.value
+                ? _buildLoadingIndicator()
+                : main.MainButton(
+                  label: "Update Password",
+                  onTap: () {
+                    if (_formKey.currentState!.validate()) {
+                      _showUpdateConfirmation();
+                    }
+                  },
+                ),
+      ),
+    );
+  }
+
+  // Reusable loading indicator
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: CircularProgressIndicator(
+        strokeCap: StrokeCap.round,
+        color: kcPurple600,
+      ),
+    );
+  }
+
+  // Confirmation dialog before updating password
+  void _showUpdateConfirmation() {
     showCustomBottomSheet(
-      context: context,
+      context: Get.context!,
       title: "Update Password",
-      description: "Are you sure you want to update your password? To ensure your account safety we will send verification code to your email",
+      description:
+          "Are you sure you want to update your password? To ensure your account safety we will send verification code to your email",
       topIconAsset: kaUpdatePasswordTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
-            : main.MainButton(
-          label: "Yes, Update Password",
-          onTap: () => controller.changePassword(context),
-        ),
+        () =>
+            controller.isLoading.value
+                ? _buildLoadingIndicator()
+                : main.MainButton(
+                  label: "Yes, Update Password",
+                  onTap: () => controller.changePassword(Get.context!),
+                ),
       ),
     );
   }

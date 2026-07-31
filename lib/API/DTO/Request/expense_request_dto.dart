@@ -1,4 +1,5 @@
 import 'dart:io';
+
 class ExpenseRequestDTO {
   String? expenseDate;
   String? expenseType;
@@ -7,14 +8,14 @@ class ExpenseRequestDTO {
   String? expenseStatus;
   File? image;
 
-  ExpenseRequestDTO(
-      {this.expenseDate,
-        this.expenseType,
-        this.expenseAmount,
-        this.expenseBy,
-        this.expenseStatus,
-        this.image,
-      });
+  ExpenseRequestDTO({
+    this.expenseDate,
+    this.expenseType,
+    this.expenseAmount,
+    this.expenseBy,
+    this.expenseStatus,
+    this.image,
+  });
 
   ExpenseRequestDTO.fromJson(Map<String, dynamic> json) {
     expenseDate = json['expense_date'];

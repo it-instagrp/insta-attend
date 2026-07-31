@@ -7,7 +7,7 @@ import 'package:insta_attend/API/app_constants.dart';
 class LocationServiceManager {
   LocationServiceManager._internal();
   static final LocationServiceManager instance =
-  LocationServiceManager._internal();
+      LocationServiceManager._internal();
 
   StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
   bool _isDialogShowing = false;
@@ -18,16 +18,18 @@ class LocationServiceManager {
     if (!isEnabled) {
       _showLocationDisabledDialog();
     }
-    _serviceStatusSubscription ??=
-        Geolocator.getServiceStatusStream().listen((status) {
-          debugPrint('LOCATION SERVICE STATUS: $status');
-          if (status == ServiceStatus.disabled) {
-            _showLocationDisabledDialog();
-          } else if (status == ServiceStatus.enabled) {
-            _dismissDialogIfShowing();
-          }
-        });
+    _serviceStatusSubscription ??= Geolocator.getServiceStatusStream().listen((
+      status,
+    ) {
+      debugPrint('LOCATION SERVICE STATUS: $status');
+      if (status == ServiceStatus.disabled) {
+        _showLocationDisabledDialog();
+      } else if (status == ServiceStatus.enabled) {
+        _dismissDialogIfShowing();
+      }
+    });
   }
+
   void _showLocationDisabledDialog() {
     if (_isDialogShowing) return;
     final context = globalNavigatorKey.currentState?.overlay?.context;
@@ -36,29 +38,31 @@ class LocationServiceManager {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => PopScope(
-        canPop: false,
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 0),
-          child: LocationDisabledCard(
-            onEnablePressed: () async {
-              await Geolocator.openLocationSettings();
-            },
-            onRetryPressed: () async {
-              final isEnabled = await Geolocator.isLocationServiceEnabled();
-              if (isEnabled && dialogContext.mounted) {
-                Navigator.of(dialogContext).pop();
-              }
-              return isEnabled;
-            },
+      builder:
+          (dialogContext) => PopScope(
+            canPop: false,
+            child: Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 0),
+              child: LocationDisabledCard(
+                onEnablePressed: () async {
+                  await Geolocator.openLocationSettings();
+                },
+                onRetryPressed: () async {
+                  final isEnabled = await Geolocator.isLocationServiceEnabled();
+                  if (isEnabled && dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop();
+                  }
+                  return isEnabled;
+                },
+              ),
+            ),
           ),
-        ),
-      ),
     ).whenComplete(() {
       _isDialogShowing = false;
     });
   }
+
   void _dismissDialogIfShowing() {
     if (!_isDialogShowing) return;
     final nav = globalNavigatorKey.currentState;
@@ -67,6 +71,7 @@ class LocationServiceManager {
     }
     _isDialogShowing = false;
   }
+
   void dispose() {
     _serviceStatusSubscription?.cancel();
     _serviceStatusSubscription = null;

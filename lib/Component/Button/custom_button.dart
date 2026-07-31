@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 
 enum ButtonSize { xs, sm, md, lg, xl, xxl }
-enum ButtonHierarchy { primary, secondary }
-enum ButtonState { defaultState, focused, hover, disabled }
 
+enum ButtonHierarchy { primary, secondary }
+
+enum ButtonState { defaultState, focused, hover, disabled }
 
 class CustomButton extends StatelessWidget {
   final String label;
@@ -14,7 +15,7 @@ class CustomButton extends StatelessWidget {
   final ButtonSize size;
   final ButtonHierarchy hierarchy;
   final ButtonState state;
-  final bool icon;           // (instead of hasIcon)
+  final bool icon; // (instead of hasIcon)
   final bool destructive;
 
   const CustomButton({
@@ -46,9 +47,7 @@ class CustomButton extends StatelessWidget {
       side: _getBorder(),
       minimumSize: _getSize(),
       elevation: _getElevation(),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(100),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
     );
   }
 
@@ -57,13 +56,20 @@ class CustomButton extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.circle_outlined, size: _getIconSize(), color: _getTextColor()),
+          Icon(
+            Icons.circle_outlined,
+            size: _getIconSize(),
+            color: _getTextColor(),
+          ),
           SizedBox(width: 20),
           Text(label, style: TextStyle(fontSize: _getFontSize())),
         ],
       );
     }
-    return Text(label, style: TextStyle(fontSize: _getFontSize(), fontWeight: FontWeight.w600));
+    return Text(
+      label,
+      style: TextStyle(fontSize: _getFontSize(), fontWeight: FontWeight.w600),
+    );
   }
 
   Color _getBackgroundColor() {
@@ -118,7 +124,7 @@ class CustomButton extends StatelessWidget {
   }
 
   Size _getSize() {
-    if(icon){
+    if (icon) {
       switch (size) {
         case ButtonSize.sm:
           return Size(148, 36);
@@ -173,7 +179,7 @@ class CustomButton extends StatelessWidget {
   }
 
   double _getElevation() {
-    if(hierarchy == ButtonHierarchy.secondary){
+    if (hierarchy == ButtonHierarchy.secondary) {
       return 0;
     } else {
       switch (state) {

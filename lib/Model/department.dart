@@ -7,14 +7,15 @@ class Department {
   String? createdAt;
   String? updatedAt;
 
-  Department(
-      {this.id,
-        this.departmentName,
-        this.departmentLatLong,
-        this.departmentAddress,
-        this.departmentLead,
-        this.createdAt,
-        this.updatedAt});
+  Department({
+    this.id,
+    this.departmentName,
+    this.departmentLatLong,
+    this.departmentAddress,
+    this.departmentLead,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Department.fromJson(Map<String, dynamic> json) {
     id = json['id'];

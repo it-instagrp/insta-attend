@@ -17,20 +17,20 @@ class User {
   Designation? designation;
   List<double>? faceEmbedding;
 
-  User(
-      {this.id,
-        this.username,
-        this.email,
-        this.phoneNumber,
-        this.geofencing,
-        this.isEnrolled,
-        this.deletePermission,
-        this.createdAt,
-        this.updatedAt,
-        this.department,
-        this.designation,
-      this.faceEmbedding
-      });
+  User({
+    this.id,
+    this.username,
+    this.email,
+    this.phoneNumber,
+    this.geofencing,
+    this.isEnrolled,
+    this.deletePermission,
+    this.createdAt,
+    this.updatedAt,
+    this.department,
+    this.designation,
+    this.faceEmbedding,
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -48,18 +48,21 @@ class User {
         faceEmbedding = decoded.map((e) => (e as num).toDouble()).toList();
       } else if (embeddingData is List) {
         // If the API sent a proper JSON array [0.1, 0.2...]
-        faceEmbedding = embeddingData.map((e) => (e as num).toDouble()).toList();
+        faceEmbedding =
+            embeddingData.map((e) => (e as num).toDouble()).toList();
       }
     }
     deletePermission = json['delete_permission'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
-    department = json['department'] != null
-        ? new Department.fromJson(json['department'])
-        : null;
-    designation = json['designation'] != null
-        ? new Designation.fromJson(json['designation'])
-        : null;
+    department =
+        json['department'] != null
+            ? new Department.fromJson(json['department'])
+            : null;
+    designation =
+        json['designation'] != null
+            ? new Designation.fromJson(json['designation'])
+            : null;
   }
 
   Map<String, dynamic> toJson() {

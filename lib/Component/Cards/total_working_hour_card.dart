@@ -19,7 +19,7 @@ class TotalWorkingHourCard extends StatelessWidget {
   TotalWorkingHourCard({super.key});
 
   final AttendanceController _attendanceController =
-  Get.find<AttendanceController>();
+      Get.find<AttendanceController>();
   final AuthController _authController = Get.find<AuthController>();
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ class TotalWorkingHourCard extends StatelessWidget {
             child: SizedBox(
               width: double.maxFinite,
               child: Obx(() {
-                if (_attendanceController.isLoading.value) {
+                if (_attendanceController.isAttendanceLoading.value) {
                   return Center(
                     child: CircularProgressIndicator(
                       color: kcPurple600,
@@ -90,17 +90,15 @@ class TotalWorkingHourCard extends StatelessWidget {
                 }
                 return _attendanceController.isCheckIn.value
                     ? MainButton(
-                  label: 'Check In',
-                  onTap: () =>
-                      _attendanceController.clockIn(context),
-                  buttonSize: ButtonSize.xl,
-                )
+                      label: 'Check In',
+                      onTap: () => _attendanceController.clockIn(context),
+                      buttonSize: ButtonSize.xl,
+                    )
                     : MainButton(
-                  label: 'Check Out',
-                  onTap: () =>
-                      _attendanceController.clockOut(context),
-                  buttonSize: ButtonSize.xl,
-                );
+                      label: 'Check Out',
+                      onTap: () => _attendanceController.clockOut(context),
+                      buttonSize: ButtonSize.xl,
+                    );
               }),
             ),
           ),
@@ -150,13 +148,7 @@ class _TimeCard extends StatelessWidget {
           ),
           const SizedBox(height: 10.0),
           // Value
-          Text(
-            '$time Hrs',
-            style: TextStyle(
-              fontSize: 20,
-              color: kcBaseBlack,
-            ),
-          ),
+          Text('$time Hrs', style: TextStyle(fontSize: 20, color: kcBaseBlack)),
         ],
       ),
     );

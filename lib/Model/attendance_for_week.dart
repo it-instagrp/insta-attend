@@ -6,13 +6,14 @@ class AttendanceForWeek {
   String? durationOfWork;
   String? attendanceStatus;
 
-  AttendanceForWeek(
-      {this.id,
-        this.date,
-        this.checkInTime,
-        this.checkOutTime,
-        this.durationOfWork,
-        this.attendanceStatus});
+  AttendanceForWeek({
+    this.id,
+    this.date,
+    this.checkInTime,
+    this.checkOutTime,
+    this.durationOfWork,
+    this.attendanceStatus,
+  });
 
   AttendanceForWeek.fromJson(Map<String, dynamic> json) {
     id = json['id'];

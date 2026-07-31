@@ -12,8 +12,12 @@ class FaceRecognitionService {
 
   Future<void> loadModel() async {
     try {
-      _interpreter = await Interpreter.fromAsset('assets/model/mobile_face_net.tflite');
-      debugPrint("Face Recognition Model loaded successfully with $outputDimensions output dims");
+      _interpreter = await Interpreter.fromAsset(
+        'assets/model/mobile_face_net.tflite',
+      );
+      debugPrint(
+        "Face Recognition Model loaded successfully with $outputDimensions output dims",
+      );
     } catch (e) {
       debugPrint("Error loading face recognition model: $e");
     }
@@ -26,7 +30,11 @@ class FaceRecognitionService {
   List<double> extractEmbedding(img.Image faceImage) {
     if (_interpreter == null) return [];
 
-    img.Image resized = img.copyResize(faceImage, width: inputSize, height: inputSize);
+    img.Image resized = img.copyResize(
+      faceImage,
+      width: inputSize,
+      height: inputSize,
+    );
     var input = Float32List(1 * inputSize * inputSize * 3);
 
     int pixelIndex = 0;
@@ -40,7 +48,10 @@ class FaceRecognitionService {
     }
     resized.clear();
 
-    var output = List.generate(1, (_) => List<double>.filled(outputDimensions, 0.0));
+    var output = List.generate(
+      1,
+      (_) => List<double>.filled(outputDimensions, 0.0),
+    );
 
     try {
       _interpreter?.run(input.reshape([1, inputSize, inputSize, 3]), output);

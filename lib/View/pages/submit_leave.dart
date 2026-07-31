@@ -8,8 +8,8 @@ import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Controller/leave_controller.dart';
 import 'package:get/get.dart';
+import 'package:insta_attend/Model/Leave.dart';
 import 'package:intl/intl.dart';
-import '../../Constant/constant_font.dart';
 import '../../Utils/bottom_sheet_helper.dart';
 
 class SubmitLeave extends StatelessWidget {
@@ -19,100 +19,182 @@ class SubmitLeave extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF1F3F8),
-      bottomNavigationBar: Container(
-        height: 80,
-        color: Colors.white,
-        padding: const EdgeInsets.all(15.0),
-        child: main.MainButton(label: "Submit Leave", onTap: ()=>showConfirmationDialogue(context)),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if(didPop){
+          _clearForm();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF1F3F8),
+        appBar: _buildAppBar(),
+        body: _buildBody(),
+        bottomNavigationBar: _buildBottomButton(context),
       ),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        leadingWidth: 50,
-        leading: InkWell(
-          onTap: ()=>Get.back(),
-          child: SizedBox(
-              width: 20,
-              height: 20,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: SvgPicture.asset(kaBackButton, fit: BoxFit.scaleDown, width: 10, height: 10,),
-              )),
+    );
+  }
+
+  void _clearForm(){
+    controller.clearLeaveForm();
+  }
+
+  // App bar with back button and title
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      leadingWidth: 50,
+      leading: InkWell(
+        onTap: () {
+          _clearForm();
+          Get.back();
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: SvgPicture.asset(
+            kaBackButton,
+            fit: BoxFit.scaleDown,
+            width: 10,
+            height: 10,
+          ),
         ),
-        centerTitle: true,
-        title: Text("Submit Leave", style: TextStyle(
-          fontSize:  18,
+      ),
+      centerTitle: true,
+      title: const Text(
+        "Submit Leave",
+        style: TextStyle(
+          fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Color(0xFF101828),
-        ),),
+        ),
       ),
-      body: Container(
-        margin: EdgeInsets.all(15.0),
-        padding: EdgeInsets.all(
-          15.0
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.0),
-          color: Colors.white
-        ),
+    );
+  }
+
+  // Main form body
+  Widget _buildBody() {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+      ),
+      child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              isThreeLine: false,
-              horizontalTitleGap: 0,
-              title: Text("Fill Leave Information", style: TextStyle(
-                fontSize: 14,
-                color: Colors.black,
-                fontWeight: FontWeight.w600
-              ),),
-              subtitle: Text("Information about leave details", style: TextStyle(
-                fontSize: 12,
-                color: kcGrey500
-              ),),
-            ),
-            Align(
-              alignment: Alignment.topLeft,
-              child: Text("Leave Category", style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: kcGrey600
-              ),),
-            ),
-            SizedBox(height: 5,),
-        Obx(() => CustomDropDown(
-          options: LeaveReason.values.map((e) => e.description).toList(),
-          onChanged: (value) {
-            controller.leaveReason.value = LeaveReason.values.firstWhere(
-                  (element) => element.description == value,
-              orElse: () => LeaveReason.other,
-            );
-          },
-          hintText: controller.leaveReason.value.description.isNotEmpty ? controller.leaveReason.value.description : "Select Leave Type",
-          title: "Leave Type",
-        )),
-            SizedBox(
-              height: 15,
-            ),
-            Obx(()=>CustomTextField(title: "Leave Duration", hintText: convertDuration(controller.fromDate.value, controller.toDate.value), icon: kaDuration, controller: TextEditingController(), isDisabled: true, onTap: ()=>showDurationRangeDialog(context),))
+            _buildFormHeader(),
+            const SizedBox(height: 20),
+            _buildLeaveCategoryField(),
+            const SizedBox(height: 15),
+            _buildLeaveDurationField(),
           ],
         ),
       ),
     );
   }
 
-  void showDurationRangeDialog(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
+  // Form title and description
+  Widget _buildFormHeader() {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: const Text(
+        "Fill Leave Information",
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.black,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        "Information about leave details",
+        style: TextStyle(fontSize: 12, color: kcGrey500),
+      ),
+    );
+  }
+
+  // Leave category/type dropdown
+  Widget _buildLeaveCategoryField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Leave Category",
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: kcGrey600,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Obx(
+              () => CustomDropDown(
+            options: LeaveReason.values.map((e) => e.description).toList(),
+            onChanged: (value) => _handleLeaveReasonChange(value),
+            hintText: controller.leaveReason.value.description.isNotEmpty
+                ? controller.leaveReason.value.description
+                : "Select Leave Type",
+            title: "Leave Type",
+          ),
+        ),
+      ],
+    );
+  }
+
+// Leave duration date range field
+  Widget _buildLeaveDurationField() {
+    return Obx(
+          () => CustomTextField(
+        title: "Leave Duration",
+        hintText: _formatDateRange(
+          controller.fromDate.value,
+          controller.toDate.value,
+        ),
+        icon: kaDuration,
+        controller: TextEditingController(),
+        isDisabled: true,
+        onTap: () => _showDateRangePickerDialog(Get.context!),
+      ),
+    );
+  }
+
+  // Bottom submit button
+  Widget _buildBottomButton(BuildContext context) {
+    return Container(
+      height: 80,
+      color: Colors.white,
+      padding: const EdgeInsets.all(15),
+      child: main.MainButton(
+        label: "Submit Leave",
+        onTap: () {
+          if (_validateForm()) {
+            _showConfirmationDialog(context);
+          }
+        }
+      ),
+    );
+  }
+
+  // Reusable loading indicator
+  Widget _buildLoadingIndicator() {
+    return Center(
+      child: CircularProgressIndicator(
+        strokeCap: StrokeCap.round,
+        color: kcPurple600,
+      ),
+    );
+  }
+
+  // Date range picker dialog with confirmation
+  Future<void> _showDateRangePickerDialog(BuildContext context) async {
+    final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       initialDateRange: DateTimeRange(
         start: DateTime.now(),
-        end: DateTime.now().add(Duration(days: 2)),
+        end: DateTime.now().add(const Duration(days: 2)),
       ),
       builder: (context, child) {
         return Theme(
@@ -128,74 +210,140 @@ class SubmitLeave extends StatelessWidget {
       },
     );
 
-    // Handle the picked date after the dialog is closed
     if (picked != null) {
-      controller.fromDate.value = picked.start.toIso8601String().split('T')[0];
-      controller.toDate.value = picked.end.toIso8601String().split('T')[0];
-      showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          content: Container(
-            padding: const EdgeInsets.all(16),
-            width: MediaQuery.of(context).size.width * 0.9,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Leave Duration", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text(convertDuration(controller.fromDate.value, controller.toDate.value), textAlign: TextAlign.center),
-                SizedBox(height: 16),
-                CustomButton(label: "Submit Date", onPressed: (){
-                  Navigator.pop(context);
-                }),
-                SizedBox(height: 16),
-                CustomButton(label: "Clear Range", onPressed: (){
-                  controller.fromDate.value = "";
-                  controller.toDate.value = "";
-                  Navigator.pop(context);
-                },hierarchy: ButtonHierarchy.secondary,)
-              ],
-            ),
-          ),
-        ),
-      );
+      _setDateRange(picked);
+      _showDurationConfirmationDialog(context);
     }
   }
 
+  // Set the selected date range in controller
+  void _setDateRange(DateTimeRange range) {
+    controller.fromDate.value = range.start.toIso8601String().split('T')[0];
+    controller.toDate.value = range.end.toIso8601String().split('T')[0];
+  }
 
-  String convertDuration(String from, String to){
-    try{
+  // Confirmation dialog for selected dates
+  void _showDurationConfirmationDialog(BuildContext context) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        content: Container(
+          padding: const EdgeInsets.all(16),
+          width: MediaQuery.of(context).size.width * 0.9,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Leave Duration",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _formatDateRange(
+                  controller.fromDate.value,
+                  controller.toDate.value,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              CustomButton(
+                label: "Submit Date",
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(height: 16),
+              CustomButton(
+                label: "Clear Range",
+                onPressed: () => _clearDateRange(context),
+                hierarchy: ButtonHierarchy.secondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Clear selected dates and close dialog
+  void _clearDateRange(BuildContext context) {
+    controller.fromDate.value = "";
+    controller.toDate.value = "";
+    Navigator.pop(context);
+  }
+
+  // Handle leave reason dropdown change
+  void _handleLeaveReasonChange(String? value) {
+    if (value == null) return;
+    controller.leaveReason.value = LeaveReason.values.firstWhere(
+          (element) => element.description == value,
+      orElse: () => LeaveReason.other,
+    );
+  }
+
+  // Format date range to readable string
+  String _formatDateRange(String from, String to) {
+    try {
       final fromDate = DateFormat("dd MMM").format(DateTime.parse(from));
       final toDate = DateFormat("dd MMM").format(DateTime.parse(to));
-      return  "$fromDate - $toDate";
-    }catch(e){
+      return "$fromDate - $toDate";
+    } catch (e) {
       return "Select Duration";
     }
   }
 
-
-  void showConfirmationDialogue(BuildContext context) {
+  // Final confirmation dialog before submitting leave
+  void _showConfirmationDialog(BuildContext context) {
     showCustomBottomSheet(
       context: context,
       title: "Submit Leave",
-      description: "Double-check your leave details to ensure everything is correct. Do you want to proceed?",
+      description:
+      "Double-check your leave details to ensure everything is correct. Do you want to proceed?",
       topIconAsset: kaSubmitLeaveTop,
       primaryButton: Obx(
-            () => controller.isLoading.value
-            ? Center(
-          child: CircularProgressIndicator(
-            strokeCap: StrokeCap.round,
-            color: kcPurple600,
-          ),
-        )
+            () => controller.isLeaveLoading.value
+            ? _buildLoadingIndicator()
             : main.MainButton(
           label: "Submit Leave",
           onTap: () => controller.requestLeave(context),
         ),
       ),
     );
+  }
+
+  bool _validateForm() {
+    // Check if leave reason description is empty or set to default/other
+    if (controller.leaveReason.value.description.isEmpty ||
+        controller.leaveReason.value == LeaveReason.other) {
+      Get.snackbar(
+        "Validation",
+        "Please select a leave category.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    // Check date duration
+    if (controller.fromDate.value.trim().isEmpty ||
+        controller.toDate.value.trim().isEmpty) {
+      Get.snackbar(
+        "Validation",
+        "Please select leave duration.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    return true;
   }
 }

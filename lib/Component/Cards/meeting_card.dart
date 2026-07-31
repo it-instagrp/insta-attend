@@ -7,7 +7,13 @@ import 'package:insta_attend/Constant/constant_color.dart';
 class MeetingCard extends StatelessWidget {
   final String meetingTitle, time, link;
   final List attendee;
-  const MeetingCard({super.key, required this.meetingTitle, required this.time, required this.link, required this.attendee});
+  const MeetingCard({
+    super.key,
+    required this.meetingTitle,
+    required this.time,
+    required this.link,
+    required this.attendee,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +24,7 @@ class MeetingCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.0),
         color: kcGrey100,
-        border: Border.all(
-          color: kcGrey200
-        )
+        border: Border.all(color: kcGrey200),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -35,24 +39,26 @@ class MeetingCard extends StatelessWidget {
                 backgroundColor: kcPurple500,
                 child: SvgPicture.asset(kaMeet),
               ),
-              SizedBox(
-                width: 5,
+              SizedBox(width: 5),
+              Text(
+                meetingTitle,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
               ),
-              Text(meetingTitle, style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black
-              ),),
               Spacer(),
-              Icon(Icons.watch_later, color: kcGrey300, size: 16,),
-              SizedBox(
-                width: 5,
+              Icon(Icons.watch_later, color: kcGrey300, size: 16),
+              SizedBox(width: 5),
+              Text(
+                time,
+                style: TextStyle(
+                  color: Color(0xFF475467),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              Text(time, style: TextStyle(
-                color: Color(0xFF475467),
-                fontSize: 12,
-                fontWeight: FontWeight.w500
-              ),)
             ],
           ),
           Spacer(),
@@ -64,7 +70,9 @@ class MeetingCard extends StatelessWidget {
                 width: 60,
                 height: 25,
                 child: Stack(
-                  children: List.generate(_getAttendeeLength(attendee.length), (index) {
+                  children: List.generate(_getAttendeeLength(attendee.length), (
+                    index,
+                  ) {
                     return Positioned(
                       left: (index * 15).toDouble(),
                       child: Container(
@@ -80,14 +88,15 @@ class MeetingCard extends StatelessWidget {
                   }),
                 ),
               ),
-              if (attendee.length > 3) // Only show the + if there are more than 3 attendees
-                Text("+ ${attendee.length - 3}", style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.black
-                )),
+              if (attendee.length >
+                  3) // Only show the + if there are more than 3 attendees
+                Text(
+                  "+ ${attendee.length - 3}",
+                  style: TextStyle(fontSize: 12, color: Colors.black),
+                ),
               Spacer(),
               InkWell(
-                onTap: (){},
+                onTap: () {},
                 child: Container(
                   alignment: Alignment.center,
                   width: 75,
@@ -96,13 +105,16 @@ class MeetingCard extends StatelessWidget {
                     color: kcPurple600,
                     borderRadius: BorderRadius.circular(100.0),
                   ),
-                  child: Text("Join Meet", style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500
-                  ),),
+                  child: Text(
+                    "Join Meet",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ],
@@ -110,8 +122,8 @@ class MeetingCard extends StatelessWidget {
     );
   }
 
-  int _getAttendeeLength(attendeeLength){
-    if(attendeeLength <= 3){
+  int _getAttendeeLength(attendeeLength) {
+    if (attendeeLength <= 3) {
       return attendeeLength;
     } else {
       return 3;

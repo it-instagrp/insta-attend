@@ -9,8 +9,6 @@ final String kaLeave = "assets/Images/leave.png";
 final String kaExpense = "assets/Images/expense.png";
 final String kaTask = "assets/Images/task.png";
 
-
-
 /**** SVG Icons ****/
 final String kaLogo = "assets/svg/logo.svg";
 final String kaTotalExpense = "assets/svg/totalExpense.svg";

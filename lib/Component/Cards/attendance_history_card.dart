@@ -10,67 +10,72 @@ class AttendanceHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: 12.0,
-        horizontal: 16.0
-      ),
+      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
       height: 130,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(_changeToDay(history.date ?? DateTime.now().toString())),
-          SizedBox(
-            height: 10,
-          ),
+          SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12.0
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 12.0),
             decoration: BoxDecoration(
               color: kcGrey100,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: kcGrey200
-              )
+              border: Border.all(color: kcGrey200),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                    child: ListTile(
-                      isThreeLine: false,
-                      contentPadding: EdgeInsets.all(0),
-                      title: Text("Total Hours", style: TextStyle(
+                  child: ListTile(
+                    isThreeLine: false,
+                    contentPadding: EdgeInsets.all(0),
+                    title: Text(
+                      "Total Hours",
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: kcGrey500
-                      ),),
-                      subtitle: Text(_getTime(history.duration ?? "00:00"), style: TextStyle(
+                        color: kcGrey500,
+                      ),
+                    ),
+                    subtitle: Text(
+                      _getTime(history.duration ?? "00:00"),
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: kcGrey600
-                      ),),
-                    )),
+                        color: kcGrey600,
+                      ),
+                    ),
+                  ),
+                ),
                 Expanded(
-                    child: ListTile(
-                      isThreeLine: false,
-                      contentPadding: EdgeInsets.all(0),
-                      title: Text("Check in & out", style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: kcGrey500
-                      ),),
-                      subtitle: Text("${_getTime(history.checkInTime ?? DateTime.now().toString())} - ${_getTime(history.checkOutTime ?? DateTime.now().toString())}", style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: kcGrey600
-                      ),),
-                    )),
+                  child: ListTile(
+                    isThreeLine: false,
+                    contentPadding: EdgeInsets.all(0),
+                    title: Text(
+                      "Check in & out",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: kcGrey500,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "${_getTime(history.checkInTime ?? DateTime.now().toString())} - ${_getTime(history.checkOutTime ?? DateTime.now().toString())}",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: kcGrey600,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -88,7 +93,8 @@ class AttendanceHistoryCard extends StatelessWidget {
 
   // Get time in hh:mm format
   String _getTime(String time) {
-    if (time == "null" || time == null) return "N/A"; // Handle null check for empty or missing time
+    if (time == "null" || time == null)
+      return "N/A"; // Handle null check for empty or missing time
 
     try {
       // Check if the time is in DateTime format or string
@@ -111,5 +117,4 @@ class AttendanceHistoryCard extends StatelessWidget {
       return "Invalid Time"; // Fallback in case of any error
     }
   }
-
 }
