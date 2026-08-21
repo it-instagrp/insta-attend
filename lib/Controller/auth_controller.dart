@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:insta_attend/Utils/unique_id_service.dart';
 import 'package:insta_attend/API/DTO/Request/change_password_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/forgot_password_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/login_request_dto.dart';
@@ -25,6 +24,7 @@ import 'package:insta_attend/Utils/toast_messages.dart';
 import 'package:insta_attend/View/pages/face_scanner_page.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
+import 'package:insta_attend/API/DTO/Request/device_change_request_dto.dart';
 
 class AuthController extends GetxController {
   final AuthRepository authRepo;
@@ -75,8 +75,10 @@ class AuthController extends GetxController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  final TextEditingController forgotPasswordEmailController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  final TextEditingController forgotPasswordEmailController =
+      TextEditingController();
 
   String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -106,9 +108,9 @@ class AuthController extends GetxController {
 
   /// Pick and crop user profile photo with format, resolution, and size validations.
   Future<void> pickProfilePhoto(
-      BuildContext context,
-      ImageSource source,
-      ) async {
+    BuildContext context,
+    ImageSource source,
+  ) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: source);
@@ -230,14 +232,14 @@ class AuthController extends GetxController {
 
     hasProfileChanges.value =
         firstNameController.text.trim() != originalFirstName.value ||
-            lastNameController.text.trim() != originalLastName.value ||
-            emailController.text.trim() != originalEmail.value ||
-            phoneController.text.trim() != originalPhone.value;
+        lastNameController.text.trim() != originalLastName.value ||
+        emailController.text.trim() != originalEmail.value ||
+        phoneController.text.trim() != originalPhone.value;
   }
 
   Future<void> pickAndScanFace(BuildContext context) async {
     final dynamic result = await Get.to(
-          () => const FaceScannerPage(isRegistration: true),
+      () => const FaceScannerPage(isRegistration: true),
     );
 
     if (result != null && result is List<double>) {
@@ -294,7 +296,7 @@ class AuthController extends GetxController {
   Future<void> register(BuildContext context) async {
     try {
       final dynamic faceResult = await Get.to(
-            () => const FaceScannerPage(isRegistration: true),
+        () => const FaceScannerPage(isRegistration: true),
       );
       if (faceResult == null) {
         showError("Face enrollment is required to register");
@@ -308,7 +310,7 @@ class AuthController extends GetxController {
         department_id: selectedDepartment.value,
         password: passwordController.text.trim(),
         designation_id: selectedDesignation.value,
-        faceEmbedding: faceResult as List<double>?,
+        // faceEmbedding: faceResult as List<double>?,
       );
 
       Response response = await authRepo.register(request);
@@ -324,7 +326,7 @@ class AuthController extends GetxController {
           "user",
           jsonEncode(user.toJson()),
         );
-
+        await authRepo.sharedPreferences.setString("uid", user.id!);
         clearRegisterForm();
         Get.offAll(() => Homescreen(), transition: Transition.fade);
       } else {
@@ -341,7 +343,7 @@ class AuthController extends GetxController {
   Future<void> enrollUserFace(BuildContext context) async {
     try {
       final dynamic faceResult = await Get.to(
-            () => const FaceScannerPage(isRegistration: true),
+        () => const FaceScannerPage(isRegistration: true),
       );
 
       if (faceResult != null && faceResult is List<double>) {
@@ -397,14 +399,29 @@ class AuthController extends GetxController {
           debugPrint("FCM Token retrieval timed out or failed: $e");
         }
 
+        final String deviceImei = await UniqueIdService.getUniqueId();
+
         final LoginRequestDTO request = LoginRequestDTO(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
           fcmToken: fcmToken,
+          imeiNumber: deviceImei,
         );
 
         Response response = await authRepo.login(request);
         var responseBody = response.body;
+
+        if (response.statusCode == 401 &&
+            responseBody is Map &&
+            responseBody['data'] is Map &&
+            responseBody['data']['reason'] == 'DEVICE_CHANGE_REQUIRED') {
+          _showDeviceChangeDialog(
+            context,
+            responseBody['message'] ?? '',
+            deviceImei,
+          );
+          return;
+        }
 
         if (response.statusCode == 200) {
           showSuccess("Login Successful");
@@ -430,6 +447,73 @@ class AuthController extends GetxController {
     } catch (err) {
       showError("Something went wrong");
       if (kDebugMode) debugPrint("Exception in Login: $err");
+    } finally {
+      isLoginPageLoading.value = false;
+    }
+  }
+
+  void _showDeviceChangeDialog(
+    BuildContext context,
+    String message,
+    String deviceImei,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text("New Device Detected"),
+            content: Text(
+              message.isNotEmpty
+                  ? message
+                  : "Do you want to send a request to HR for approval of this new device login?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text("No"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(dialogContext);
+                  await _sendDeviceChangeRequest(deviceImei);
+                },
+                child: const Text("Yes"),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Future<void> _sendDeviceChangeRequest(String deviceImei) async {
+    isLoginPageLoading.value = true;
+    try {
+      final String deviceName = await UniqueIdService.getDeviceName();
+
+      final DeviceChangeRequestDTO request = DeviceChangeRequestDTO(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        imeiNumber: deviceImei,
+        deviceName: deviceName,
+      );
+
+      final Response response = await authRepo.requestDeviceChange(request);
+
+      if (response.statusCode == 200 &&
+          response.body is Map &&
+          response.body['data'] is Map &&
+          response.body['data']['status'] == 'Pending') {
+        showSuccess(
+          "Request sent to HR. You'll be notified once your new device is approved.",
+        );
+      } else {
+        showError(
+          response.body?['message'] ?? "Failed to send device change request",
+        );
+      }
+    } catch (err) {
+      showError("Something went wrong while sending the request");
+      debugPrint("Exception in _sendDeviceChangeRequest: $err");
     } finally {
       isLoginPageLoading.value = false;
     }
@@ -484,11 +568,11 @@ class AuthController extends GetxController {
     try {
       final UpdateProfileRequestDTO request = UpdateProfileRequestDTO(
         username:
-        "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
+            "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
         email: emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
         faceEmbedding:
-        newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null,
+            newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null,
         profilePhoto: pickedProfileImage.value,
       );
 
@@ -597,7 +681,7 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
         List<Department> departments =
-        dataList.map((json) => Department.fromJson(json)).toList();
+            dataList.map((json) => Department.fromJson(json)).toList();
         departmentList.assignAll(departments);
       }
     } catch (err) {
@@ -615,7 +699,7 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         List<dynamic> dataList = response.body['data'] as List<dynamic>;
         List<Designation> designations =
-        dataList.map((json) => Designation.fromJson(json)).toList();
+            dataList.map((json) => Designation.fromJson(json)).toList();
         designationList.assignAll(designations);
       }
     } catch (err) {

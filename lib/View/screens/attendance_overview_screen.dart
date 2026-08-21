@@ -1,11 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:insta_attend/Component/Cards/calendar_widget.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
+import 'package:insta_attend/Controller/attendance_controller.dart';
+import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/Model/attendance_filter_model.dart';
-import 'package:insta_attend/Model/attendance_summary_model.dart';
-import 'package:insta_attend/View/screens/attendance_details_page.dart';
+import 'package:insta_attend/API/DTO/Response/attendance_details_dto.dart';
+import 'package:insta_attend/Utils/notification_service.dart';
+
+import '../pages/attendance_details.dart';
+
 
 class AttendanceOverviewPage extends StatefulWidget {
   const AttendanceOverviewPage({super.key});
@@ -15,15 +25,21 @@ class AttendanceOverviewPage extends StatefulWidget {
 }
 
 class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
-  late AttendanceFilter currentFilter;
-  List<Map<String, dynamic>> attendanceRecords = [];
-  late AttendanceSummary summary;
-  Map<String, String> attendanceStatusMap = {};
+  final AttendanceController attendanceController = Get.find<AttendanceController>();
+  final AuthController authController = Get.find<AuthController>();
 
-  final String currentUserName = "Rupesh Patil";
+  late AttendanceFilter currentFilter;
 
   DateTime customStartDate = DateTime.now().subtract(const Duration(days: 15));
   DateTime customEndDate = DateTime.now();
+
+  DateTime get _calendarMinDate =>
+      currentFilter.filterType == 'thisMonth' ? DateTime.now() : currentFilter.startDate;
+
+  DateTime get _calendarMaxDate {
+    if (currentFilter.filterType == 'thisMonth') return DateTime.now();
+    return currentFilter.endDate.isAfter(DateTime.now()) ? DateTime.now() : currentFilter.endDate;
+  }
 
   @override
   void initState() {
@@ -32,36 +48,43 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
     _loadAttendanceData();
   }
 
+  /// Maps AttendanceFilter's camelCase filterType to the API's snake_case filter param
+  String _apiFilterFor(AttendanceFilter filter) {
+    switch (filter.filterType) {
+      case 'thisMonth':
+        return 'this_month';
+      case 'last15Days':
+        return 'last_15_days';
+      case 'last30Days':
+        return 'last_30_days';
+      case 'custom':
+        return 'custom';
+      default:
+        return 'this_month';
+    }
+  }
+
   void _loadAttendanceData() {
-    attendanceStatusMap = {};
-    for (var record in attendanceRecords) {
-      final dateString = DateFormat('yyyy-MM-dd').format(record['date']);
-      attendanceStatusMap[dateString] = record['status'];
-    }
+    final bool isThisMonth = currentFilter.filterType == 'thisMonth';
+    final bool isCustom = currentFilter.filterType == 'custom';
 
-    int presentCount = 0, halfCount = 0, absentCount = 0;
-    for (var record in attendanceRecords) {
-      switch (record['status'].toString().toLowerCase()) {
-        case 'present':
-          presentCount++;
-          break;
-        case 'half day':
-          halfCount++;
-          break;
-        case 'absent':
-          absentCount++;
-          break;
-      }
-    }
+    // "This Month" is treated as "today only" — sent as a custom range of today→today
+    // since the API has no dedicated "today" filter.
+    final String apiFilter = isThisMonth ? 'custom' : _apiFilterFor(currentFilter);
+    final DateTime? rangeStart = isThisMonth ? DateTime.now() : (isCustom ? currentFilter.startDate : null);
+    final DateTime? rangeEnd = isThisMonth ? DateTime.now() : (isCustom ? currentFilter.endDate : null);
 
-    summary = AttendanceSummary(
-      presentDays: presentCount,
-      halfDays: halfCount,
-      absentDays: absentCount,
-      totalDays: currentFilter.daysInRange,
+    attendanceController.fetchAttendanceSummary(
+      filter: apiFilter,
+      startDate: rangeStart,
+      endDate: rangeEnd,
     );
 
-    setState(() {});
+    attendanceController.fetchAttendanceDetailsList(
+      filter: apiFilter,
+      startDate: rangeStart,
+      endDate: rangeEnd,
+    );
   }
 
   void _applyFilter(AttendanceFilter filter) {
@@ -71,7 +94,8 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
     _loadAttendanceData();
   }
 
-  void _exportToPdf() {
+  /// Generates the PDF document, writes bytes to file storage, and triggers the download notification.
+  Future<void> _exportToPdf() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Generating PDF Report...'),
@@ -80,12 +104,91 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
+
+    try {
+      // 1. Target directory (Prefer Public Downloads for user access)
+      Directory? directory = await getDownloadsDirectory();
+      directory ??= await getApplicationDocumentsDirectory();
+
+      final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final String fileName = 'Attendance_Report_$timestamp.pdf';
+      final String filePath = '${directory.path}/$fileName';
+
+      // 2. Build PDF Document
+      final pdf = pw.Document();
+      final List<AttendanceDetailsRecordDto> records = attendanceController.attendanceDetailRows;
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  "Attendance Summary Report",
+                  style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Text("User: ${authController.currentUser.value.username ?? 'Employee'}"),
+                pw.Text("Generated on: ${DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now())}"),
+                pw.SizedBox(height: 16),
+                pw.Table.fromTextArray(
+                  headers: ['Date', 'Status', 'Check In', 'Check Out'],
+                  data: records.map((r) => [
+                    r.date ?? '--',
+                    r.status ?? '--',
+                    r.checkInTime ?? '--',
+                    r.checkOutTime ?? '--',
+                  ]).toList(),
+                  headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  cellAlignment: pw.Alignment.centerLeft,
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      // 3. Write generated bytes to the target file path
+      final File file = File(filePath);
+      await file.writeAsBytes(await pdf.save());
+
+      // 4. Trigger download completion notification with tap payload
+      await NotificationService.showDownloadNotification(
+        fileName: fileName,
+        filePath: filePath,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Report saved to: $fileName'),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to export PDF: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
     final double screenWidth = MediaQuery.of(context).size.width;
+    final String currentUserName = authController.currentUser.value.username ?? 'NA';
 
     return Container(
       height: screenHeight,
@@ -94,11 +197,11 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
         children: [
           // 1. Purple Header Background
           Container(
-            height: 250,
+            height: 230,
             width: screenWidth,
             decoration: BoxDecoration(
               color: kcPurple500,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(25.0),
                 bottomRight: Radius.circular(25.0),
               ),
@@ -107,43 +210,90 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
 
           // 2. Header Title
           Positioned(
-            top: 70,
+            top: 60,
             left: 0,
             right: 0,
-            child: _buildHeader(),
+            child: _buildHeader(currentUserName),
           ),
 
-          // 3. Scrollable Content Area (Starts at top: 150 and scrolls completely down)
+          // 3. Scrollable Content Area
           Positioned(
             left: 0,
             right: 0,
-            top: 150,
+            top: 140,
             bottom: 0,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
                   // Filter Chips
                   _buildEqualFilterRow(),
                   const SizedBox(height: 12),
 
-                  // Calendar View
-                  AttendanceCalendar(
-                    onDateSelected: (date) {},
-                    attendanceStatusMap: attendanceStatusMap,
-                    initialDate: DateTime.now(),
-                  ),
+                  // Calendar View (Allows tapping a calendar date to open details)
+                  // Obx(() => AttendanceCalendar(
+                  //   onDateSelected: (selectedDate) {
+                  //     final String formattedSelected = DateFormat('yyyy-MM-dd').format(selectedDate);
+                  //     final record = attendanceController.attendanceDetailRows.firstWhereOrNull(
+                  //           (r) => r.date != null && r.date!.startsWith(formattedSelected),
+                  //     );
+                  //
+                  //     if (record != null && record.date != null && record.date!.isNotEmpty) {
+                  //       Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (context) => AttendanceDetails(attendanceId: record.date!),
+                  //         ),
+                  //       );
+                  //     }
+                  //   },
+                  //   attendanceStatusMap: Map<String, String>.from(
+                  //     attendanceController.attendanceStatusMap,
+                  //   ),
+                  //   initialDate: DateTime.now(),
+                  // )),
+                  Obx(() => AttendanceCalendar(
+                    minDate: _calendarMinDate,
+                    maxDate: _calendarMaxDate,
+                    initialDate: _calendarMinDate,
+                    onDateSelected: (selectedDate) {
+                      // Intentionally no-op: tapping a calendar date no longer
+                      // navigates or shows details.
+                    },
+                    attendanceStatusMap: Map<String, String>.from(
+                      attendanceController.attendanceStatusMap,
+                    ),
+                  )),
                   const SizedBox(height: 12),
 
                   // Summary Statistics
-                  _buildSummaryCard(),
+                  Obx(() {
+                    if (attendanceController.isSummaryLoading.value) {
+                      return const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (attendanceController.attendanceSummary.value != null) {
+                      return _buildSummaryCard();
+                    }
+                    return const SizedBox.shrink();
+                  }),
                   const SizedBox(height: 12),
 
                   // Attendance Log Details
-                  _buildAttendanceListCard(),
+                  Obx(() {
+                    if (attendanceController.isDetailsListLoading.value) {
+                      return const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return _buildAttendanceListCard();
+                  }),
                   const SizedBox(height: 16),
 
-                  // 4. Scrollable PDF Export Button (Only visible when scrolled down)
+                  // 4. PDF Export Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -178,20 +328,23 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
   }
 
   // Header ListTile
-  Widget _buildHeader() {
+  Widget _buildHeader(String currentUserName) {
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       title: Text(
         "My Attendance",
         style: kfHeadlineSmall.copyWith(color: Colors.white),
+        overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
         "Welcome back, $currentUserName",
         style: kfLabelLarge.copyWith(color: kcPurple200),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  // Improved Equal Filter Row with Fixed Container Height
+  // Safe Responsive Filter Row
   Widget _buildEqualFilterRow() {
     final List<Map<String, dynamic>> filterOptions = [
       {'label': 'This Month', 'filter': AttendanceFilter.thisMonth()},
@@ -220,7 +373,7 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
           final bool isCustom = label == 'Custom';
 
           final bool isSelected = isCustom
-              ? (currentFilter.startDate != null && currentFilter.endDate != null)
+              ? (currentFilter.filterType == 'custom')
               : (filter != null && currentFilter.filterType == filter.filterType);
 
           return Expanded(
@@ -237,20 +390,23 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                 },
                 child: Container(
                   height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isSelected ? kcPurple500 : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? Colors.white : Colors.black87,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected ? Colors.white : Colors.black87,
+                      ),
                     ),
                   ),
                 ),
@@ -262,11 +418,12 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
     );
   }
 
-  // Summary Card
+  // Attendance Summary Card
   Widget _buildSummaryCard() {
+    final summary = attendanceController.attendanceSummary.value!;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -278,18 +435,18 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
             'Attendance Summary',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Row(
             children: [
               Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: 110,
-                    height: 110,
+                    width: 100,
+                    height: 100,
                     child: CircularProgressIndicator(
-                      value: summary.attendancePercentage / 100,
-                      strokeWidth: 9,
+                      value: (summary.attendancePercentage / 100).clamp(0.0, 1.0),
+                      strokeWidth: 8,
                       valueColor: AlwaysStoppedAnimation<Color>(kcPurple500),
                       backgroundColor: const Color(0xFFF1F3F8),
                     ),
@@ -299,7 +456,7 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                     children: [
                       Text(
                         '${summary.attendancePercentage.toStringAsFixed(0)}%',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const Text(
                         'Present',
@@ -309,16 +466,16 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                   ),
                 ],
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   children: [
                     _buildStatRow('Present', summary.presentDays, const Color(0xFF10B981)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _buildStatRow('Half Day', summary.halfDays, const Color(0xFFF59E0B)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _buildStatRow('Absent', summary.absentDays, const Color(0xFFEF4444)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _buildStatRow('Off / Holiday', summary.offDays, Colors.grey),
                   ],
                 ),
@@ -332,6 +489,8 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
 
   // Attendance Details List Card
   Widget _buildAttendanceListCard() {
+    final List<AttendanceDetailsRecordDto> records = attendanceController.attendanceDetailRows;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -348,14 +507,23 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
             ),
           ),
           const Divider(height: 1),
-          ListView.separated(
+          records.isEmpty
+              ? const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(
+              child: Text(
+                'No attendance records found',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+            ),
+          )
+              : ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: attendanceRecords.length,
+            itemCount: records.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
-              final record = attendanceRecords[index];
-              return _buildAttendanceCard(record);
+              return _buildAttendanceCard(records[index]);
             },
           ),
         ],
@@ -363,22 +531,59 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
     );
   }
 
-  Widget _buildAttendanceCard(Map<String, dynamic> record) {
+  // Widget _buildAttendanceCard(AttendanceDetailsRecordDto record) {
+  //   final DateTime? parsedDate = record.date != null ? DateTime.tryParse(record.date!) : null;
+  //
+  //   return InkWell(
+  //     onTap: () {
+  //       if (record.date != null && record.date!.isNotEmpty) {
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => AttendanceDetails(attendanceId: record.date!),
+  //           ),
+  //         );
+  //       } else {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Attendance date missing for this record')),
+  //         );
+  //       }
+  //     },
+  Widget _buildAttendanceCard(AttendanceDetailsRecordDto record) {
+    final DateTime? parsedDate = record.date != null ? DateTime.tryParse(record.date!) : null;
+
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AttendanceDetailsPage(attendanceData: record),
-          ),
-        );
+        if (record.date != null && record.date!.isNotEmpty) {
+          // // Convert ISO date string to clean yyyy-MM-dd format
+          // final String cleanDateId = parsedDate != null
+          //     ? DateFormat('yyyy-MM-dd').format(parsedDate)
+          //     : record.date!;
+          //
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => AttendanceDetails(attendanceId: cleanDateId),
+          //   ),
+          // );
+          // _showAttendanceRowDetails(record);
+          attendanceController.fetchAttendanceForDate(record.date!);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AttendanceDetails()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Attendance date missing for this record')),
+          );
+        }
       },
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: const Color(0xFFF1F3F8),
                 borderRadius: BorderRadius.circular(10),
@@ -386,28 +591,40 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
               child: Column(
                 children: [
                   Text(
-                    DateFormat('dd').format(record['date']),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    parsedDate != null ? DateFormat('dd').format(parsedDate) : '--',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    DateFormat('MMM').format(record['date']),
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                    parsedDate != null ? DateFormat('MMM').format(parsedDate) : '--',
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStatusBadge(record['status']),
-                  const SizedBox(height: 6),
+                  _buildStatusBadge(record.status ?? 'NA'),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text('In: ${record['checkInTime']}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      Flexible(
+                        child: Text(
+                          'In: ${record.checkInTime ?? 'NA'}',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Text('Out: ${record['checkOutTime']}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      Flexible(
+                        child: Text(
+                          'Out: ${record.checkOutTime ?? 'NA'}',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -427,8 +644,8 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
         Row(
           children: [
             Container(
-              width: 10,
-              height: 10,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
@@ -437,7 +654,7 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
         ),
         Text(
           count.toString(),
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
         ),
       ],
     );
@@ -460,10 +677,10 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         status,
@@ -475,13 +692,14 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
   void _showCustomDateRangePicker() {
     DateTime tempStart = customStartDate;
     DateTime tempEnd = customEndDate;
+    final DateTime now = DateTime.now();
 
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
           elevation: 8,
           backgroundColor: Colors.white,
           child: StatefulBuilder(
@@ -507,7 +725,7 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                           children: [
                             const Text(
                               "Custom Date Range",
-                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -527,12 +745,17 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                       onTap: () async {
                         final picked = await showDatePicker(
                           context: context,
-                          initialDate: tempStart,
+                          initialDate: tempStart.isAfter(now) ? now : tempStart,
                           firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
+                          lastDate: now,
                         );
                         if (picked != null) {
-                          setModalState(() => tempStart = picked);
+                          setModalState(() {
+                            tempStart = picked;
+                            if (tempEnd.isBefore(tempStart)) {
+                              tempEnd = tempStart;
+                            }
+                          });
                         }
                       },
                     ),
@@ -543,9 +766,9 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                       onTap: () async {
                         final picked = await showDatePicker(
                           context: context,
-                          initialDate: tempEnd,
+                          initialDate: tempEnd.isBefore(tempStart) ? tempStart : tempEnd,
                           firstDate: tempStart,
-                          lastDate: DateTime.now(),
+                          lastDate: now,
                         );
                         if (picked != null) {
                           setModalState(() => tempEnd = picked);
@@ -628,6 +851,35 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
             Icon(Icons.calendar_month_rounded, color: kcPurple600, size: 20),
           ],
         ),
+      ),
+    );
+  }
+  void _showAttendanceRowDetails(AttendanceDetailsRecordDto record) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          record.date != null
+              ? DateFormat('dd MMM yyyy').format(DateTime.parse(record.date!))
+              : 'Attendance Details',
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Status: ${record.status ?? 'NA'}'),
+            const SizedBox(height: 8),
+            Text('Check In: ${record.checkInTime ?? 'NA'}'),
+            const SizedBox(height: 8),
+            Text('Check Out: ${record.checkOutTime ?? 'NA'}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

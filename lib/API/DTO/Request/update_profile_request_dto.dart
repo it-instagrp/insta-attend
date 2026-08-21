@@ -37,10 +37,10 @@ class UpdateProfileRequestDTO {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['username'] = this.username;
-    data['email'] = this.email;
-    data['phone_number'] = this.phoneNumber;
-    data['face_embedding'] = this.faceEmbedding;
+    if (this.username != null) data['username'] = this.username;
+    if (this.email != null) data['email'] = this.email;
+    if (this.phoneNumber != null) data['phone_number'] = this.phoneNumber;
+    if (this.faceEmbedding != null) data['face_embedding'] = this.faceEmbedding;
     return data;
   }
 }

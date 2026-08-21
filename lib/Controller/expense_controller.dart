@@ -86,12 +86,9 @@ class ExpenseController extends GetxController {
         return;
       }
 
-      final String userId = getUserId();
-
       final ExpenseRequestDTO request = ExpenseRequestDTO(
         expenseAmount: amount,
         expenseType: selectedExpenseType.value,
-        expenseBy: userId,
         expenseDate: expenseDate.value,
         expenseStatus: "Pending",
         image: pickedReceiptImage.value,
@@ -133,12 +130,11 @@ class ExpenseController extends GetxController {
 
     try {
       isExpenseLoading.value = true;
-      final String userId = getUserId();
+      // final String userId = getUserId();
 
       final ExpenseRequestDTO request = ExpenseRequestDTO(
         expenseAmount: double.tryParse(amountController.text.trim()),
         expenseType: selectedExpenseType.value,
-        expenseBy: userId,
         expenseDate: expenseDate.value,
         expenseStatus: "Pending",
         image: pickedReceiptImage.value,

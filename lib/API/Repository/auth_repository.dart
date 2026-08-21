@@ -9,6 +9,7 @@ import 'package:insta_attend/API/DTO/Request/register_request_dto.dart';
 import 'package:insta_attend/API/DTO/Request/update_profile_request_dto.dart';
 import 'package:insta_attend/API/api_client.dart';
 import 'package:insta_attend/API/app_constants.dart';
+import 'package:insta_attend/API/DTO/Request/device_change_request_dto.dart';
 
 class AuthRepository {
   final ApiClient apiClient;
@@ -22,6 +23,13 @@ class AuthRepository {
   Future<bool> saveUserToken(String userToken) async {
     apiClient.updateHeader(userToken);
     return await sharedPreferences.setString(token, userToken);
+  }
+  Future<bool> saveUserId(String userId) async {
+    return await sharedPreferences.setString(uid, userId);
+  }
+
+  String getUserId() {
+    return sharedPreferences.getString(uid) ?? '';
   }
 
   /// Retrieve stored authentication token
@@ -37,6 +45,7 @@ class AuthRepository {
   /// Clear user session data safely
   Future<bool> clearSessionData() async {
     apiClient.updateHeader("");
+    await sharedPreferences.remove(uid);
     return await sharedPreferences.remove(token);
   }
 
@@ -58,8 +67,14 @@ class AuthRepository {
       UpdateProfileRequestDTO request,
       String userId,
       ) async {
-    return await apiClient.putData(profileUrl, request.toJson(), id: userId);
+    return await apiClient.putData(profileUrl, request.toJson());
   }
+  // Future<Response> updateProfile(
+  //     UpdateProfileRequestDTO request,
+  //     String userId,
+  //     ) async {
+  //   return await apiClient.putData(updateProfileUrl, request.toJson(), id: userId);
+  // }
 
   Future<Response> uploadProfilePicture(
       String userId,
@@ -86,5 +101,8 @@ class AuthRepository {
 
   Future<Response> forgotPassword(ForgotPasswordRequestDto request) async {
     return await apiClient.postData(forgotPasswordUrl, request.toJson());
+  }
+  Future<Response> requestDeviceChange(DeviceChangeRequestDTO request) async {
+    return await apiClient.postData(deviceChangeRequestUrl, request.toJson());
   }
 }

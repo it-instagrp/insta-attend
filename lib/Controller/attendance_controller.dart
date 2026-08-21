@@ -6,14 +6,24 @@ import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:insta_attend/Controller/auth_controller.dart';
 import 'package:insta_attend/Model/Attendance.dart';
 import 'package:insta_attend/Model/attendance_detail.dart';
-import 'package:insta_attend/Model/attendance_for_week.dart';
+// ============================================================
+// OLD/UNUSED - replaced by DTO-based summary/details parsing below
+// ============================================================
+// import 'package:insta_attend/Model/attendance_summary.dart';
+// import 'package:insta_attend/Model/attendance_detail_row.dart';
+// import 'package:insta_attend/API/attendance_repository.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
+import '../API/DTO/Request/check_in_request_dto.dart';
+import '../API/Repository/attendance_repository.dart';
+import '../API/DTO/Response/attendance_summary_dto.dart';
+import '../API/DTO/Response/attendance_details_dto.dart';
 import '../Constant/constant_color.dart';
+import '../Model/attendance_summary_model.dart';
 import '../View/pages/face_scanner_page.dart';
+import 'package:insta_attend/API/DTO/Request/check_out_request_dto.dart';
 
 class AttendanceController extends GetxController {
   // --- Direct Dio HTTP Setup ---
@@ -27,6 +37,9 @@ class AttendanceController extends GetxController {
 
   final AuthController authController = Get.find<AuthController>();
   final SharedPreferences sharedPreferences = Get.find<SharedPreferences>();
+
+  // NEW: repository for Attendance Details & Summary screen (matches app-wide ApiClient/Repository pattern)
+  final AttendanceRepository attendanceRepository = Get.find<AttendanceRepository>();
 
   // Fallback office coordinates
   final RxDouble lat = 18.483669.obs;
@@ -50,14 +63,28 @@ class AttendanceController extends GetxController {
   final Rx<Duration> todayWorkDuration = Duration.zero.obs;
   Timer? _durationTimer;
 
-  final RxList<AttendanceForWeek> weeklyAttendance = <AttendanceForWeek>[].obs;
+  // ============================================================
+  // OLD HOME SCREEN WEEKLY ATTENDANCE FEATURE
+  // COMMENTED OUT - KEPT FOR ROLLBACK/REFERENCE
+  // Not used by AttendanceOverviewPage (new screen); only used by old Home screen.
+  // ============================================================
+  // final RxList<AttendanceForWeek> weeklyAttendance = <AttendanceForWeek>[].obs;
   final Rxn<AttendanceDetail> attendanceDetails = Rxn<AttendanceDetail>();
+  final Rxn<Attendance> selectedDateAttendance = Rxn<Attendance>();
+  final RxBool isSelectedDateLoading = false.obs;
 
   // Claude's added map/summary structures
   final RxMap<String, String> attendanceStatusMap = <String, String>{}.obs;
   final RxInt presentDays = 0.obs;
   final RxInt halfDays = 0.obs;
   final RxInt absentDays = 0.obs;
+
+  // NEW: Attendance Details & Summary screen state
+  final Rxn<AttendanceSummary> attendanceSummary = Rxn<AttendanceSummary>();
+  final RxList<AttendanceDetailsRecordDto> attendanceDetailRows = <AttendanceDetailsRecordDto>[].obs;
+  final RxBool isSummaryLoading = false.obs;
+  final RxBool isDetailsListLoading = false.obs;
+  final RxString selectedFilter = "this_month".obs; // this_month | last_15_days | last_30_days | custom
 
   @override
   void onInit() {
@@ -214,24 +241,41 @@ class AttendanceController extends GetxController {
           );
         }
 
-        final response = await _dio.post(
-          '/attendance/clock-in',
-          data: {
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-            'checkInLocation': locationAddress,
-            'faceEmbedding': faceResult,
-            'timestamp': DateTime.now().toIso8601String(),
-          },
+        // final response = await _dio.post(
+        //   '/attendance/clock-in',
+        //   data: {
+        //     'latitude': position.latitude,
+        //     'longitude': position.longitude,
+        //     'checkInLocation': locationAddress,
+        //     'faceEmbedding': faceResult,
+        //     'timestamp': DateTime.now().toIso8601String(),
+        //   },
+        // );
+        //
+        // if (response.statusCode == 200 || response.statusCode == 201) {
+        //   showSuccess("Marked Clock In");
+        //   getMyAttendance();
+        // } else {
+        //   String msg = "Error occurred during clock in";
+        //   if (response.data is Map && response.data['message'] != null) {
+        //     msg = response.data['message'];
+        //   }
+        //   _handleAttendanceError(context, msg);
+        // }
+        final CheckInRequestDTO request = CheckInRequestDTO(
+          checkInLocation: locationAddress,
+          faceEmbedding: faceResult,
         );
+
+        final response = await attendanceRepository.clockIn(request);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           showSuccess("Marked Clock In");
           getMyAttendance();
         } else {
           String msg = "Error occurred during clock in";
-          if (response.data is Map && response.data['message'] != null) {
-            msg = response.data['message'];
+          if (response.body is Map && response.body['message'] != null) {
+            msg = response.body['message'];
           }
           _handleAttendanceError(context, msg);
         }
@@ -285,24 +329,20 @@ class AttendanceController extends GetxController {
           );
         }
 
-        final response = await _dio.post(
-          '/attendance/clock-out',
-          data: {
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-            'checkOutLocation': locationAddress,
-            'faceEmbedding': faceResult,
-            'timestamp': DateTime.now().toIso8601String(),
-          },
+        final CheckOutRequestDTO request = CheckOutRequestDTO(
+          checkOutLocation: locationAddress,
+          faceEmbedding: faceResult,
         );
+
+        final response = await attendanceRepository.clockOut(request);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           showSuccess("Marked Clock Out");
           getMyAttendance();
         } else {
           String msg = "Error occurred during clock out";
-          if (response.data is Map && response.data['message'] != null) {
-            msg = response.data['message'];
+          if (response.body is Map && response.body['message'] != null) {
+            msg = response.body['message'];
           }
           _handleAttendanceError(context, msg);
         }
@@ -339,12 +379,12 @@ class AttendanceController extends GetxController {
       }
 
       log("Fetching attendance for UID: $userId");
-      final response = await _dio.get('/attendance/user/$userId');
+      final response = await attendanceRepository.getMyAttendance(userId);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         List<dynamic> data = [];
-        if (response.data is Map && response.data['data'] != null) {
-          data = response.data['data'];
+        if (response.body is Map && response.body['data'] != null) {
+          data = response.body['data'];
         }
 
         attendance.value = data.map((json) => Attendance.fromJson(json)).toList();
@@ -424,56 +464,130 @@ class AttendanceController extends GetxController {
     attendanceStatusMap.value = map;
   }
 
-  Future<void> getMyWeekAttendance() async {
-    try {
-      isWeeklyAttendanceLoading.value = true;
-      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
-
-      if (userId.isEmpty) {
-        debugPrint("getMyWeekAttendance: userId is empty, skipping");
-        return;
-      }
-
-      final response = await _dio.get('/attendance/weekly/$userId');
-      if (response.statusCode == 200) {
-        List<dynamic> attendanceData = [];
-        if (response.data is Map && response.data['data'] != null) {
-          attendanceData = response.data['data'];
-        }
-
-        final List<AttendanceForWeek> parsedList = List<AttendanceForWeek>.from(
-          attendanceData.map((atd) => AttendanceForWeek.fromJson(atd)),
-        );
-        weeklyAttendance.assignAll(parsedList);
-      } else {
-        debugPrint("getMyWeekAttendance failed: ${response.statusCode}");
-      }
-    } catch (err) {
-      debugPrint("Exception in getMyWeekAttendance: $err");
-    } finally {
-      isWeeklyAttendanceLoading.value = false;
-    }
-  }
+  // ============================================================
+  // OLD HOME SCREEN WEEKLY ATTENDANCE FEATURE
+  // COMMENTED OUT - KEPT FOR ROLLBACK/REFERENCE
+  // ============================================================
+  // Future<void> getMyWeekAttendance() async {
+  //   try {
+  //     isWeeklyAttendanceLoading.value = true;
+  //     final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
+  //
+  //     if (userId.isEmpty) {
+  //       debugPrint("getMyWeekAttendance: userId is empty, skipping");
+  //       return;
+  //     }
+  //
+  //     final response = await _dio.get('/attendance/weekly/$userId');
+  //     if (response.statusCode == 200) {
+  //       List<dynamic> attendanceData = [];
+  //       if (response.data is Map && response.data['data'] != null) {
+  //         attendanceData = response.data['data'];
+  //       }
+  //
+  //       final List<AttendanceForWeek> parsedList = List<AttendanceForWeek>.from(
+  //         attendanceData.map((atd) => AttendanceForWeek.fromJson(atd)),
+  //       );
+  //       weeklyAttendance.assignAll(parsedList);
+  //     } else {
+  //       debugPrint("getMyWeekAttendance failed: ${response.statusCode}");
+  //     }
+  //   } catch (err) {
+  //     debugPrint("Exception in getMyWeekAttendance: $err");
+  //   } finally {
+  //     isWeeklyAttendanceLoading.value = false;
+  //   }
+  // }
 
   Future<void> getAttendanceDetails(String attendanceId) async {
     try {
       isAttendanceDetailsLoading.value = true;
-      final response = await _dio.get('/attendance/$attendanceId');
+      attendanceDetails.value = null;
 
-      if (response.statusCode == 200 && response.data is Map && response.data['data'] != null) {
-        attendanceDetails.value = AttendanceDetail.fromJson(response.data['data']);
+      final response =
+      await attendanceRepository.getAttendanceDetails(attendanceId);
+
+      if (response.statusCode == 200 &&
+          response.body is Map &&
+          response.body['data'] != null) {
+        attendanceDetails.value =
+            AttendanceDetail.fromJson(response.body['data']);
       } else {
-        String msg = "Failed to load details";
-        if (response.data is Map && response.data['message'] != null) {
-          msg = response.data['message'];
-        }
-        showError(msg);
+        showError(response.statusText ?? 'Failed to load attendance details');
       }
     } catch (err) {
-      showError("Something went wrong");
-      debugPrint("Exception in getAttendanceDetails: $err");
+      debugPrint('Exception in getAttendanceDetails: $err');
+      showError('Something went wrong while loading attendance details');
     } finally {
       isAttendanceDetailsLoading.value = false;
+    }
+  }
+
+  // NEW: Attendance Details & Summary screen (self-only, date-range filtered, via AttendanceRepository)
+  Future<void> fetchAttendanceSummary({
+    String filter = "this_month",
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    isSummaryLoading.value = true;
+    try {
+      selectedFilter.value = filter;
+      final response = await attendanceRepository.getAttendanceSummary(
+        filter: filter,
+        startDate: startDate?.toIso8601String().substring(0, 10),
+        endDate: endDate?.toIso8601String().substring(0, 10),
+      );
+
+      if (response.statusCode == 200 && response.body is Map && response.body['data'] != null) {
+        final AttendanceSummaryDto dto = AttendanceSummaryDto.fromJson(response.body['data']);
+
+        final int present = dto.presentCount ?? 0;
+        final int half = dto.halfDayCount ?? 0;
+        final int absent = dto.absentCount ?? 0;
+        final int offHoliday = dto.weeklyOffHolidayCount ?? 0;
+
+        attendanceSummary.value = AttendanceSummary(
+          presentDays: present,
+          halfDays: half,
+          absentDays: absent,
+          totalDays: present + half + absent + offHoliday,
+        );
+      } else {
+        showError(response.statusText ?? "Failed to load attendance summary");
+      }
+    } catch (err) {
+      showError("Something went wrong while loading attendance summary");
+      debugPrint("Exception in fetchAttendanceSummary: $err");
+    } finally {
+      isSummaryLoading.value = false;
+    }
+  }
+
+  Future<void> fetchAttendanceDetailsList({
+    String filter = "this_month",
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    isDetailsListLoading.value = true;
+    try {
+      selectedFilter.value = filter;
+      final response = await attendanceRepository.getAttendanceDetailsList(
+        filter: filter,
+        startDate: startDate?.toIso8601String().substring(0, 10),
+        endDate: endDate?.toIso8601String().substring(0, 10),
+      );
+
+      if (response.statusCode == 200 && response.body is Map && response.body['data'] != null) {
+        final AttendanceDetailsDto dto = AttendanceDetailsDto.fromJson(response.body['data']);
+        attendanceDetailRows.value = dto.records ?? [];
+      } else {
+        showError(response.statusText ?? "Failed to load attendance details");
+      }
+    } catch (err) {
+      showError("Something went wrong while loading attendance details");
+      debugPrint("Exception in fetchAttendanceDetailsList: $err");
+    } finally {
+      isDetailsListLoading.value = false;
     }
   }
 
@@ -528,6 +642,29 @@ class AttendanceController extends GetxController {
       showError('Error exporting Excel: $e');
     } finally {
       isExporting.value = false;
+    }
+  }
+  Future<void> fetchAttendanceForDate(String date) async {
+    isSelectedDateLoading.value = true;
+    selectedDateAttendance.value = null;
+    try {
+      final String userId = authController.currentUser.value.id ?? sharedPreferences.getString("uid") ?? "";
+      final response = await attendanceRepository.getMyAttendance(userId);
+
+      if (response.statusCode == 200 && response.body is Map && response.body['data'] != null) {
+        final List<Attendance> records = (response.body['data'] as List)
+            .map((j) => Attendance.fromJson(j)).toList();
+        selectedDateAttendance.value = records.firstWhereOrNull((r) => r.date == date);
+        if (selectedDateAttendance.value == null) {
+          showError("No detailed record found for this date");
+        }
+      } else {
+        showError(response.statusText ?? "Failed to load attendance details");
+      }
+    } catch (err) {
+      showError("Something went wrong while loading attendance details");
+    } finally {
+      isSelectedDateLoading.value = false;
     }
   }
 

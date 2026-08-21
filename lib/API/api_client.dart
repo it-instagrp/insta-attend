@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../View/pages/login_page.dart';
 import 'app_constants.dart';
 import 'error_response.dart';
+import 'package:http_parser/http_parser.dart';
 
 class ApiClient extends GetxService {
   final String appBaseUrl;
@@ -43,11 +44,11 @@ class ApiClient extends GetxService {
 
   /// GET Request
   Future<Response> getData(
-    String uri, {
-    String? id,
-    Map<String, dynamic>? query,
-    Map<String, String>? headers,
-  }) async {
+      String uri, {
+        String? id,
+        Map<String, dynamic>? query,
+        Map<String, String>? headers,
+      }) async {
     try {
       final String finalUri = id != null ? '$uri/$id' : uri;
       Uri url = Uri.parse(appBaseUrl + finalUri);
@@ -72,12 +73,12 @@ class ApiClient extends GetxService {
 
   /// POST Request
   Future<Response> postData(
-    String uri,
-    dynamic body, {
-    String? id,
-    Map<String, String>? headers,
-    int? timeout,
-  }) async {
+      String uri,
+      dynamic body, {
+        String? id,
+        Map<String, String>? headers,
+        int? timeout,
+      }) async {
     try {
       final String finalUri = id != null ? '$uri/$id' : uri;
 
@@ -88,10 +89,10 @@ class ApiClient extends GetxService {
 
       http.Response response = await http
           .post(
-            Uri.parse(appBaseUrl + finalUri),
-            body: jsonEncode(body),
-            headers: headers ?? _mainHeaders,
-          )
+        Uri.parse(appBaseUrl + finalUri),
+        body: jsonEncode(body),
+        headers: headers ?? _mainHeaders,
+      )
           .timeout(Duration(seconds: timeout ?? timeoutInSeconds));
 
       return handleResponse(response, finalUri);
@@ -103,11 +104,11 @@ class ApiClient extends GetxService {
 
   /// PUT Request
   Future<Response> putData(
-    String uri,
-    dynamic body, {
-    String? id,
-    Map<String, String>? headers,
-  }) async {
+      String uri,
+      dynamic body, {
+        String? id,
+        Map<String, String>? headers,
+      }) async {
     try {
       final String finalUri = id != null ? '$uri/$id' : uri;
 
@@ -117,10 +118,10 @@ class ApiClient extends GetxService {
 
       http.Response response = await http
           .put(
-            Uri.parse(appBaseUrl + finalUri),
-            body: jsonEncode(body),
-            headers: headers ?? _mainHeaders,
-          )
+        Uri.parse(appBaseUrl + finalUri),
+        body: jsonEncode(body),
+        headers: headers ?? _mainHeaders,
+      )
           .timeout(Duration(seconds: timeoutInSeconds));
 
       return handleResponse(response, finalUri);
@@ -132,11 +133,11 @@ class ApiClient extends GetxService {
 
   /// DELETE Request
   Future<Response> deleteData(
-    String uri, {
-    String? id,
-    Map<String, dynamic>? queryParameters,
-    Map<String, String>? headers,
-  }) async {
+      String uri, {
+        String? id,
+        Map<String, dynamic>? queryParameters,
+        Map<String, String>? headers,
+      }) async {
     try {
       final String finalUri = id != null ? '$uri/$id' : uri;
 
@@ -162,11 +163,11 @@ class ApiClient extends GetxService {
 
   /// Multipart POST Request
   Future<Response> postMultipartData(
-    String uri,
-    Map<String, dynamic> body,
-    List<MultipartBody> multipartBody, {
-    Map<String, String>? headers,
-  }) async {
+      String uri,
+      Map<String, dynamic> body,
+      List<MultipartBody> multipartBody, {
+        Map<String, String>? headers,
+      }) async {
     try {
       if (kDebugMode) {
         debugPrint('====> API Multipart Call: $appBaseUrl$uri');
@@ -180,12 +181,16 @@ class ApiClient extends GetxService {
       for (MultipartBody multipart in multipartBody) {
         if (multipart.file != null) {
           Uint8List list = await multipart.file!.readAsBytes();
+          final String extension = multipart.file!.path.split('.').last.toLowerCase();
+          final String mimeSubtype = (extension == 'jpg') ? 'jpeg' : extension;
+
           request.files.add(
             http.MultipartFile(
               multipart.key,
               multipart.file!.readAsBytes().asStream(),
               list.length,
-              filename: '${DateTime.now().millisecondsSinceEpoch}.png',
+              filename: '${DateTime.now().millisecondsSinceEpoch}.$extension',
+              contentType: MediaType('image', mimeSubtype),
             ),
           );
         }
@@ -205,6 +210,41 @@ class ApiClient extends GetxService {
     }
   }
 
+  // Response handleResponse(http.Response response, String uri) {
+  //   dynamic body;
+  //   try {
+  //     body = jsonDecode(response.body);
+  //   } catch (e) {
+  //     body = response.body;
+  //   }
+  //
+  //   Response response0 = Response(
+  //     body: body ?? response.body,
+  //     bodyString: response.body.toString(),
+  //     request: Request(
+  //       headers: response.request?.headers ?? {},
+  //       method: response.request?.method ?? '',
+  //       url: response.request?.url ?? Uri(),
+  //     ),
+  //     headers: response.headers,
+  //     statusCode: response.statusCode,
+  //     statusText: response.reasonPhrase,
+  //   );
+  //
+  //   if (kDebugMode) {
+  //     debugPrint('====> API [$uri] Status: ${response0.statusCode}');
+  //     debugPrint('====> API [$uri] Full Body: ${response0.body}');
+  //   }
+  //
+  //   // Handle 401 Unauthorized Session Expiration
+  //   if (response0.statusCode == 401) {
+  //     _clearSessionData();
+  //     return Response(
+  //       statusCode: 401,
+  //       statusText: "Unauthorized: Redirected to Login",
+  //     );
+  //   }
+
   /// Handles and Normalizes HTTP Responses Globally
   Response handleResponse(http.Response response, String uri) {
     dynamic body;
@@ -212,6 +252,12 @@ class ApiClient extends GetxService {
       body = jsonDecode(response.body);
     } catch (e) {
       body = response.body;
+    }
+
+    // Extract backend error message if available
+    String? serverErrorMessage;
+    if (body is Map<String, dynamic>) {
+      serverErrorMessage = body['message'] ?? body['error'] ?? body['detail'];
     }
 
     Response response0 = Response(
@@ -224,22 +270,15 @@ class ApiClient extends GetxService {
       ),
       headers: response.headers,
       statusCode: response.statusCode,
-      statusText: response.reasonPhrase,
+      statusText: serverErrorMessage ?? response.reasonPhrase ?? noInternetMessage,
     );
 
     if (kDebugMode) {
       debugPrint('====> API [$uri] Status: ${response0.statusCode}');
+      debugPrint('====> API [$uri] Full Body: ${response0.body}');
     }
 
-    // Handle 401 Unauthorized Session Expiration
-    if (response0.statusCode == 401) {
-      _clearSessionData();
-      return Response(
-        statusCode: 401,
-        statusText: "Unauthorized: Redirected to Login",
-      );
-    }
-
+    // Custom backend error structure handling
     if (response0.statusCode != 200 &&
         response0.body != null &&
         response0.body is! String) {
@@ -259,6 +298,23 @@ class ApiClient extends GetxService {
       }
     } else if (response0.statusCode != 200 && response0.body == null) {
       response0 = Response(statusCode: 0, statusText: noInternetMessage);
+    }
+
+    // Handle 401 Unauthorized Session Expiration
+    // Exclude the device-change-required case — that's not a session expiry,
+    // it's a login-time device mismatch handled by the caller (AuthController).
+    final bool isDeviceChangeRequired = response0.body is Map &&
+        (response0.body['data'] is Map) &&
+        response0.body['data']['reason'] == 'DEVICE_CHANGE_REQUIRED';
+
+    // Exclude check-in/check-out — these can return 401 for business reasons
+    // (e.g. face not registered) rather than true session expiry, and are
+    // already handled explicitly by AttendanceController._handleAttendanceError.
+    final bool isAttendanceMarking =
+        uri.contains('attendance/check-in') || uri.contains('attendance/check-out');
+
+    if (response0.statusCode == 401 && !isDeviceChangeRequired && !isAttendanceMarking) {
+      _clearSessionData();
     }
 
     return response0;

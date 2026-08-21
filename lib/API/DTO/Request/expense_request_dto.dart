@@ -4,7 +4,6 @@ class ExpenseRequestDTO {
   String? expenseDate;
   String? expenseType;
   double? expenseAmount;
-  String? expenseBy;
   String? expenseStatus;
   File? image;
 
@@ -12,7 +11,6 @@ class ExpenseRequestDTO {
     this.expenseDate,
     this.expenseType,
     this.expenseAmount,
-    this.expenseBy,
     this.expenseStatus,
     this.image,
   });
@@ -21,7 +19,6 @@ class ExpenseRequestDTO {
     expenseDate = json['expense_date'];
     expenseType = json['expense_type'];
     expenseAmount = json['expense_amount'];
-    expenseBy = json['expense_by'];
     expenseStatus = json['expense_status'];
   }
 
@@ -30,7 +27,6 @@ class ExpenseRequestDTO {
     data['expense_date'] = this.expenseDate;
     data['expense_type'] = this.expenseType;
     data['expense_amount'] = this.expenseAmount;
-    data['expense_by'] = this.expenseBy;
     data['expense_status'] = this.expenseStatus;
     return data;
   }

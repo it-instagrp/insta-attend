@@ -6,6 +6,7 @@ import 'package:insta_attend/API/DTO/Request/apply_leave_request_dto.dart';
 import 'package:insta_attend/API/Repository/leave_repository.dart';
 import 'package:insta_attend/Model/Leave.dart';
 import 'package:insta_attend/Utils/toast_messages.dart';
+import 'package:insta_attend/Controller/auth_controller.dart';
 
 enum LeaveReason {
   sick('Sick Leave'),
@@ -56,8 +57,16 @@ class LeaveController extends GetxController {
   Future<void> getMyLeaves() async {
     isLeaveLoading.value = true;
     try {
-      final String userId =
-          leaveRepository.sharedPreferences.getString("uid") ?? "";
+      final AuthController authController = Get.find<AuthController>();
+
+      final String userId = authController.currentUser.value.id ??
+          leaveRepository.sharedPreferences.getString("uid") ??
+          "";
+
+      if (userId.isEmpty) {
+        debugPrint("Cannot fetch leaves: user ID is missing.");
+        return;
+      }
 
       Response response = await leaveRepository.getLeaveList(userId);
 
@@ -98,14 +107,10 @@ class LeaveController extends GetxController {
         return;
       }
 
-      final String userId =
-          leaveRepository.sharedPreferences.getString("uid") ?? "";
-
       final ApplyLeaveRequestDTO request = ApplyLeaveRequestDTO(
         from: fromDate.value,
         to: toDate.value,
         leaveType: leaveReason.value.description,
-        userId: userId,
       );
 
       Response response = await leaveRepository.requestLeave(request);

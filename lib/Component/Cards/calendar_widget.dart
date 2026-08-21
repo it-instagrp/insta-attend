@@ -5,10 +5,14 @@ class AttendanceCalendar extends StatefulWidget {
   final Function(DateTime) onDateSelected;
   final Map<String, String>? attendanceStatusMap;
   final DateTime initialDate;
+  final DateTime minDate;
+  final DateTime maxDate;
 
-   AttendanceCalendar({
+  AttendanceCalendar({
     super.key,
     required this.onDateSelected,
+    required this.minDate,
+    required this.maxDate,
     this.attendanceStatusMap,
     DateTime? initialDate,
   }) : initialDate = initialDate ?? DateTime.now();
@@ -26,6 +30,29 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
     super.initState();
     currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month, 1);
     selectedDate = widget.initialDate;
+  }
+  @override
+  void didUpdateWidget(covariant AttendanceCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialDate != widget.initialDate) {
+      setState(() {
+        selectedDate = widget.initialDate;
+        currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month, 1);
+      });
+    }
+  }
+  DateTime get _minDateOnly => DateTime(widget.minDate.year, widget.minDate.month, widget.minDate.day);
+  DateTime get _maxDateOnly => DateTime(widget.maxDate.year, widget.maxDate.month, widget.maxDate.day);
+
+  bool get _isPrevMonthDisabled {
+    final DateTime prevMonthEnd =
+    DateTime(currentMonth.year, currentMonth.month, 1).subtract(const Duration(days: 1));
+    return prevMonthEnd.isBefore(_minDateOnly);
+  }
+
+  bool get _isNextMonthDisabled {
+    final DateTime nextMonthStart = DateTime(currentMonth.year, currentMonth.month + 1, 1);
+    return nextMonthStart.isAfter(_maxDateOnly);
   }
 
   int getDaysInMonth(DateTime date) {
@@ -70,13 +97,15 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                onPressed: () {
+                onPressed: _isPrevMonthDisabled
+                    ? null
+                    : () {
                   setState(() {
                     currentMonth = DateTime(currentMonth.year, currentMonth.month - 1);
                   });
                 },
                 icon: const Icon(Icons.chevron_left),
-                color: const Color(0xFF7C3AED),
+                color: _isPrevMonthDisabled ? Colors.grey.shade300 : const Color(0xFF7C3AED),
               ),
               Text(
                 DateFormat('MMMM yyyy').format(currentMonth),
@@ -86,13 +115,15 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
                 ),
               ),
               IconButton(
-                onPressed: () {
+                onPressed: _isNextMonthDisabled
+                    ? null
+                    : () {
                   setState(() {
                     currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
                   });
                 },
                 icon: const Icon(Icons.chevron_right),
-                color: const Color(0xFF7C3AED),
+                color: _isNextMonthDisabled ? Colors.grey.shade300 : const Color(0xFF7C3AED),
               ),
             ],
           ),
@@ -139,9 +170,12 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
               final isSelected = DateFormat('yyyy-MM-dd').format(date) ==
                   DateFormat('yyyy-MM-dd').format(selectedDate);
               final status = getStatusForDate(date);
+              final bool isOutOfRange = date.isBefore(_minDateOnly) || date.isAfter(_maxDateOnly);
 
               return GestureDetector(
-                onTap: () {
+                onTap: isOutOfRange
+                    ? null
+                    : () {
                   setState(() {
                     selectedDate = date;
                   });
@@ -162,7 +196,9 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : Colors.black,
+                        color: isOutOfRange
+                            ? Colors.grey.shade400
+                            : (isSelected ? Colors.white : Colors.black),
                       ),
                     ),
                   ),

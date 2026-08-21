@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/Component/Cards/attendance_history_card.dart';
-import 'package:insta_attend/Component/Cards/weekly_attendance.dart';
+// ============================================================
+// OLD HOME SCREEN WEEKLY ATTENDANCE FEATURE
+// COMMENTED OUT - KEPT FOR ROLLBACK/REFERENCE
+// ============================================================
+// import 'package:insta_attend/Component/Cards/weekly_attendance.dart';
 import 'package:insta_attend/Controller/attendance_controller.dart';
 import 'package:popover/popover.dart';
 import '../../Component/Cards/attendance_status_card.dart';
@@ -30,7 +34,11 @@ class _HomeState extends State<Home> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      attendanceController.getMyWeekAttendance();
+      // ============================================================
+      // OLD HOME SCREEN WEEKLY ATTENDANCE FEATURE
+      // COMMENTED OUT - KEPT FOR ROLLBACK/REFERENCE
+      // ============================================================
+      // attendanceController.getMyWeekAttendance();
       attendanceController.getMyAttendance();
     });
   }
@@ -54,8 +62,12 @@ class _HomeState extends State<Home> {
 
         const SizedBox(height: 15.0),
 
-        // ── Extracted: Total Working Hour + Check In/Out card ────────────────
-        Obx(()=>attendanceController.isWeeklyAttendanceLoading.value ? CircularProgressIndicator(strokeCap: StrokeCap.round,) : attendanceController.weeklyAttendance.value.isNotEmpty ? WeeklyAttendance(attendance: attendanceController.weeklyAttendance) : SizedBox()),
+        // ============================================================
+        // OLD HOME SCREEN WEEKLY ATTENDANCE FEATURE
+        // COMMENTED OUT - KEPT FOR ROLLBACK/REFERENCE
+        // Moved to AttendanceOverviewPage (new Attendance Details & Summary Screen)
+        // ============================================================
+        // Obx(()=>attendanceController.isWeeklyAttendanceLoading.value ? CircularProgressIndicator(strokeCap: StrokeCap.round,) : attendanceController.weeklyAttendance.value.isNotEmpty ? WeeklyAttendance(attendance: attendanceController.weeklyAttendance) : SizedBox()),
       ],
     );
   }

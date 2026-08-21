@@ -21,50 +21,51 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: kcPurple500,
       appBar: _buildAppBar(),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height * 0.80,
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Main scrollable content
-                Positioned(
-                  top: 100,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildContactSection(context),
-                        const SizedBox(height: 20),
-                        _buildAccountSection(context),
-                        const SizedBox(height: 20),
-                        _buildSettingsSection(context),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                height: constraints.maxHeight * 0.80,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
                   ),
                 ),
-
-                // Profile header (image, name, designation)
-                _buildProfileHeader(),
-              ],
-            ),
-          ),
-        ],
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: 100,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildContactSection(context),
+                            const SizedBox(height: 20),
+                            _buildAccountSection(context),
+                            const SizedBox(height: 20),
+                            _buildSettingsSection(context),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildProfileHeader(),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:insta_attend/View/pages/attendance_details.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import '../../Constant/constant_color.dart';
+import 'package:insta_attend/Controller/attendance_controller.dart';
 
 class WeeklyAttendance extends StatelessWidget {
   final List<AttendanceForWeek> attendance;
@@ -46,12 +47,11 @@ class _TimeCard extends StatelessWidget {
       {"title": "Duration", "value": attendance.durationOfWork ?? "NA"},
       {"title": "Status", "value": attendance.attendanceStatus ?? "NA"},
     ];
-
     return InkWell(
-      onTap:
-          () => Get.to(
-            () => AttendanceDetails(attendanceId: attendance.id ?? "NA"),
-          ),
+      onTap: () {
+        Get.find<AttendanceController>().fetchAttendanceForDate(attendance.date ?? "");
+        Get.to(() => const AttendanceDetails());
+      },
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

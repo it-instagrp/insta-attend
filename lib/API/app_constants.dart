@@ -5,9 +5,10 @@ final String uid = "uid";
 
 /**** Global Context ****/
 final GlobalKey<NavigatorState> globalNavigatorKey =
-    GlobalKey<NavigatorState>();
+GlobalKey<NavigatorState>();
 
 /**** URLs ****/
+// final String appBaseUrl = "http://192.168.1.17:3000/api/";
 final String appBaseUrl = "https://api.ams.instagrp.in/api/";
 // final String appBaseUrl = "http://192.168.1.28:8081/api/";
 
@@ -25,6 +26,7 @@ final String changePasswordUrl = "auth/change-password";
 final String getDesignationUrl = "designation";
 final String getDepartmentUrl = "department";
 final String updateProfileUrl = "users";
+final String deviceChangeRequestUrl = "auth/device-change-requests";
 
 /**** Attendance URLs ****/
 final String checkInUrl = "attendance/check-in";
@@ -36,6 +38,10 @@ String attendanceByIdUrl(String id) => "attendance/${id}";
 String getWeeklyAttendanceUrl(String userId) => 'attendance/weekly/$userId';
 String getAttendanceDetailUrl(String attendanceId) =>
     'attendance/record/$attendanceId';
+
+// NEW: Attendance Details & Summary screen (self-only, date-range filtered)
+final String attendanceSummaryUrl = "attendance/summary";
+final String attendanceDetailsUrl = "attendance/details";
 
 /**** Departments URLs ****/
 final String getDepartments = "department";

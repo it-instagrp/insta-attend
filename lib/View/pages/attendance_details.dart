@@ -4,24 +4,22 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../Constant/constant_color.dart';
-import '../../Model/attendance_detail.dart';
+// import '../../Model/attendance_detail.dart';
+import 'package:insta_attend/Model/Attendance.dart';
 
 class AttendanceDetails extends StatefulWidget {
-  final String attendanceId;
-
-  const AttendanceDetails({super.key, required this.attendanceId});
+  const AttendanceDetails({super.key});
 
   @override
   State<AttendanceDetails> createState() => _AttendanceDetailsState();
 }
 
 class _AttendanceDetailsState extends State<AttendanceDetails> {
-  final AttendanceController controller = Get.find();
+  final AttendanceController controller = Get.find<AttendanceController>();
 
   @override
   void initState() {
     super.initState();
-    controller.getAttendanceDetails(widget.attendanceId);
   }
 
   @override
@@ -45,13 +43,13 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
   // Main body with loading and data states
   Widget _buildBody() {
     return Obx(() {
-      if (controller.isAttendanceDetailsLoading.value) {
+      if (controller.isSelectedDateLoading.value) {
         return const Center(
           child: CircularProgressIndicator(strokeCap: StrokeCap.round),
         );
       }
 
-      final data = controller.attendanceDetails.value;
+      final data = controller.selectedDateAttendance.value;
 
       if (data == null) {
         return const Center(child: Text("No attendance details found"));
@@ -75,7 +73,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
   }
 
   // Header card with date and status
-  Widget _buildHeaderCard(AttendanceDetail data) {
+  Widget _buildHeaderCard(Attendance data) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -87,27 +85,31 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          Chip(label: Text(data.status ?? "NA")),
+          Chip(
+            label: Text(
+              data.status ?? "NA",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: kcPurple200.withOpacity(0.3),
+          ),
         ],
       ),
     );
   }
 
   // Employee information section
-  Widget _buildEmployeeSection(AttendanceDetail data) {
+  Widget _buildEmployeeSection(Attendance data)  {
     return _SectionCard(
       title: "Employee Information",
       children: [
         _buildInfoRow("Employee", data.employeeName),
         _buildInfoRow("Department", data.department),
-        _buildInfoRow("Designation", data.designation),
-        _buildInfoRow("Email", data.user?.email),
       ],
     );
   }
 
   // Attendance summary section
-  Widget _buildAttendanceSummarySection(AttendanceDetail data) {
+  Widget _buildAttendanceSummarySection(Attendance data) {
     return _SectionCard(
       title: "Attendance Summary",
       children: [
@@ -120,7 +122,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
   }
 
   // Location information section
-  Widget _buildLocationSection(AttendanceDetail data) {
+  Widget _buildLocationSection(Attendance data) {
     return _SectionCard(
       title: "Location Information",
       children: [
@@ -144,7 +146,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
           Expanded(
             flex: 6,
             child: Text(
-              value ?? "NA",
+              (value != null && value.isNotEmpty) ? value : "NA",
               textAlign: TextAlign.end,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
@@ -168,7 +170,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text(location ?? "NA"),
+          Text((location != null && location.isNotEmpty) ? location : "NA"),
         ],
       ),
     );
@@ -182,18 +184,18 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
     );
   }
 
-  // Format time from ISO string to readable format
+  // Format time from ISO string or return raw string if already formatted
   String _formatTime(String? value) {
     if (value == null || value.isEmpty) return "NA";
 
     try {
       return DateFormat('hh:mm a').format(DateTime.parse(value).toLocal());
     } catch (_) {
-      return "NA";
+      return value; // Return raw string if already formatted (e.g. "09:30 AM")
     }
   }
 
-  // Format date from ISO string to readable format
+  // Format date from ISO string or return raw string if already formatted
   String _formatDate(String? date) {
     if (date == null || date.isEmpty) return "NA";
 
@@ -201,7 +203,7 @@ class _AttendanceDetailsState extends State<AttendanceDetails> {
       final parsedDate = DateTime.parse(date);
       return DateFormat('dd-MM-yyyy').format(parsedDate);
     } catch (_) {
-      return "NA";
+      return date; // Return raw date if parsing fails
     }
   }
 }

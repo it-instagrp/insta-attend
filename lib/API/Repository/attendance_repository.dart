@@ -33,4 +33,31 @@ class AttendanceRepository {
   Future<Response> getAttendanceDetails(String attendanceId) async {
     return await apiClient.getData(getAttendanceDetailUrl(attendanceId));
   }
+
+  // NEW: Attendance Details & Summary screen (self-only, date-range filtered)
+  Future<Response> getAttendanceSummary({
+    required String filter,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final Map<String, dynamic> query = {'filter': filter};
+    if (filter == 'custom') {
+      if (startDate != null) query['startDate'] = startDate;
+      if (endDate != null) query['endDate'] = endDate;
+    }
+    return await apiClient.getData(attendanceSummaryUrl, query: query);
+  }
+
+  Future<Response> getAttendanceDetailsList({
+    required String filter,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final Map<String, dynamic> query = {'filter': filter};
+    if (filter == 'custom') {
+      if (startDate != null) query['startDate'] = startDate;
+      if (endDate != null) query['endDate'] = endDate;
+    }
+    return await apiClient.getData(attendanceDetailsUrl, query: query);
+  }
 }
