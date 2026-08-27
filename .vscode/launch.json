@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Insta Attend QA",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_qa.dart",
+      "args": [
+        "--flavor",
+        "qa"
+      ]
+    },
+    {
+      "name": "Insta Attend Prod",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "program": "lib/main_prod.dart",
+      "args": [
+        "--flavor",
+        "prod"
+      ]
+    }
+  ]
+}

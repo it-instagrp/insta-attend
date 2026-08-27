@@ -580,6 +580,7 @@ class AttendanceController extends GetxController {
       if (response.statusCode == 200 && response.body is Map && response.body['data'] != null) {
         final AttendanceDetailsDto dto = AttendanceDetailsDto.fromJson(response.body['data']);
         attendanceDetailRows.value = dto.records ?? [];
+        _generateStatusMapFromDetailRows(attendanceDetailRows);
       } else {
         showError(response.statusText ?? "Failed to load attendance details");
       }
@@ -589,6 +590,25 @@ class AttendanceController extends GetxController {
     } finally {
       isDetailsListLoading.value = false;
     }
+  }
+
+  void _generateStatusMapFromDetailRows(
+    Iterable<AttendanceDetailsRecordDto> records,
+  ) {
+    final map = <String, String>{};
+
+    for (final record in records) {
+      if (record.date != null && record.status != null) {
+        final parsedDate = DateTime.tryParse(record.date!);
+        final dateString = parsedDate != null
+            ? parsedDate.toIso8601String().substring(0, 10)
+            : record.date!.split(' ')[0];
+
+        map[dateString] = record.status!;
+      }
+    }
+
+    attendanceStatusMap.value = map;
   }
 
   Future<void> exportAttendancePDF({

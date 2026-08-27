@@ -22,10 +22,10 @@ class AttendanceSummaryDto {
       filter: json['filter'],
       startDate: json['startDate'],
       endDate: json['endDate'],
-      presentCount: json['presentCount'],
-      halfDayCount: json['halfDayCount'],
-      absentCount: json['absentCount'],
-      weeklyOffHolidayCount: json['weeklyOffHolidayCount'],
+      presentCount: (json['presentCount'] as num).toInt(),
+      halfDayCount: (json['halfDayCount'] as num).toInt(),
+      absentCount: (json['absentCount'] as num).toInt(),
+      weeklyOffHolidayCount: (json['weeklyOffHolidayCount'] as num).toInt(),
     );
   }
 }

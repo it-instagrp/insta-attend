@@ -11,38 +11,77 @@ import 'package:insta_attend/Utils/location_service_manager.dart';
 import 'package:insta_attend/Utils/notification_service.dart';
 import 'package:insta_attend/View/pages/no_internet_gate.dart';
 import 'package:insta_attend/View/pages/splash_screen.dart';
-import 'package:insta_attend/firebase_options.dart';
 
-// Top-level function to handle background/closed messages
+import 'config/app_config.dart';
+import 'config/firebase_config.dart';
+
+/// This is set by the environment entry point before the app starts.
+///
+/// QA:
+/// main_qa.dart -> AppEnvironment.qa
+///
+/// Production:
+/// main_prod.dart -> AppEnvironment.prod
+AppEnvironment? _currentEnvironment;
+
+/// Handles Firebase messages received when the app is in
+/// background or completely closed.
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> _firebaseMessagingBackgroundHandler(
+  RemoteMessage message,
+) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase using the same environment as the main app.
+  //
+  // The background isolate does not necessarily have access to the
+  // Firebase instance initialized in the main isolate.
+  final environment = _currentEnvironment ?? AppEnvironment.prod;
+
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: getFirebaseOptions(environment),
   );
+
   await NotificationService.initialize();
+
   NotificationService.showNotification(message);
 }
 
-Future<void> main() async {
+/// Common application entry point.
+///
+/// main_qa.dart and main_prod.dart call this function with
+/// the appropriate environment.
+Future<void> runAppWithEnvironment(
+  AppEnvironment environment,
+) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Initialize Firebase
+  // Store environment so the Firebase background handler
+  // knows which Firebase project to initialize.
+  _currentEnvironment = environment;
+  AppConfig.setEnvironment(environment);
+
+  // Initialize Firebase for the selected environment.
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: getFirebaseOptions(environment),
   );
 
-  // 2. Initialize Local Notifications
+  // Initialize local notifications.
   await NotificationService.initialize();
 
-  // 3. Handle Background/Closed state notifications
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // Register Firebase Messaging background handler.
+  FirebaseMessaging.onBackgroundMessage(
+    _firebaseMessagingBackgroundHandler,
+  );
 
-  // 4. Handle Foreground state notifications
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    NotificationService.showNotification(message);
-  });
+  // Handle foreground notifications.
+  FirebaseMessaging.onMessage.listen(
+    (RemoteMessage message) {
+      NotificationService.showNotification(message);
+    },
+  );
 
-  // 5. Dependency Injection (SharedPreferences, ApiClient, Repositories, Controllers)
+  // Dependency Injection
   await di.init();
 
   runApp(const MyApp());
@@ -59,22 +98,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
+
     LocationServiceManager.instance.init();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+
     LocationServiceManager.instance.dispose();
+
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(
+    AppLifecycleState state,
+  ) {
     if (state == AppLifecycleState.resumed) {
-      // Trigger session validation when returning to foreground
-      debugPrint("App resumed: Checking active session validity...");
+      debugPrint(
+        "App resumed: Checking active session validity...",
+      );
     }
   }
 
@@ -83,14 +129,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return ToastificationWrapper(
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
+
         navigatorKey: globalNavigatorKey,
-        title: "Insta Attend",
+
+        title: AppConfig.current.appName,
+
         theme: ThemeData(
           primaryColor: Colors.lightBlueAccent,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.lightBlueAccent,
+          ),
+
           textTheme: GoogleFonts.interTextTheme(),
         ),
-        builder: (context, child) => NoInternetGate(child: child!),
+
+        builder: (context, child) {
+          return NoInternetGate(
+            child: child!,
+          );
+        },
+
         home: const SplashScreen(),
       ),
     );

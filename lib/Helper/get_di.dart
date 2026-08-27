@@ -8,7 +8,7 @@ import 'package:insta_attend/API/Repository/expense_repository.dart';
 import 'package:insta_attend/API/Repository/leave_repository.dart';
 import 'package:insta_attend/API/Repository/version_repository.dart';
 import 'package:insta_attend/API/api_client.dart';
-import 'package:insta_attend/API/app_constants.dart';
+import 'package:insta_attend/config/app_config.dart';
 
 import 'package:insta_attend/Controller/asset_controller.dart';
 import 'package:insta_attend/Controller/attendance_controller.dart';
@@ -21,53 +21,56 @@ import 'package:insta_attend/Controller/version_controller.dart';
 
 Future<void> init() async {
   final SharedPreferences sharedPreferences =
-  await SharedPreferences.getInstance();
+      await SharedPreferences.getInstance();
 
   Get.lazyPut(() => sharedPreferences, fenix: true);
 
   /**** ApiClient Injection ****/
   Get.lazyPut(
-        () => ApiClient(appBaseUrl: appBaseUrl, sharedPreferences: sharedPreferences),
+    () => ApiClient(
+      appBaseUrl: AppConfig.current.apiBaseUrl,
+      sharedPreferences: sharedPreferences,
+    ),
   );
 
   /**** Repository Injection ****/
   Get.lazyPut(
-        () => AuthRepository(
+    () => AuthRepository(
       apiClient: Get.find<ApiClient>(),
       sharedPreferences: Get.find<SharedPreferences>(),
     ),
     fenix: true,
   );
   Get.lazyPut(
-        () => AttendanceRepository(
+    () => AttendanceRepository(
       apiClient: Get.find<ApiClient>(),
       sharedPreferences: Get.find<SharedPreferences>(),
     ),
     fenix: true,
   );
   Get.lazyPut(
-        () => LeaveRepository(
+    () => LeaveRepository(
       apiClient: Get.find<ApiClient>(),
       sharedPreferences: Get.find<SharedPreferences>(),
     ),
     fenix: true,
   );
   Get.lazyPut(
-        () => VersionRepository(
+    () => VersionRepository(
       apiClient: Get.find<ApiClient>(),
       sharedPreferences: Get.find<SharedPreferences>(),
     ),
     fenix: true,
   );
   Get.lazyPut(
-        () => AssetRepository(
+    () => AssetRepository(
       apiClient: Get.find<ApiClient>(),
       sharedPreferences: Get.find<SharedPreferences>(),
     ),
     fenix: true,
   );
   Get.lazyPut(
-        () => ExpenseRepository(
+    () => ExpenseRepository(
       apiClient: Get.find<ApiClient>(),
       sharedPreferences: Get.find<SharedPreferences>(),
     ),
@@ -76,7 +79,7 @@ Future<void> init() async {
 
   /**** GetX Controller Injection ****/
   Get.lazyPut(
-        () => AuthController(authRepo: Get.find<AuthRepository>()),
+    () => AuthController(authRepo: Get.find<AuthRepository>()),
     fenix: true,
   );
   Get.lazyPut(() => OnboardingController());
@@ -86,19 +89,19 @@ Future<void> init() async {
   Get.lazyPut(() => AttendanceController(), fenix: true);
 
   Get.lazyPut(
-        () => LeaveController(leaveRepository: Get.find<LeaveRepository>()),
+    () => LeaveController(leaveRepository: Get.find<LeaveRepository>()),
     fenix: true,
   );
   Get.lazyPut(
-        () => VersionController(versionRepo: Get.find<VersionRepository>()),
+    () => VersionController(versionRepo: Get.find<VersionRepository>()),
     fenix: true,
   );
   Get.lazyPut(
-        () => AssetController(assetRepo: Get.find<AssetRepository>()),
+    () => AssetController(assetRepo: Get.find<AssetRepository>()),
     fenix: true,
   );
   Get.lazyPut(
-        () => ExpenseController(expenseRepo: Get.find<ExpenseRepository>()),
+    () => ExpenseController(expenseRepo: Get.find<ExpenseRepository>()),
     fenix: true,
   );
 }

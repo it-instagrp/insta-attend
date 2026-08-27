@@ -5,6 +5,7 @@ import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:get/get.dart';
 import 'package:insta_attend/Controller/auth_controller.dart';
+import 'package:insta_attend/Utils/exit_confirmation_scope.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,12 +58,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          "InstaAttend",
-          style: kfHeadlineLarge.copyWith(color: kcPurple500),
+    return ExitConfirmationScope(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Text(
+            "InstaAttend",
+            style: kfHeadlineLarge.copyWith(color: kcPurple500),
+          ),
         ),
       ),
     );

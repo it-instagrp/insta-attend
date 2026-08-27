@@ -65,14 +65,11 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
   }
 
   void _loadAttendanceData() {
-    final bool isThisMonth = currentFilter.filterType == 'thisMonth';
     final bool isCustom = currentFilter.filterType == 'custom';
 
-    // "This Month" is treated as "today only" — sent as a custom range of today→today
-    // since the API has no dedicated "today" filter.
-    final String apiFilter = isThisMonth ? 'custom' : _apiFilterFor(currentFilter);
-    final DateTime? rangeStart = isThisMonth ? DateTime.now() : (isCustom ? currentFilter.startDate : null);
-    final DateTime? rangeEnd = isThisMonth ? DateTime.now() : (isCustom ? currentFilter.endDate : null);
+    final String apiFilter = _apiFilterFor(currentFilter);
+    final DateTime? rangeStart = isCustom ? currentFilter.startDate : null;
+    final DateTime? rangeEnd = isCustom ? currentFilter.endDate : null;
 
     attendanceController.fetchAttendanceSummary(
       filter: apiFilter,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
 import 'package:insta_attend/Component/Button/main_button.dart';
+import 'package:insta_attend/Utils/exit_confirmation_scope.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../Controller/onboarding_controller.dart';
@@ -47,21 +48,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kcPurple25, // Using kcPurple25 theme
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) => setState(() => _currentPage = index),
-                itemCount: _permissionsData.length,
-                itemBuilder: (context, index) => _buildPermissionPage(index),
+    return ExitConfirmationScope(
+      child: Scaffold(
+        backgroundColor: kcPurple25, // Using kcPurple25 theme
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged:
+                      (index) => setState(() => _currentPage = index),
+                  itemCount: _permissionsData.length,
+                  itemBuilder: (context, index) => _buildPermissionPage(index),
+                ),
               ),
-            ),
-            _buildBottomControls(),
-          ],
+              _buildBottomControls(),
+            ],
+          ),
         ),
       ),
     );

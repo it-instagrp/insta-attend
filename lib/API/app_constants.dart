@@ -9,7 +9,6 @@ GlobalKey<NavigatorState>();
 
 /**** URLs ****/
 // final String appBaseUrl = "http://192.168.1.17:3000/api/";
-final String appBaseUrl = "https://api.ams.instagrp.in/api/";
 // final String appBaseUrl = "http://192.168.1.28:8081/api/";
 
 //TODO

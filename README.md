@@ -2,6 +2,44 @@
 
 A flutter project for
 
+## Flavors
+
+Run QA:
+
+```bash
+flutter run --flavor qa -t lib/main_qa.dart
+```
+
+In IntelliJ IDEA, select the `Insta Attend QA` run configuration.
+
+Run production:
+
+```bash
+flutter run --flavor prod -t lib/main_prod.dart
+```
+
+In IntelliJ IDEA, select the `Insta Attend Prod` run configuration.
+
+Build QA APK:
+
+```bash
+flutter build apk --flavor qa -t lib/main_qa.dart
+```
+
+Build production APK:
+
+```bash
+flutter build apk --flavor prod -t lib/main_prod.dart
+```
+
+QA uses `https://test-api.ams.instagrp.in/api/`.
+Production uses `https://api.ams.instagrp.in/api/`.
+
+## Android deployment
+
+Android tester releases and Shorebird patching are configured in `codemagic.yaml`.
+Follow `docs/android-deployment.md` for the first-time Google Play, Codemagic, and Shorebird setup.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

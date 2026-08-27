@@ -94,11 +94,14 @@ class _StatusCard extends StatelessWidget {
   const _StatusCard({required this.controller});
 
   final AttendanceController controller;
+  static const double _cardWidth = 140;
+  static const double _cardHeight = 88;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 140,
+      width: _cardWidth,
+      height: _cardHeight,
       child: Container(
         padding: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
@@ -122,6 +125,8 @@ class _StatusCard extends StatelessWidget {
             Obx(
               () => Text(
                 controller.attendanceStatus.value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -142,6 +147,8 @@ class _TimeCard extends StatelessWidget {
   const _TimeCard({required this.controller});
 
   final AttendanceController controller;
+  static const double _cardWidth = 140;
+  static const double _cardHeight = 88;
 
   /// Parses an ISO-8601 UTC string and formats it as "h:mm a" in local time.
   String _formatTime(String isoString) {
@@ -157,7 +164,8 @@ class _TimeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 140,
+      width: _cardWidth,
+      height: _cardHeight,
       child: Container(
         padding: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
@@ -188,6 +196,8 @@ class _TimeCard extends StatelessWidget {
               }
               return Text(
                 _formatTime(raw),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,

@@ -1,0 +1,169 @@
+definitions:
+  environment:
+    android_release_env: &android_release_env
+      flutter: stable
+      groups:
+        - shorebird
+        - google_play
+      vars:
+        GOOGLE_PLAY_TRACK: internal
+  scripts:
+    - &set_local_properties
+      name: Set up local.properties
+      script: |
+        echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+    - &install_shorebird
+      name: Install Shorebird
+      script: |
+        curl --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh -sSf | bash
+        echo PATH="$HOME/.shorebird/bin:$PATH" >> "$CM_ENV"
+    - &fetch_dependencies
+      name: Fetch Flutter dependencies
+      script: |
+        flutter pub get
+    - &analyze
+      name: Analyze
+      script: |
+        flutter analyze
+    - &resolve_next_build_number
+      name: Resolve next Google Play build number
+      script: |
+        LATEST_PLAY_BUILD_NUMBER=$(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks "$GOOGLE_PLAY_TRACK" 2>/dev/null || true)
+
+        if [ -z "$LATEST_PLAY_BUILD_NUMBER" ]; then
+          NEXT_BUILD_NUMBER=$PROJECT_BUILD_NUMBER
+        elif [ "$PROJECT_BUILD_NUMBER" -gt "$LATEST_PLAY_BUILD_NUMBER" ]; then
+          NEXT_BUILD_NUMBER=$PROJECT_BUILD_NUMBER
+        else
+          NEXT_BUILD_NUMBER=$((LATEST_PLAY_BUILD_NUMBER + 1))
+        fi
+
+        echo "NEXT_BUILD_NUMBER=$NEXT_BUILD_NUMBER" >> "$CM_ENV"
+        echo "Using Android build number $NEXT_BUILD_NUMBER for $PACKAGE_NAME on $GOOGLE_PLAY_TRACK"
+
+workflows:
+  qa-android-release:
+    name: QA Android release to Play internal testing
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      <<: *android_release_env
+      android_signing:
+        - android_keystore
+      vars:
+        PACKAGE_NAME: com.nextechvision.insta_attend.test
+        ANDROID_FLAVOR: qa
+        ENTRY_POINT: lib/main_qa.dart
+        GOOGLE_PLAY_TRACK: internal
+    scripts:
+      - *set_local_properties
+      - *install_shorebird
+      - *fetch_dependencies
+      - *analyze
+      - *resolve_next_build_number
+      - name: Create Shorebird QA Android release
+        script: |
+          shorebird release android \
+            --flavor="$ANDROID_FLAVOR" \
+            --target="$ENTRY_POINT" \
+            --build-number="$NEXT_BUILD_NUMBER" \
+            --verbose
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/mapping.txt
+      - flutter_drive.log
+    publishing:
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+        track: $GOOGLE_PLAY_TRACK
+
+  prod-android-release:
+    name: Production Android release to Play internal testing
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      <<: *android_release_env
+      android_signing:
+        - android_keystore
+      vars:
+        PACKAGE_NAME: com.nextechvision.insta_attend
+        ANDROID_FLAVOR: prod
+        ENTRY_POINT: lib/main_prod.dart
+        GOOGLE_PLAY_TRACK: internal
+    scripts:
+      - *set_local_properties
+      - *install_shorebird
+      - *fetch_dependencies
+      - *analyze
+      - *resolve_next_build_number
+      - name: Create Shorebird production Android release
+        script: |
+          shorebird release android \
+            --flavor="$ANDROID_FLAVOR" \
+            --target="$ENTRY_POINT" \
+            --build-number="$NEXT_BUILD_NUMBER" \
+            --verbose
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/mapping.txt
+      - flutter_drive.log
+    publishing:
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+        track: $GOOGLE_PLAY_TRACK
+
+  qa-android-patch:
+    name: QA Android Shorebird patch
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      <<: *android_release_env
+      android_signing:
+        - android_keystore
+      vars:
+        ANDROID_FLAVOR: qa
+        ENTRY_POINT: lib/main_qa.dart
+    inputs:
+      release_version:
+        description: Shorebird release version to patch, for example 1.1.0-test+12
+    scripts:
+      - *set_local_properties
+      - *install_shorebird
+      - *fetch_dependencies
+      - *analyze
+      - name: Create Shorebird QA Android patch
+        script: |
+          shorebird patch android \
+            --release-version="${{ inputs.release_version }}" \
+            --flavor="$ANDROID_FLAVOR" \
+            --target="$ENTRY_POINT" \
+            --verbose
+
+  prod-android-patch:
+    name: Production Android Shorebird patch
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      <<: *android_release_env
+      android_signing:
+        - android_keystore
+      vars:
+        ANDROID_FLAVOR: prod
+        ENTRY_POINT: lib/main_prod.dart
+    inputs:
+      release_version:
+        description: Shorebird release version to patch, for example 1.1.0+12
+    scripts:
+      - *set_local_properties
+      - *install_shorebird
+      - *fetch_dependencies
+      - *analyze
+      - name: Create Shorebird production Android patch
+        script: |
+          shorebird patch android \
+            --release-version="${{ inputs.release_version }}" \
+            --flavor="$ANDROID_FLAVOR" \
+            --target="$ENTRY_POINT" \
+            --verbose
