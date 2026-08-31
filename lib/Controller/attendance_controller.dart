@@ -542,6 +542,7 @@ class AttendanceController extends GetxController {
         final AttendanceSummaryDto dto = AttendanceSummaryDto.fromJson(response.body['data']);
 
         final int present = dto.presentCount ?? 0;
+
         final int half = dto.halfDayCount ?? 0;
         final int absent = dto.absentCount ?? 0;
         final int offHoliday = dto.weeklyOffHolidayCount ?? 0;
