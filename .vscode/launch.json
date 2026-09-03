@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Insta Attend QA",
+      "name": "Insta Attend Test",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",

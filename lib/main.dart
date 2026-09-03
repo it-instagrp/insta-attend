@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
-
 import 'package:insta_attend/API/app_constants.dart';
 import 'package:insta_attend/Helper/get_di.dart' as di;
 import 'package:insta_attend/Utils/location_service_manager.dart';
