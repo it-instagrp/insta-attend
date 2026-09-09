@@ -28,19 +28,24 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
   @override
   void initState() {
     super.initState();
-    currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month, 1);
-    selectedDate = widget.initialDate;
+    //CHANGE 1: Ensure dates are at midnight to avoid timezone issues
+    selectedDate = DateTime(widget.initialDate.year, widget.initialDate.month, widget.initialDate.day);
+    currentMonth = DateTime(selectedDate.year, selectedDate.month, 1);
   }
+
   @override
   void didUpdateWidget(covariant AttendanceCalendar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialDate != widget.initialDate) {
       setState(() {
-        selectedDate = widget.initialDate;
+        //CHANGE 2: Ensure dates are at midnight
+        selectedDate = DateTime(widget.initialDate.year, widget.initialDate.month, widget.initialDate.day);
         currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month, 1);
       });
     }
   }
+
+  //CHANGE 3: Ensure date comparison without time component
   DateTime get _minDateOnly => DateTime(widget.minDate.year, widget.minDate.month, widget.minDate.day);
   DateTime get _maxDateOnly => DateTime(widget.maxDate.year, widget.maxDate.month, widget.maxDate.day);
 
@@ -59,8 +64,9 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
     return DateTime(date.year, date.month + 1, 0).day;
   }
 
+  //Weekday calculation (your current implementation is correct!)
   int getFirstDayOfMonth(DateTime date) {
-    return DateTime(date.year, date.month, 1).weekday % 7;
+    return (DateTime(date.year, date.month, 1).weekday - 1) % 7;
   }
 
   String? getStatusForDate(DateTime date) {
@@ -80,6 +86,13 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
       default:
         return Colors.grey.shade300;
     }
+  }
+
+  //Helper function for efficient date comparison
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   @override
@@ -129,7 +142,7 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
           ),
           const SizedBox(height: 20),
 
-          // Weekday Headers
+          // Weekday Headers - Indian format (Monday first)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
@@ -167,8 +180,10 @@ class _AttendanceCalendarState extends State<AttendanceCalendar> {
 
               final dayNumber = index - getFirstDayOfMonth(currentMonth) + 1;
               final date = DateTime(currentMonth.year, currentMonth.month, dayNumber);
-              final isSelected = DateFormat('yyyy-MM-dd').format(date) ==
-                  DateFormat('yyyy-MM-dd').format(selectedDate);
+
+              // ✅ CHANGE 6: Use efficient _isSameDay() instead of DateFormat comparison
+              final isSelected = _isSameDay(date, selectedDate);
+
               final status = getStatusForDate(date);
               final bool isOutOfRange = date.isBefore(_minDateOnly) || date.isAfter(_maxDateOnly);
 
