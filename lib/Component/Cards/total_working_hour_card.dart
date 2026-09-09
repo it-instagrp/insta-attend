@@ -80,25 +80,41 @@ class TotalWorkingHourCard extends StatelessWidget {
             child: SizedBox(
               width: double.maxFinite,
               child: Obx(() {
-                if (_attendanceController.isAttendanceLoading.value) {
+                // ✓ CHANGE 1: Check BOTH loading flags
+                if (_attendanceController.isAttendanceLoading.value ||
+                    _attendanceController.isClockingLoading.value) {
                   return Center(
-                    child: CircularProgressIndicator(
-                      color: kcPurple600,
-                      strokeCap: StrokeCap.round,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          color: kcPurple600,
+                          strokeCap: StrokeCap.round,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Processing...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: kcGrey500,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }
                 return _attendanceController.isCheckIn.value
                     ? MainButton(
-                      label: 'Check In',
-                      onTap: () => _attendanceController.clockIn(context),
-                      buttonSize: ButtonSize.xl,
-                    )
+                  label: 'Check In',
+                  onTap: () => _attendanceController.clockIn(context),
+                  buttonSize: ButtonSize.xl,
+                )
                     : MainButton(
-                      label: 'Check Out',
-                      onTap: () => _attendanceController.clockOut(context),
-                      buttonSize: ButtonSize.xl,
-                    );
+                  label: 'Check Out',
+                  onTap: () => _attendanceController.clockOut(context),
+                  buttonSize: ButtonSize.xl,
+                );
               }),
             ),
           ),

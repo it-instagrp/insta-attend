@@ -24,6 +24,7 @@ import '../Constant/constant_color.dart';
 import '../Model/attendance_summary_model.dart';
 import '../View/pages/face_scanner_page.dart';
 import 'package:insta_attend/API/DTO/Request/check_out_request_dto.dart';
+import 'package:insta_attend/Utils/location_service_manager.dart';
 
 class AttendanceController extends GetxController {
   // --- Direct Dio HTTP Setup ---
@@ -119,6 +120,23 @@ class AttendanceController extends GetxController {
       debugPrint("Exception in getLatLong: ${err.toString()}");
     }
   }
+  /// Get location from memory, or fetch if not available
+  /// Called during Check-In/Check-Out
+  Future<Position?> _getLocationForAttendance() async {
+    final locationServiceManager = LocationServiceManager.instance;
+
+    // ✓ CHANGE 1: First check if location is already in memory
+    Position? currentLocation = locationServiceManager.getCurrentPosition();
+    if (currentLocation != null) {
+      debugPrint("AttendanceController: Using in-memory location");
+      return currentLocation;
+    }
+
+    // ✓ CHANGE 2: If not in memory, fetch it now
+    debugPrint("AttendanceController: Location not in memory, fetching now...");
+    currentLocation = await locationServiceManager.fetchCurrentLocation();
+    return currentLocation;
+  }
 
   Future<Position> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -135,7 +153,10 @@ class AttendanceController extends GetxController {
     }
 
     return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,  // ← CHANGED FROM .best
+        timeLimit: Duration(seconds: 5),  // ← ADDED
+      ),
     );
   }
 
@@ -208,159 +229,170 @@ class AttendanceController extends GetxController {
   // ==========================================
 
   void clockIn(BuildContext context) async {
-    final dynamic faceResult = await Get.to(
-          () => const FaceScannerPage(isRegistration: false),
-    );
+    // ✓ CHANGE 1: Disable button immediately
+    isClockingLoading.value = true;
 
-    if (faceResult != null && faceResult is List<double>) {
-      isClockingLoading.value = true;
-      try {
-        await getLatLong(context);
-        Position position = await getCurrentLocation();
+    try {
+      // ✓ CHANGE 2: Get location from memory (or fetch if needed)
+      Position? position = await _getLocationForAttendance();
 
-        bool isGeofenced = authController.currentUser.value.geofencing ?? false;
-        String locationAddress = "";
-
-        if (isGeofenced) {
-          bool inRange = isInRange(
-            position.latitude,
-            position.longitude,
-            lat.value,
-            long.value,
-          );
-
-          if (!inRange) {
-            showError("You are not within office premises");
-            return;
-          }
-          locationAddress = authController.currentUser.value.department?.departmentAddress ?? "Office Premises";
-        } else {
-          locationAddress = await getAddressFromLatLng(
-            position.latitude,
-            position.longitude,
-          );
-        }
-
-        // final response = await _dio.post(
-        //   '/attendance/clock-in',
-        //   data: {
-        //     'latitude': position.latitude,
-        //     'longitude': position.longitude,
-        //     'checkInLocation': locationAddress,
-        //     'faceEmbedding': faceResult,
-        //     'timestamp': DateTime.now().toIso8601String(),
-        //   },
-        // );
-        //
-        // if (response.statusCode == 200 || response.statusCode == 201) {
-        //   showSuccess("Marked Clock In");
-        //   getMyAttendance();
-        // } else {
-        //   String msg = "Error occurred during clock in";
-        //   if (response.data is Map && response.data['message'] != null) {
-        //     msg = response.data['message'];
-        //   }
-        //   _handleAttendanceError(context, msg);
-        // }
-        final CheckInRequestDTO request = CheckInRequestDTO(
-          checkInLocation: locationAddress,
-          faceEmbedding: faceResult,
-        );
-
-        final response = await attendanceRepository.clockIn(request);
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          showSuccess("Marked Clock In");
-          getMyAttendance();
-        } else {
-          String msg = "Error occurred during clock in";
-          if (response.body is Map && response.body['message'] != null) {
-            msg = response.body['message'];
-          }
-          _handleAttendanceError(context, msg);
-        }
-      } on DioException catch (e) {
-        debugPrint("Dio error during clock in: $e");
-        String errorMsg = "Failed to complete clock in process";
-        if (e.response?.data is Map && e.response?.data['message'] != null) {
-          errorMsg = e.response?.data['message'];
-        }
-        _handleAttendanceError(context, errorMsg);
-      } catch (e) {
-        debugPrint("Error during clock in: $e");
-        showError("Failed to complete clock in process");
-      } finally {
-        isClockingLoading.value = false;
+      if (position == null) {
+        showError("Unable to get your location. Please ensure location services are enabled.");
+        return;
       }
-    } else {
-      showError("Face verification cancelled or failed");
+
+      // ✓ CHANGE 3: Now open face scanner
+      final dynamic faceResult = await Get.to(
+            () => const FaceScannerPage(isRegistration: false),
+      );
+
+      if (faceResult != null && faceResult is List<double>) {
+        try {
+          await getLatLong(context);
+
+          bool isGeofenced = authController.currentUser.value.geofencing ?? false;
+          String locationAddress = "";
+
+          if (isGeofenced) {
+            bool inRange = isInRange(
+              position.latitude,
+              position.longitude,
+              lat.value,
+              long.value,
+            );
+
+            if (!inRange) {
+              showError("You are not within office premises");
+              return;
+            }
+            locationAddress = authController.currentUser.value.department?.departmentAddress ?? "Office Premises";
+          } else {
+            locationAddress = await getAddressFromLatLng(
+              position.latitude,
+              position.longitude,
+            );
+          }
+
+          final CheckInRequestDTO request = CheckInRequestDTO(
+            checkInLocation: locationAddress,
+            faceEmbedding: faceResult,
+          );
+
+          final response = await attendanceRepository.clockIn(request);
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            showSuccess("Marked Clock In");
+            getMyAttendance();
+          } else {
+            String msg = "Error occurred during clock in";
+            if (response.body is Map && response.body['message'] != null) {
+              msg = response.body['message'];
+            }
+            _handleAttendanceError(context, msg);
+          }
+        } on DioException catch (e) {
+          debugPrint("Dio error during clock in: $e");
+          String errorMsg = "Failed to complete clock in process";
+          if (e.response?.data is Map && e.response?.data['message'] != null) {
+            errorMsg = e.response?.data['message'];
+          }
+          _handleAttendanceError(context, errorMsg);
+        } catch (e) {
+          debugPrint("Error during clock in: $e");
+          showError("Failed to complete clock in process");
+        }
+      } else {
+        showError("Face verification cancelled or failed");
+      }
+    } catch (e) {
+      debugPrint("Error in clock in: $e");
+      showError("Failed to complete clock in process");
+    } finally {
+      // ✓ CHANGE 4: Re-enable button
+      isClockingLoading.value = false;
     }
   }
 
   void clockOut(BuildContext context) async {
-    final dynamic faceResult = await Get.to(
-          () => const FaceScannerPage(isRegistration: false),
-    );
+    // ✓ CHANGE 1: Disable button immediately
+    isClockingLoading.value = true;
 
-    if (faceResult != null && faceResult is List<double>) {
-      isClockingLoading.value = true;
-      try {
-        Position position = await getCurrentLocation();
-        bool isGeofenced = authController.currentUser.value.geofencing ?? false;
-        String locationAddress = "";
+    try {
+      // ✓ CHANGE 2: Get location from memory (or fetch if needed)
+      Position? position = await _getLocationForAttendance();
 
-        if (isGeofenced) {
-          bool inRange = isInRange(
-            position.latitude,
-            position.longitude,
-            lat.value,
-            long.value,
-          );
-
-          if (!inRange) {
-            showError("You are not within office premises");
-            return;
-          }
-          locationAddress = authController.currentUser.value.department?.departmentAddress ?? "Office Premises";
-        } else {
-          locationAddress = await getAddressFromLatLng(
-            position.latitude,
-            position.longitude,
-          );
-        }
-
-        final CheckOutRequestDTO request = CheckOutRequestDTO(
-          checkOutLocation: locationAddress,
-          faceEmbedding: faceResult,
-        );
-
-        final response = await attendanceRepository.clockOut(request);
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          showSuccess("Marked Clock Out");
-          getMyAttendance();
-        } else {
-          String msg = "Error occurred during clock out";
-          if (response.body is Map && response.body['message'] != null) {
-            msg = response.body['message'];
-          }
-          _handleAttendanceError(context, msg);
-        }
-      } on DioException catch (e) {
-        debugPrint("Dio error during clock out: $e");
-        String errorMsg = "Failed to complete clock out process";
-        if (e.response?.data is Map && e.response?.data['message'] != null) {
-          errorMsg = e.response?.data['message'];
-        }
-        _handleAttendanceError(context, errorMsg);
-      } catch (e) {
-        debugPrint("Error during clock out: $e");
-        showError("Failed to complete clock out process");
-      } finally {
-        isClockingLoading.value = false;
+      if (position == null) {
+        showError("Unable to get your location. Please ensure location services are enabled.");
+        return;
       }
-    } else {
-      showError("Face verification cancelled or failed");
+
+      // ✓ CHANGE 3: Now open face scanner
+      final dynamic faceResult = await Get.to(
+            () => const FaceScannerPage(isRegistration: false),
+      );
+
+      if (faceResult != null && faceResult is List<double>) {
+        try {
+          bool isGeofenced = authController.currentUser.value.geofencing ?? false;
+          String locationAddress = "";
+
+          if (isGeofenced) {
+            bool inRange = isInRange(
+              position.latitude,
+              position.longitude,
+              lat.value,
+              long.value,
+            );
+
+            if (!inRange) {
+              showError("You are not within office premises");
+              return;
+            }
+            locationAddress = authController.currentUser.value.department?.departmentAddress ?? "Office Premises";
+          } else {
+            locationAddress = await getAddressFromLatLng(
+              position.latitude,
+              position.longitude,
+            );
+          }
+
+          final CheckOutRequestDTO request = CheckOutRequestDTO(
+            checkOutLocation: locationAddress,
+            faceEmbedding: faceResult,
+          );
+
+          final response = await attendanceRepository.clockOut(request);
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            showSuccess("Marked Clock Out");
+            getMyAttendance();
+          } else {
+            String msg = "Error occurred during clock out";
+            if (response.body is Map && response.body['message'] != null) {
+              msg = response.body['message'];
+            }
+            _handleAttendanceError(context, msg);
+          }
+        } on DioException catch (e) {
+          debugPrint("Dio error during clock out: $e");
+          String errorMsg = "Failed to complete clock out process";
+          if (e.response?.data is Map && e.response?.data['message'] != null) {
+            errorMsg = e.response?.data['message'];
+          }
+          _handleAttendanceError(context, errorMsg);
+        } catch (e) {
+          debugPrint("Error during clock out: $e");
+          showError("Failed to complete clock out process");
+        }
+      } else {
+        showError("Face verification cancelled or failed");
+      }
+    } catch (e) {
+      debugPrint("Error in clock out: $e");
+      showError("Failed to complete clock out process");
+    } finally {
+      // ✓ CHANGE 4: Re-enable button
+      isClockingLoading.value = false;
     }
   }
 
@@ -615,12 +647,14 @@ class AttendanceController extends GetxController {
   Future<void> exportAttendancePDF({
     required DateTime startDate,
     required DateTime endDate,
+    String filter = 'this_month',
   }) async {
     try {
       isExporting.value = true;
       final response = await _dio.post(
         '/attendance/export/pdf',
         data: {
+          'filter': filter,
           'from': startDate.toIso8601String(),
           'to': endDate.toIso8601String(),
         },
@@ -639,32 +673,32 @@ class AttendanceController extends GetxController {
     }
   }
 
-  Future<void> exportAttendanceExcel({
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
-    try {
-      isExporting.value = true;
-      final response = await _dio.post(
-        '/attendance/export/excel',
-        data: {
-          'from': startDate.toIso8601String(),
-          'to': endDate.toIso8601String(),
-        },
-        options: Options(responseType: ResponseType.bytes),
-      );
-
-      if (response.statusCode == 200) {
-        showSuccess('Excel exported successfully');
-      } else {
-        showError('Failed to export Excel');
-      }
-    } catch (e) {
-      showError('Error exporting Excel: $e');
-    } finally {
-      isExporting.value = false;
-    }
-  }
+  // Future<void> exportAttendanceExcel({
+  //   required DateTime startDate,
+  //   required DateTime endDate,
+  // }) async {
+  //   try {
+  //     isExporting.value = true;
+  //     final response = await _dio.post(
+  //       '/attendance/export/excel',
+  //       data: {
+  //         'from': startDate.toIso8601String(),
+  //         'to': endDate.toIso8601String(),
+  //       },
+  //       options: Options(responseType: ResponseType.bytes),
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       showSuccess('Excel exported successfully');
+  //     } else {
+  //       showError('Failed to export Excel');
+  //     }
+  //   } catch (e) {
+  //     showError('Error exporting Excel: $e');
+  //   } finally {
+  //     isExporting.value = false;
+  //   }
+  // }
   Future<void> fetchAttendanceForDate(String date) async {
     isSelectedDateLoading.value = true;
     selectedDateAttendance.value = null;

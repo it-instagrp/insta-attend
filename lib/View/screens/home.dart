@@ -27,7 +27,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final AuthController controller = Get.find<AuthController>();
 
-  final AttendanceController attendanceController = Get.find<AttendanceController>();
+  final AttendanceController attendanceController = Get.find<
+      AttendanceController>();
 
   @override
   void initState() {
@@ -76,7 +77,10 @@ class _HomeState extends State<Home> {
   Widget _buildProfileSection(BuildContext context) {
     return SizedBox(
       height: 80,
-      width: MediaQuery.of(context).size.width,
+      width: MediaQuery
+          .of(context)
+          .size
+          .width,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -96,24 +100,26 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(() => Text(
-                  controller.currentUser.value.username ?? 'NA',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style:
-                  kfTitleMedium.copyWith(fontWeight: FontWeight.w600),
-                )),
-                Obx(() => Text(
-                  controller.currentUser.value.designation
-                      ?.designationName ??
-                      'User',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: kfTitleSmall.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF6E62FF),
-                  ),
-                )),
+                Obx(() =>
+                    Text(
+                      controller.currentUser.value.username ?? 'NA',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                      kfTitleMedium.copyWith(fontWeight: FontWeight.w600),
+                    )),
+                Obx(() =>
+                    Text(
+                      controller.currentUser.value.designation
+                          ?.designationName ??
+                          'User',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: kfTitleSmall.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: kcPurple800,
+                      ),
+                    )),
               ],
             ),
           ),
@@ -127,25 +133,60 @@ class _HomeState extends State<Home> {
     return Row(
       children: [
         Builder(
-          builder: (ctx) => InkWell(
-            onTap: () => _showMessages(ctx),
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: kcPurple100,
-              child: SvgPicture.asset(kaTopMessage),
-            ),
-          ),
+          builder: (ctx) =>
+              Stack(
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _showMessages(ctx),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F3F8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: SvgPicture.asset(kaTopMessage),
+                    ),
+                  ),
+                ],
+              ),
         ),
-        const SizedBox(width: 20),
+        const SizedBox(width: 12),
         Builder(
-          builder: (ctx) => InkWell(
-            onTap: () => _showNotifications(ctx),
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: kcPurple100,
-              child: SvgPicture.asset(kaTopNotification),
-            ),
-          ),
+          builder: (ctx) =>
+              Stack(
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _showNotifications(ctx),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F3F8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: SvgPicture.asset(kaTopNotification),
+                    ),
+                  ),
+                  // Unread indicator dot
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: kcPurple800,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
         ),
       ],
     );
@@ -157,7 +198,7 @@ class _HomeState extends State<Home> {
       height: 100,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.0),
-        color: const Color(0xFF795FFC),
+        color: kcPurple800,
       ),
       child: Stack(
         children: [
@@ -201,28 +242,102 @@ class _HomeState extends State<Home> {
 
   // ─── Popovers ────────────────────────────────────────────────────────────────
   void _showNotifications(BuildContext context) {
-    showPopover(
-      arrowHeight: 0,
-      arrowWidth: 0,
+    _showMinimalCenterDialog(
       context: context,
-      bodyBuilder: (_) => const SizedBox(
-        height: 100,
-        width: 200,
-        child: Center(child: Text('No new notifications')),
-      ),
+      title: 'Notifications',
+      svgPath: kaTopNotification,
+      message: 'No new notifications right now',
     );
   }
 
   void _showMessages(BuildContext context) {
-    showPopover(
-      arrowHeight: 0,
-      arrowWidth: 0,
+    _showMinimalCenterDialog(
       context: context,
-      bodyBuilder: (_) => const SizedBox(
-        height: 100,
-        width: 200,
-        child: Center(child: Text('No new messages')),
-      ),
+      title: 'Messages',
+      svgPath: kaTopMessage,
+      message: 'No new messages right now',
+    );
+  }
+
+  void _showMinimalCenterDialog({
+    required BuildContext context,
+    required String title,
+    required String svgPath,
+    required String message,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: kcPurple100, // Matched with your app header style
+                  child: SvgPicture.asset(
+                    svgPath, // Dynamically loads kaTopNotification or kaTopMessage
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Title
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Message
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Simple dismiss button
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      backgroundColor: kcBaseWhite,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

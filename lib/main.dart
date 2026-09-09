@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
-
 import 'package:insta_attend/API/app_constants.dart';
 import 'package:insta_attend/Helper/get_di.dart' as di;
 import 'package:insta_attend/Utils/location_service_manager.dart';
@@ -93,7 +92,6 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
-
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
@@ -115,12 +113,31 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(
-    AppLifecycleState state,
-  ) {
+      AppLifecycleState state,
+      ) {
     if (state == AppLifecycleState.resumed) {
       debugPrint(
         "App resumed: Checking active session validity...",
       );
+
+      // ✓ CHANGE 1: Fetch location when app comes to foreground
+      debugPrint("App resumed: Fetching current location...");
+      LocationServiceManager.instance.fetchCurrentLocation().then((position) {
+        if (position != null) {
+          debugPrint(
+            "App resumed: Location fetched - Lat: ${position.latitude}, Lng: ${position.longitude}",
+          );
+        } else {
+          debugPrint("App resumed: Failed to fetch location");
+        }
+      }).catchError((e) {
+        debugPrint("App resumed: Error fetching location: $e");
+      });
+
+    } else if (state == AppLifecycleState.paused) {
+      // ✓ CHANGE 2: Clear location from memory when app goes to background
+      debugPrint("App paused: Clearing location from memory...");
+      LocationServiceManager.instance.clearCurrentPosition();
     }
   }
 

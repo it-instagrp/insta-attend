@@ -90,6 +90,50 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
     });
     _loadAttendanceData();
   }
+  /// Calculates work duration from check-in and check-out times
+  /// Returns format: "HH:mm" (e.g., "09:15")
+  String _calculateDurationFromTimes(String? checkInTime, String? checkOutTime) {
+    try {
+      if (checkInTime == null || checkOutTime == null || checkInTime.isEmpty || checkOutTime.isEmpty) {
+        return '--';
+      }
+
+      // Parse times in "HH:mm" or "HH:mm:ss" format
+      final checkInParts = checkInTime.split(':');
+      final checkOutParts = checkOutTime.split(':');
+
+      if (checkInParts.length < 2 || checkOutParts.length < 2) {
+        return '--';
+      }
+
+      int checkInHour = int.parse(checkInParts[0]);
+      int checkInMin = int.parse(checkInParts[1]);
+
+      int checkOutHour = int.parse(checkOutParts[0]);
+      int checkOutMin = int.parse(checkOutParts[1]);
+
+      // Convert to minutes since midnight
+      int checkInMinutes = checkInHour * 60 + checkInMin;
+      int checkOutMinutes = checkOutHour * 60 + checkOutMin;
+
+      // Calculate difference
+      int diffMinutes = checkOutMinutes - checkInMinutes;
+
+      // Handle overnight shifts (if check-out is earlier than check-in)
+      if (diffMinutes < 0) {
+        diffMinutes += 24 * 60;
+      }
+
+      // Convert back to HH:mm format
+      int hours = diffMinutes ~/ 60;
+      int minutes = diffMinutes % 60;
+
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+    } catch (e) {
+      debugPrint('Error calculating duration: $e');
+      return '--';
+    }
+  }
 
   /// Generates the PDF document, writes bytes to file storage, and triggers the download notification.
   Future<void> _exportToPdf() async {
@@ -131,12 +175,13 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                 pw.Text("Generated on: ${DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now())}"),
                 pw.SizedBox(height: 16),
                 pw.Table.fromTextArray(
-                  headers: ['Date', 'Status', 'Check In', 'Check Out'],
+                  headers: ['Date', 'Status', 'Check In', 'Check Out', 'Duration'],
                   data: records.map((r) => [
                     r.date ?? '--',
                     r.status ?? '--',
                     r.checkInTime ?? '--',
                     r.checkOutTime ?? '--',
+                    r.duration ?? _calculateDurationFromTimes(r.checkInTime, r.checkOutTime),
                   ]).toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   cellAlignment: pw.Alignment.centerLeft,
@@ -291,10 +336,11 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                   const SizedBox(height: 16),
 
                   // 4. PDF Export Button
+                  // 4. PDF Export Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _exportToPdf,
+                     onPressed: _exportToPdf,
                       icon: const Icon(Icons.picture_as_pdf_outlined, color: Colors.white),
                       label: const Text(
                         'Export as PDF',
@@ -344,22 +390,22 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
   // Safe Responsive Filter Row
   Widget _buildEqualFilterRow() {
     final List<Map<String, dynamic>> filterOptions = [
-      {'label': 'This Month', 'filter': AttendanceFilter.thisMonth()},
-      {'label': 'Last 15 Days', 'filter': AttendanceFilter.last15Days()},
-      {'label': 'Last 30 Days', 'filter': AttendanceFilter.last30Days()},
+      {'label': 'This Mo', 'filter': AttendanceFilter.thisMonth()},
+      {'label': 'Last 15 D', 'filter': AttendanceFilter.last15Days()},
+      {'label': 'Last 30 D', 'filter': AttendanceFilter.last30Days()},
       {'label': 'Custom', 'filter': null},
     ];
 
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -375,9 +421,9 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
 
           return Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2.0),
+              padding: const EdgeInsets.symmetric(horizontal: 3.0),
               child: InkWell(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 onTap: () {
                   if (isCustom) {
                     _showCustomDateRangePicker();
@@ -385,25 +431,22 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
                     _applyFilter(filter);
                   }
                 },
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? kcPurple500 : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    // Unselected tabs get a subtle grey tint
+                    color: isSelected ? kcPurple500 : const Color(0xFFF5F6FA),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? Colors.white : Colors.black87,
-                      ),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected ? Colors.white : Colors.grey.shade700,
                     ),
                   ),
                 ),
