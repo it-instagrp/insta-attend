@@ -306,7 +306,7 @@ class _HomeState extends State<Home> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12.5,
-                    color: Colors.grey.shade600,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -317,7 +317,7 @@ class _HomeState extends State<Home> {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      backgroundColor: kcBaseWhite,
+                      backgroundColor: kcPurple100,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

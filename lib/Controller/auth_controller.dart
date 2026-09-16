@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:insta_attend/Utils/unique_id_service.dart';
 import 'package:insta_attend/API/DTO/Request/change_password_request_dto.dart';
@@ -25,6 +26,10 @@ import 'package:insta_attend/View/pages/face_scanner_page.dart';
 import 'package:insta_attend/View/pages/homescreen.dart';
 import 'package:insta_attend/View/pages/login_page.dart';
 import 'package:insta_attend/API/DTO/Request/device_change_request_dto.dart';
+import 'package:insta_attend/Model/approval_status.dart';
+import 'package:insta_attend/Model/organization.dart';
+import 'package:insta_attend/Constant/mock_data.dart';
+import 'package:toastification/toastification.dart';
 
 class AuthController extends GetxController {
   final AuthRepository authRepo;
@@ -45,6 +50,22 @@ class AuthController extends GetxController {
   RxBool isUpdateProfileLoading = false.obs;
   RxBool isFaceRegisterLoading = false.obs;
   RxBool isDropDownLoading = false.obs;
+  Worker? _searchDebouncer;
+
+  /******* Organization & Country Code State *******/
+  RxList<Organization> organizationList = <Organization>[].obs;
+  Rx<Organization?> selectedOrganization = Rx<Organization?>(null);
+  RxBool isOrganizationSearchLoading = false.obs;
+  RxString organizationSearchQuery = ''.obs;
+
+  RxList<Map<String, String>> countryCodeList = <Map<String, String>>[].obs;
+  Rx<Map<String, String>?> selectedCountryCode = Rx<Map<String, String>?>(null);
+
+  final TextEditingController organizationSearchController = TextEditingController();
+
+  /******* Approval Status State *******/
+  Rx<ApprovalStatus> userApprovalStatus = ApprovalStatus.pending.obs;
+  RxString registrationId = ''.obs;
 
   /******* Reactive Data Models & State *******/
   var currentUser = User().obs;
@@ -75,10 +96,27 @@ class AuthController extends GetxController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  final TextEditingController forgotPasswordEmailController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController forgotPasswordEmailController = TextEditingController();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialize country codes from mock data
+    countryCodeList.assignAll(MockData.mockCountryCodes);
+    if (countryCodeList.isNotEmpty) {
+      selectedCountryCode.value = countryCodeList[0];
+    }
+    // Load approval status from local storage
+    loadApprovalStatus();
+
+    _searchDebouncer = debounce(organizationSearchQuery, (query) => searchOrganizations(query), time: const Duration(milliseconds: 350),);
+  }
+  @override
+  void onClose() {
+    _searchDebouncer?.dispose();
+    super.onClose();
+  }
 
   String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -106,16 +144,309 @@ class AuthController extends GetxController {
     isLoginFormValid.value = emailValid && passwordValid;
   }
 
-  /// Pick and crop user profile photo with format, resolution, and size validations.
-  Future<void> pickProfilePhoto(
-    BuildContext context,
-    ImageSource source,
-  ) async {
+  /// Search organizations from mock data
+  Future<void> searchOrganizations(String query) async {
+    try {
+      final trimmedQuery = query.trim();
+      organizationSearchQuery.value = trimmedQuery;
+
+      if (trimmedQuery.isEmpty) {
+        organizationList.clear();
+        isOrganizationSearchLoading.value = false;
+        return;
+      }
+      if (trimmedQuery.length < 3){
+        organizationList.clear();
+        isOrganizationSearchLoading.value = false;
+        return;
+      }
+      isOrganizationSearchLoading.value = true;
+
+      Response response = await authRepo.searchOrganization(trimmedQuery);
+      if(response.statusCode == 200 && response.body != null) {
+        // Parse response payload (adjust key if API uses a different path like response.body['data'])
+        final List<dynamic> dataList = response.body['data'] is List
+            ? response.body['data']
+            : [];
+        // Map dynamic JSON objects into your Organization model list
+        final List<Organization> fetchedOrgs = dataList
+        .map((json) => Organization.fromJson( json as Map<String, dynamic>))
+        .toList();
+        // Update reactive organization list
+        organizationList.assignAll(fetchedOrgs);
+      } else {
+        // Clear results and show error message if request fails
+        organizationList.clear();
+        showError(response.body?['message']?? 'Failed to search organizations');
+      }
+    } catch (err) {
+      // Catch unexpected runtime errors
+      organizationList.clear();
+      debugPrint('Exception in searchOrganizations: $err');
+      showError('Something went wrong while fetching organizations');
+    } finally {
+      // 6. Turn off loading state regardless of outcome
+      isOrganizationSearchLoading.value = false;
+    }
+  }
+
+  /// Validate password strength
+  String? validatePasswordStrength(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Password is required';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    if (value.length > 15) {
+      return 'Password must be at most 15 characters';
+    }
+    return null;
+  }
+
+  /// Validate confirm password matches
+  String? validateConfirmPassword(String? value, String? originalPassword) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please confirm your password';
+    }
+    if (value.trim() != originalPassword?.trim()) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  /// Validate phone number based on selected country
+  String? validatePhoneByCountry(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Phone number is required';
+    }
+
+    final countryCode = selectedCountryCode.value;
+    if (countryCode == null) {
+      return 'Please select a country code';
+    }
+
+    final phoneRegex = RegExp(r'^[0-9]+$');
+    if (!phoneRegex.hasMatch(value.trim())) {
+      return 'Phone must contain only digits';
+    }
+
+    // Validate digit length based on country
+    final expectedDigits = countryCode['digits'] ?? '10';
+    final countryName = countryCode['name'] ?? 'selected country';
+
+    if (value.trim().length != int.parse(expectedDigits)) {
+      return 'Phone number must be $expectedDigits digits for $countryName';
+    }
+
+    return null;
+  }
+
+  /// Validate new registration form
+  bool validateNewRegistrationForm(BuildContext context) {
+    if (selectedOrganization.value == null) {
+      showError('Please select your organization');
+      return false;
+    }
+
+    if (usernameController.text.trim().isEmpty) {
+      showError('Please enter your name');
+      return false;
+    }
+
+    final emailError = validateEmail(emailController.text);
+    if (emailError != null) {
+      showError('Please enter a valid email');
+      return false;
+    }
+
+    final countryCode = selectedCountryCode.value;
+    if (countryCode == null) {
+      showError('Please select a country code');
+      return false;
+    }
+
+    final phoneError = validatePhoneByCountry(phoneController.text);
+    if (phoneError != null) {
+      showError(phoneError);
+      return false;
+    }
+
+    final passwordError = validatePasswordStrength(passwordController.text);
+    if (passwordError != null) {
+      showError(passwordError);
+      return false;
+    }
+
+    final confirmError = validateConfirmPassword(
+      confirmPasswordController.text,
+      passwordController.text,
+    );
+    if (confirmError != null) {
+      showError(confirmError);
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Navigate to face registration after successful registration
+  /// Navigate to face registration after successful registration
+  void _navigateToFaceRegistration(BuildContext context) {
+    Get.to<List<double>>(
+          () => const FaceScannerPage(isRegistration: true),
+      transition: Transition.fade,
+    )?.then((faceResult) {
+      if (faceResult != null && faceResult is List<double>) {
+        // Face registration successful
+        newFaceEmbedding.assignAll(faceResult);
+
+        // Update local user approval state as PENDING
+        currentUser.value.approvalStatus = 'PENDING';
+        currentUser.value.registrationId = registrationId.value;
+
+        sharedPreferences.setString(
+          'user',
+          jsonEncode(currentUser.value.toJson()),
+        );
+
+        // Clear sensitive auth session details so user cannot enter home directly
+        authRepo.clearSessionData();
+
+        showSuccess('Registration & Face Enrollment completed! Please wait for HR approval.');
+        toastification.dismissAll();
+
+        Get.offAll(() => LoginPage(), transition: Transition.fade);
+      } else {
+        showError('Face registration is required. Please try again.');
+        debugPrint('Face registration failed or cancelled');
+      }
+    });
+  }
+  /// Register with organization using mock data
+  Future<void> registerWithOrganization(BuildContext context) async {
+    try {
+      isRegisterPageLoading.value = true;
+
+      if (!validateNewRegistrationForm(context)) {
+        isRegisterPageLoading.value = false;
+        return;
+      }
+
+      final RegisterRequestDTO request = RegisterRequestDTO(
+        username: usernameController.text.trim(),
+        email: emailController.text.trim(),
+        phoneNumber: phoneController.text.trim(),
+        password: passwordController.text.trim(),
+        organization_id: selectedOrganization.value?.id,
+      );
+
+      Response response = await authRepo.register(request);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final regId = response.body['data']['registration_id'] ?? '';
+        final status = response.body['data']['status'] ?? 'PENDING';
+
+        registrationId.value = regId;
+        userApprovalStatus.value = ApprovalStatus.pending;
+
+        await sharedPreferences.setString('registration_id', regId);
+        await sharedPreferences.setString('approval_status', status);
+
+        currentUser.value.registrationId = regId;
+        currentUser.value.approvalStatus = status;
+        currentUser.value.organization = selectedOrganization.value;
+
+        showSuccess('Registration submitted successfully!');
+        clearNewRegistrationForm();
+
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (context.mounted) {
+          _navigateToFaceRegistration(context);
+        }
+      } else {
+        showError(response.body?['message'] ?? 'Registration failed');
+      }
+    } catch (err) {
+      showError('Something went wrong during registration');
+      debugPrint('Exception in registerWithOrganization: $err');
+    } finally {
+      isRegisterPageLoading.value = false;
+    }
+  }
+  void clearNewRegistrationForm() {
+    organizationSearchController.clear();
+    usernameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    selectedOrganization.value = null;
+    organizationList.clear();
+  }
+
+  /// Load approval status from local storage
+  Future<void> loadApprovalStatus() async {
+    try {
+      final regId = sharedPreferences.getString('registration_id') ?? '';
+      final status = sharedPreferences.getString('approval_status') ?? 'PENDING';
+
+      registrationId.value = regId;
+      userApprovalStatus.value = approvalStatusFromString(status);  // CHANGED THIS LINE
+
+      if (currentUser.value.id != null) {
+        currentUser.value.registrationId = regId;
+        currentUser.value.approvalStatus = status;
+      }
+    } catch (err) {
+      debugPrint('Exception in loadApprovalStatus: $err');
+    }
+  }
+
+  bool canAccessAttendance() {
+    return userApprovalStatus.value.isApproved;
+  }
+
+  /// Simulate HR approval (for demo purposes)
+  void simulateHRApproval() {
+    try {
+      MockData.DEMO_APPROVAL_STATUS = 'APPROVED';
+
+      final mockApprovalData = MockData.getApprovalStatusResponse();
+
+      userApprovalStatus.value = ApprovalStatus.approved;
+
+      currentUser.value.approvalStatus = 'APPROVED';
+      currentUser.value.department = Department(
+        id: mockApprovalData['department_id'] as String?,
+        departmentName: mockApprovalData['department'] as String?,
+      );
+      currentUser.value.designation = Designation(
+        id: mockApprovalData['designation_id'] as String?,
+        designationName: mockApprovalData['designation'] as String?,
+      );
+
+      sharedPreferences.setString('approval_status', 'APPROVED');
+      sharedPreferences.setString(
+        'user',
+        jsonEncode(currentUser.value.toJson()),
+      );
+
+      showSuccess('HR Admin has approved your registration!');
+    } catch (err) {
+      debugPrint('Exception in simulateHRApproval: $err');
+      showError('Something went wrong');
+    }
+  }
+
+  // EXISTING METHODS BELOW (unchanged)
+
+  Future<void> pickProfilePhoto(BuildContext context, ImageSource source) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: source);
 
-      if (pickedFile == null) return; // User canceled
+      if (pickedFile == null) return;
 
       final File file = File(pickedFile.path);
       final String extension = pickedFile.path.split('.').last.toLowerCase();
@@ -126,12 +457,12 @@ class AuthController extends GetxController {
 
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: file.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Square crop
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: "Crop Profile Photo",
-            toolbarColor: const Color(0xFF5B2ED4),
-            toolbarWidgetColor: Colors.white,
+            toolbarColor: kcPurple800,
+            toolbarWidgetColor: kcBaseWhite,
             lockAspectRatio: true,
           ),
           IOSUiSettings(
@@ -145,7 +476,6 @@ class AuthController extends GetxController {
 
       final File finalFile = File(croppedFile.path);
 
-      // Validate size (max 5 MB)
       final int fileSizeInBytes = await finalFile.length();
       final double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
       if (fileSizeInMB > 5) {
@@ -153,7 +483,6 @@ class AuthController extends GetxController {
         return;
       }
 
-      // Validate resolution (min 800x800)
       final Uint8List imageBytes = await finalFile.readAsBytes();
       final decodedImage = await decodeImageFromList(imageBytes);
       if (decodedImage.width < 800 || decodedImage.height < 800) {
@@ -227,19 +556,18 @@ class AuthController extends GetxController {
     final lastNameValid = validateName(lastNameController.text) == null;
     final emailValid = validateEmail(emailController.text) == null;
     final phoneValid = validatePhone(phoneController.text) == null;
-    isProfileFormValid.value =
-        firstNameValid && lastNameValid && emailValid && phoneValid;
+    isProfileFormValid.value = firstNameValid && lastNameValid && emailValid && phoneValid;
 
     hasProfileChanges.value =
         firstNameController.text.trim() != originalFirstName.value ||
-        lastNameController.text.trim() != originalLastName.value ||
-        emailController.text.trim() != originalEmail.value ||
-        phoneController.text.trim() != originalPhone.value;
+            lastNameController.text.trim() != originalLastName.value ||
+            emailController.text.trim() != originalEmail.value ||
+            phoneController.text.trim() != originalPhone.value;
   }
 
   Future<void> pickAndScanFace(BuildContext context) async {
     final dynamic result = await Get.to(
-      () => const FaceScannerPage(isRegistration: true),
+          () => const FaceScannerPage(isRegistration: true),
     );
 
     if (result != null && result is List<double>) {
@@ -250,100 +578,10 @@ class AuthController extends GetxController {
     }
   }
 
-  bool validateRegisterForm(BuildContext context) {
-    isRegisterPageLoading.value = true;
-    if (usernameController.text.trim().isEmpty) {
-      showError("Please enter your name");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (emailController.text.trim().isEmpty) {
-      showError("Please enter your email");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (phoneController.text.trim().isEmpty) {
-      showError("Please enter your phone number");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (selectedDepartment.value.isEmpty) {
-      showError("Please select your department");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (selectedDesignation.value.isEmpty) {
-      showError("Please select your designation");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (passwordController.text.trim().isEmpty) {
-      showError("Please enter your password");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (confirmPasswordController.text.trim().isEmpty) {
-      showError("Please confirm your password");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (passwordController.text.trim() !=
-        confirmPasswordController.text.trim()) {
-      showError("Password do not match");
-      isRegisterPageLoading.value = false;
-      return false;
-    } else if (!isConsentGiven.value) {
-      showError("Please accept the terms & conditions");
-      isRegisterPageLoading.value = false;
-      return false;
-    }
-    return true;
-  }
-
-  Future<void> register(BuildContext context) async {
-    try {
-      final dynamic faceResult = await Get.to(
-        () => const FaceScannerPage(isRegistration: true),
-      );
-      if (faceResult == null) {
-        showError("Face enrollment is required to register");
-        return;
-      }
-
-      final RegisterRequestDTO request = RegisterRequestDTO(
-        username: usernameController.text.trim(),
-        email: emailController.text.trim(),
-        phoneNumber: phoneController.text.trim(),
-        department_id: selectedDepartment.value,
-        password: passwordController.text.trim(),
-        designation_id: selectedDesignation.value,
-        // faceEmbedding: faceResult as List<double>?,
-      );
-
-      Response response = await authRepo.register(request);
-      if (response.statusCode == 201) {
-        showSuccess("Registered Successfully");
-        final User user = User.fromJson(response.body['data']['user']);
-        currentUser.value = user;
-        final String token = response.body['data']['token'];
-
-        authRepo.apiClient.updateHeader(token);
-        await authRepo.sharedPreferences.setString("token", token);
-        await authRepo.sharedPreferences.setString(
-          "user",
-          jsonEncode(user.toJson()),
-        );
-        await authRepo.sharedPreferences.setString("uid", user.id!);
-        clearRegisterForm();
-        Get.offAll(() => Homescreen(), transition: Transition.fade);
-      } else {
-        showError(response.body['message']);
-      }
-    } catch (err) {
-      showError("Something went wrong");
-      debugPrint("Internal Exception in register: $err");
-    } finally {
-      isRegisterPageLoading.value = false;
-    }
-  }
-
   Future<void> enrollUserFace(BuildContext context) async {
     try {
       final dynamic faceResult = await Get.to(
-        () => const FaceScannerPage(isRegistration: true),
+            () => const FaceScannerPage(isRegistration: true),
       );
 
       if (faceResult != null && faceResult is List<double>) {
@@ -352,24 +590,15 @@ class AuthController extends GetxController {
           faceEmbedding: faceResult,
         );
 
-        Response response = await authRepo.updateProfile(
-          request,
-          currentUser.value.id!,
-        );
+        Response response = await authRepo.updateProfile(request, currentUser.value.id!);
 
         if (response.statusCode == 200) {
           currentUser.value.faceEmbedding = faceResult;
           currentUser.value.isEnrolled = true;
-          await sharedPreferences.setString(
-            "user",
-            jsonEncode(currentUser.value.toJson()),
-          );
+          await sharedPreferences.setString("user", jsonEncode(currentUser.value.toJson()));
           showSuccess("Face biometric profile updated successfully");
         } else {
-          showError(
-            response.body?['message'] ??
-                "Failed to update face biometric profile",
-          );
+          showError(response.body?['message'] ?? "Failed to update face biometric profile");
         }
       } else {
         showError("Face enrollment cancelled or failed");
@@ -415,31 +644,50 @@ class AuthController extends GetxController {
             responseBody is Map &&
             responseBody['data'] is Map &&
             responseBody['data']['reason'] == 'DEVICE_CHANGE_REQUIRED') {
-          _showDeviceChangeDialog(
-            context,
-            responseBody['message'] ?? '',
-            deviceImei,
-          );
+          _showDeviceChangeDialog(context, responseBody['message'] ?? '', deviceImei);
           return;
         }
 
         if (response.statusCode == 200) {
-          showSuccess("Login Successful");
           final String userToken = responseBody['data']['token'];
           final String user = jsonEncode(responseBody['data']['user']);
 
           currentUser.value = User.fromJson(responseBody['data']['user']);
-          authRepo.apiClient.updateHeader(userToken);
+
+          // 1. Get status directly from backend login payload (fallback to pending)
+          final String backendStatus = responseBody['data']['user']['status'] ??
+              responseBody['data']['status'] ??
+              'APPROVED';
+
+          // 2. Update reactive variables and local storage with the NEW status
+          userApprovalStatus.value = approvalStatusFromString(backendStatus);
+          await sharedPreferences.setString('approval_status', backendStatus);
+          await sharedPreferences.setString('registration_id', currentUser.value.registrationId ?? '');
+
+          // 3. Check access permission
+          if (!canAccessAttendance()) {
+            _showPendingApprovalDialog(context);
+            return;
+          }
+
+          showSuccess("Login Successful");
+
+          // Extract organization ID
+          final String orgId = currentUser.value.organization?.id ??
+              responseBody['data']['user']['organization_id'] ?? '';
+
+          await authRepo.sharedPreferences.setString("organization_id", orgId);
+          authRepo.apiClient.updateHeader(userToken, organizationId: orgId);
 
           await authRepo.sharedPreferences.setString("token", userToken);
           await authRepo.sharedPreferences.setString("user", user);
-          await authRepo.sharedPreferences.setString(
-            "uid",
-            responseBody['data']['user']['id'],
-          );
+          await authRepo.sharedPreferences.setString("uid", responseBody['data']['user']['id']);
 
           clearLoginForm();
           Get.offAll(() => Homescreen(), transition: Transition.fade);
+        } else if (response.statusCode == 403 && responseBody?['data']?['status'] == 'PENDING') {
+          // Handle explicit backend block for pending users
+          _showPendingApprovalDialog(context);
         } else {
           showError(responseBody?['message'] ?? "Login failed");
         }
@@ -452,36 +700,31 @@ class AuthController extends GetxController {
     }
   }
 
-  void _showDeviceChangeDialog(
-    BuildContext context,
-    String message,
-    String deviceImei,
-  ) {
+  void _showDeviceChangeDialog(BuildContext context, String message, String deviceImei) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text("New Device Detected"),
-            content: Text(
-              message.isNotEmpty
-                  ? message
-                  : "Do you want to send a request to HR for approval of this new device login?",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text("No"),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(dialogContext);
-                  await _sendDeviceChangeRequest(deviceImei);
-                },
-                child: const Text("Yes"),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("New Device Detected"),
+        content: Text(
+          message.isNotEmpty
+              ? message
+              : "Do you want to send a request to HR for approval of this new device login?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("No"),
           ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _sendDeviceChangeRequest(deviceImei);
+            },
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -503,13 +746,9 @@ class AuthController extends GetxController {
           response.body is Map &&
           response.body['data'] is Map &&
           response.body['data']['status'] == 'Pending') {
-        showSuccess(
-          "Request sent to HR. You'll be notified once your new device is approved.",
-        );
+        showSuccess("Request sent to HR. You'll be notified once your new device is approved.");
       } else {
-        showError(
-          response.body?['message'] ?? "Failed to send device change request",
-        );
+        showError(response.body?['message'] ?? "Failed to send device change request");
       }
     } catch (err) {
       showError("Something went wrong while sending the request");
@@ -528,10 +767,7 @@ class AuthController extends GetxController {
       Response response = await authRepo.forgotPassword(request);
       if (response.statusCode == 200) {
         Get.back();
-        showSuccess(
-          response.body?['message'] ??
-              "If account exists, a reset link has been sent",
-        );
+        showSuccess(response.body?['message'] ?? "If account exists, a reset link has been sent");
         forgotPasswordEmailController.clear();
       } else {
         showError(response.body?['message'] ?? "Unable to send reset link");
@@ -567,19 +803,14 @@ class AuthController extends GetxController {
     isUpdateProfileLoading.value = true;
     try {
       final UpdateProfileRequestDTO request = UpdateProfileRequestDTO(
-        username:
-            "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
+        username: "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
         email: emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
-        faceEmbedding:
-            newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null,
+        faceEmbedding: newFaceEmbedding.isNotEmpty ? newFaceEmbedding.toList() : null,
         profilePhoto: pickedProfileImage.value,
       );
 
-      Response response = await authRepo.updateProfile(
-        request,
-        currentUser.value.id!,
-      );
+      Response response = await authRepo.updateProfile(request, currentUser.value.id!);
 
       if (response.statusCode == 200) {
         newFaceEmbedding.clear();
@@ -590,10 +821,7 @@ class AuthController extends GetxController {
         currentUser.value.email = request.email;
         currentUser.value.phoneNumber = request.phoneNumber;
 
-        await sharedPreferences.setString(
-          "user",
-          jsonEncode(currentUser.value.toJson()),
-        );
+        await sharedPreferences.setString("user", jsonEncode(currentUser.value.toJson()));
       } else {
         showError(response.body?['message'] ?? "Failed to update profile");
       }
@@ -609,8 +837,7 @@ class AuthController extends GetxController {
   Future<void> changePassword(BuildContext context) async {
     isChangePasswordLoading.value = true;
     try {
-      if (passwordController.text.isEmpty ||
-          confirmPasswordController.text.isEmpty) {
+      if (passwordController.text.isEmpty || confirmPasswordController.text.isEmpty) {
         Get.back();
         showError("Please enter password");
         return;
@@ -657,56 +884,29 @@ class AuthController extends GetxController {
       isUploadProfileImageLoading.value = false;
     }
   }
-
   void clearLoginForm() {
     emailController.clear();
     passwordController.clear();
   }
-
-  void clearRegisterForm() {
-    usernameController.clear();
-    emailController.clear();
-    phoneController.clear();
-    passwordController.clear();
-    confirmPasswordController.clear();
-    selectedDesignation.value = '';
-    selectedDepartment.value = '';
-    isConsentGiven.value = false;
-  }
-
-  Future<void> getDepartment() async {
-    try {
-      isDropDownLoading.value = true;
-      Response response = await authRepo.getDepartments();
-      if (response.statusCode == 200) {
-        List<dynamic> dataList = response.body['data'] as List<dynamic>;
-        List<Department> departments =
-            dataList.map((json) => Department.fromJson(json)).toList();
-        departmentList.assignAll(departments);
-      }
-    } catch (err) {
-      if (kDebugMode) debugPrint("Exception in getDepartment: $err");
-      showError("Something went wrong");
-    } finally {
-      isDropDownLoading.value = false;
-    }
-  }
-
-  Future<void> getDesignation() async {
-    isDropDownLoading.value = true;
-    try {
-      Response response = await authRepo.getDesignations();
-      if (response.statusCode == 200) {
-        List<dynamic> dataList = response.body['data'] as List<dynamic>;
-        List<Designation> designations =
-            dataList.map((json) => Designation.fromJson(json)).toList();
-        designationList.assignAll(designations);
-      }
-    } catch (err) {
-      if (kDebugMode) debugPrint("Exception in getDesignation: $err");
-      showError("Something went wrong");
-    } finally {
-      isDropDownLoading.value = false;
-    }
+  void _showPendingApprovalDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text(
+          "Approval Pending",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          "Your Request is Not Approved Yet. For approval status, contact your HR Admin.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 }

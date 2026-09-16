@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'department.dart';
 import 'designation.dart';
+import 'package:insta_attend/Model/organization.dart';
 
 class User {
   String? id;
@@ -13,6 +14,9 @@ class User {
   bool? deletePermission;
   String? createdAt;
   String? updatedAt;
+  String? registrationId;
+  String? approvalStatus;
+  Organization? organization;
   Department? department;
   Designation? designation;
   List<double>? faceEmbedding;
@@ -30,6 +34,9 @@ class User {
     this.department,
     this.designation,
     this.faceEmbedding,
+    this.registrationId,
+    this.approvalStatus,
+    this.organization,
   });
 
   User.fromJson(Map<String, dynamic> json) {
@@ -39,6 +46,11 @@ class User {
     phoneNumber = json['phone_number'];
     geofencing = json['geofencing'];
     isEnrolled = json['is_enrolled'];
+
+    // NEW: Parse registration and approval fields
+    registrationId = json['registration_id'];
+    approvalStatus = json['approval_status'] ?? 'PENDING';
+
     if (json['face_embedding'] != null) {
       var embeddingData = json['face_embedding'];
 
@@ -77,6 +89,11 @@ class User {
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     data['face_embedding'] = this.faceEmbedding;
+    data['registration_id'] = registrationId;
+    data['approval_status'] = approvalStatus;
+    if (organization != null) {
+      data['organization'] = organization!.toJson();
+    }
     if (this.department != null) {
       data['department'] = this.department!.toJson();
     }

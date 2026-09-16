@@ -390,9 +390,9 @@ class _AttendanceOverviewPageState extends State<AttendanceOverviewPage> {
   // Safe Responsive Filter Row
   Widget _buildEqualFilterRow() {
     final List<Map<String, dynamic>> filterOptions = [
-      {'label': 'This Mo', 'filter': AttendanceFilter.thisMonth()},
-      {'label': 'Last 15 D', 'filter': AttendanceFilter.last15Days()},
-      {'label': 'Last 30 D', 'filter': AttendanceFilter.last30Days()},
+      {'label': 'Current', 'filter': AttendanceFilter.thisMonth()},
+      {'label': '15 Days', 'filter': AttendanceFilter.last15Days()},
+      {'label': '30 Days', 'filter': AttendanceFilter.last30Days()},
       {'label': 'Custom', 'filter': null},
     ];
 

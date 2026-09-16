@@ -14,9 +14,7 @@ import 'package:insta_attend/Utils/responsive_size.dart';
 
 class ExpenseScreen extends StatelessWidget {
   ExpenseScreen({super.key});
-
   final ExpenseController controller = Get.find<ExpenseController>();
-
   @override
   Widget build(BuildContext context) {
     ResponsiveSize.init(context);
@@ -25,7 +23,6 @@ class ExpenseScreen extends StatelessWidget {
       controller.getMyStats();
       controller.getMyExpense();
     });
-
     return Container(
       height: MediaQuery.of(context).size.height,
       color: const Color(0xFFF1F3F8),
