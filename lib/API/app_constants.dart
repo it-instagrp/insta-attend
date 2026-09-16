@@ -62,3 +62,6 @@ String getMyExpenseUrl({int pageNumber = 1, int pageSize = 10}) =>
 String updateMyExpenseUrl(String id) => "expense/$id";
 String deleteMyExpenseUrl(String id) => "expense/$id";
 final String getMyStatsUrl = "expense/stats";
+
+/**** Organization URLs ****/
+String searchOrganizationUrl(String keyword) => "organizations/search?keyword=$keyword";

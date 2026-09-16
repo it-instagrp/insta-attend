@@ -3,9 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:insta_attend/Constant/constant_asset.dart';
 import 'package:insta_attend/Constant/constant_color.dart';
 import 'package:insta_attend/Constant/constant_font.dart';
-
 enum ExpenseType { total, review, approved }
-
 class ExpenseCard extends StatelessWidget {
   final String periodOfExpense;
   final int totalExpense, reviewExpense, approvedExpense;
@@ -16,7 +14,6 @@ class ExpenseCard extends StatelessWidget {
     this.reviewExpense = 445,
     this.approvedExpense = 555,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -57,7 +54,6 @@ class ExpenseCard extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildExpenseSection(ExpenseType type, int amount) {
     return Container(
       padding: EdgeInsets.all(10.0), // reduced from 12 → gives text more room
@@ -84,7 +80,7 @@ class ExpenseCard extends StatelessWidget {
               ),
               SizedBox(width: 4),
               Flexible(
-                // prevents label from overflowing
+// prevents label from overflowing
                 child: Text(
                   _getExpenseTitle(type),
                   style: kfLabelMedium,
@@ -111,7 +107,6 @@ class ExpenseCard extends StatelessWidget {
         return "Approved";
     }
   }
-
   String _getExpenseIcon(ExpenseType type) {
     switch (type) {
       case ExpenseType.total:

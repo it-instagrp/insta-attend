@@ -20,8 +20,9 @@ class AuthRepository {
   // ==================== SESSION & LOCAL STORAGE METHODS ====================
 
   /// Save token locally and dynamically update ApiClient headers
-  Future<bool> saveUserToken(String userToken) async {
-    apiClient.updateHeader(userToken);
+  Future<bool> saveUserToken(String userToken, {String? organizationId}) async {
+    final storedOrgId = organizationId ?? sharedPreferences.getString("organization_id") ?? "";
+    apiClient.updateHeader(userToken, organizationId: storedOrgId);
     return await sharedPreferences.setString(token, userToken);
   }
   Future<bool> saveUserId(String userId) async {
@@ -104,5 +105,8 @@ class AuthRepository {
   }
   Future<Response> requestDeviceChange(DeviceChangeRequestDTO request) async {
     return await apiClient.postData(deviceChangeRequestUrl, request.toJson());
+  }
+  Future<Response> searchOrganization(String keyword) async {
+    return await apiClient.getData(searchOrganizationUrl(keyword));
   }
 }
