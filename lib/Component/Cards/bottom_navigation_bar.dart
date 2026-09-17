@@ -18,6 +18,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   final HomescreenController controller = Get.find<HomescreenController>();
   final authController = Get.find<AuthController>();
+
   final List<String> corporateList = [
     "Corporate Office",
     "IT Department"
@@ -66,21 +67,15 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: visibleIndexes.map((index) {
             final isSelected = controller.selectedIndex.value == index;
-            return GestureDetector(
+            return BottomBarItem(
+              index: index,
+              iconPath: isSelected ? selectedIcons[index] : icons[index],
+              isSelected: isSelected,
+              title: titles[index],
               onTap: () {
                 controller.selectedIndex.value = index;
                 widget.onSelectIndex(index);
               },
-              child: BottomBarItem(
-                index: index,
-                iconPath: isSelected ? selectedIcons[index] : icons[index],
-                isSelected: isSelected,
-                onTap: () {
-                  controller.selectedIndex.value = index;
-                  widget.onSelectIndex(index);
-                },
-                title: titles[index],
-              ),
             );
           }).toList(),
         ),
@@ -107,30 +102,37 @@ class BottomBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SvgPicture.asset(iconPath, height: 25, width: 25),
-        const SizedBox(height: 4),
-        Container(
-          height: 2,
-          width: 12,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2),
-            color: isSelected ? Colors.white : Colors.transparent,
-          ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(iconPath, height: 25, width: 25),
+            const SizedBox(height: 4),
+            Container(
+              height: 2,
+              width: 12,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                color: isSelected ? Colors.white : Colors.transparent,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
+                color: Colors.white,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
-            color: Colors.white,
-            fontSize: 12,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

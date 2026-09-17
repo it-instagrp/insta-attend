@@ -30,6 +30,7 @@ import 'package:insta_attend/Model/approval_status.dart';
 import 'package:insta_attend/Model/organization.dart';
 import 'package:insta_attend/Constant/mock_data.dart';
 import 'package:toastification/toastification.dart';
+import 'package:insta_attend/Component/Cards/pending_approval_dialog.dart';
 
 class AuthController extends GetxController {
   final AuthRepository authRepo;
@@ -289,40 +290,6 @@ class AuthController extends GetxController {
 
     return true;
   }
-
-  /// Navigate to face registration after successful registration
-  /// Navigate to face registration after successful registration
-  void _navigateToFaceRegistration(BuildContext context) {
-    Get.to<List<double>>(
-          () => const FaceScannerPage(isRegistration: true),
-      transition: Transition.fade,
-    )?.then((faceResult) {
-      if (faceResult != null && faceResult is List<double>) {
-        // Face registration successful
-        newFaceEmbedding.assignAll(faceResult);
-
-        // Update local user approval state as PENDING
-        currentUser.value.approvalStatus = 'PENDING';
-        currentUser.value.registrationId = registrationId.value;
-
-        sharedPreferences.setString(
-          'user',
-          jsonEncode(currentUser.value.toJson()),
-        );
-
-        // Clear sensitive auth session details so user cannot enter home directly
-        authRepo.clearSessionData();
-
-        showSuccess('Registration & Face Enrollment completed! Please wait for HR approval.');
-        toastification.dismissAll();
-
-        Get.offAll(() => LoginPage(), transition: Transition.fade);
-      } else {
-        showError('Face registration is required. Please try again.');
-        debugPrint('Face registration failed or cancelled');
-      }
-    });
-  }
   /// Register with organization using mock data
   Future<void> registerWithOrganization(BuildContext context) async {
     try {
@@ -359,11 +326,7 @@ class AuthController extends GetxController {
 
         showSuccess('Registration submitted successfully!');
         clearNewRegistrationForm();
-
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (context.mounted) {
-          _navigateToFaceRegistration(context);
-        }
+        Get.offAll(() => LoginPage(), transition: Transition.fade);
       } else {
         showError(response.body?['message'] ?? 'Registration failed');
       }
@@ -654,17 +617,14 @@ class AuthController extends GetxController {
 
           currentUser.value = User.fromJson(responseBody['data']['user']);
 
-          // 1. Get status directly from backend login payload (fallback to pending)
           final String backendStatus = responseBody['data']['user']['status'] ??
               responseBody['data']['status'] ??
               'APPROVED';
 
-          // 2. Update reactive variables and local storage with the NEW status
           userApprovalStatus.value = approvalStatusFromString(backendStatus);
           await sharedPreferences.setString('approval_status', backendStatus);
           await sharedPreferences.setString('registration_id', currentUser.value.registrationId ?? '');
 
-          // 3. Check access permission
           if (!canAccessAttendance()) {
             _showPendingApprovalDialog(context);
             return;
@@ -672,7 +632,6 @@ class AuthController extends GetxController {
 
           showSuccess("Login Successful");
 
-          // Extract organization ID
           final String orgId = currentUser.value.organization?.id ??
               responseBody['data']['user']['organization_id'] ?? '';
 
@@ -685,8 +644,10 @@ class AuthController extends GetxController {
 
           clearLoginForm();
           Get.offAll(() => Homescreen(), transition: Transition.fade);
-        } else if (response.statusCode == 403 && responseBody?['data']?['status'] == 'PENDING') {
-          // Handle explicit backend block for pending users
+        } else if (response.statusCode == 403 ||
+            response.statusCode == 400 ||
+            (responseBody is Map && responseBody['message']?.toString().toLowerCase().contains('pending') == true)) {
+          // HR approval pending condition
           _showPendingApprovalDialog(context);
         } else {
           showError(responseBody?['message'] ?? "Login failed");
@@ -892,20 +853,8 @@ class AuthController extends GetxController {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text(
-          "Approval Pending",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          "Your Request is Not Approved Yet. For approval status, contact your HR Admin.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text("OK"),
-          ),
-        ],
+      builder: (dialogContext) => const PendingApprovalDialog(
+        message: "Your Request is Not Approved Yet. For approval status, contact your HR Admin.",
       ),
     );
   }

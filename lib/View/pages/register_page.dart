@@ -159,7 +159,6 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildForm(BuildContext context) {
     return Form(
       key: _formKey,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -248,6 +247,7 @@ class _RegisterPageState extends State<RegisterPage> {
               fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
                 return TextFormField(
                   controller: textEditingController,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   focusNode: focusNode,
                   style: const TextStyle(fontSize: 13, color: Colors.black),
                   validator: (value) {
@@ -291,7 +291,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             textEditingController.clear();
                             controller.selectedOrganization.value = null;
                             controller.organizationList.clear();
-                            _formKey.currentState?.validate();
                           },
                         );
                       }
@@ -379,6 +378,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller.usernameController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           keyboardType: TextInputType.name,
           style: const TextStyle(fontSize: 13, color: Colors.black),
           validator: (value) {
@@ -419,6 +419,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller.emailController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           keyboardType: TextInputType.emailAddress,
           style: const TextStyle(fontSize: 13, color: Colors.black),
           validator: controller.validateEmail,
@@ -456,6 +457,7 @@ class _RegisterPageState extends State<RegisterPage> {
         Obx(
               () => TextFormField(
             controller: controller.phoneController,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             keyboardType: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
@@ -483,7 +485,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       onChanged: (Map<String, String>? newValue) {
                         controller.selectedCountryCode.value = newValue;
                         controller.phoneController.clear();
-                        _formKey.currentState?.validate();
                       },
                       items: controller.countryCodeList.map((country) {
                         return DropdownMenuItem(
@@ -545,6 +546,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller.passwordController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           obscureText: _obscurePassword,
           style: const TextStyle(fontSize: 13, color: Colors.black),
           validator: controller.validatePasswordStrength,
@@ -594,6 +596,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller.confirmPasswordController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           obscureText: _obscureConfirmPassword,
           style: const TextStyle(fontSize: 13, color: Colors.black),
           validator: (value) => controller.validateConfirmPassword(
