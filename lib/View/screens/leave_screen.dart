@@ -45,16 +45,15 @@ class LeaveScreen extends StatelessWidget {
             left: 0,
             right: 0,
             top: 150,
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.8,
-              child: Column(
-                children: [
-                  _buildLeaveSummary(),
-                  SizedBox(height: 10),
-                  _buildLeaveFilter(),
-                  _buildLeaveHistory(),
-                ],
-              ),
+            bottom: 0,
+            child: Column(
+              children: [
+                _buildLeaveSummary(),
+                const SizedBox(height: 10),
+                _buildLeaveFilter(),
+                const SizedBox(height: 10),
+                _buildLeaveHistory(),
+              ],
             ),
           ),
           _buildSubmitLeaveButton(context),
@@ -87,16 +86,19 @@ class LeaveScreen extends StatelessWidget {
   }
 
   // Builds leave summary card
-  Widget _buildLeaveSummary(){
+  Widget _buildLeaveSummary() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Obx(
-            () => LeaveCard(
-          usedLeave: controller.approvedLeaves.value.length,
-          availableLeave:
-          (11 - (controller.approvedLeaves.value.length)),
-        ),
-      ),
+      child: Obx(() {
+        const int totalAllocatedLeave = 11;
+        final int usedDays = controller.totalApprovedLeaveDays;
+        final int remainingDays = totalAllocatedLeave - usedDays;
+
+        return LeaveCard(
+          usedLeave: usedDays,
+          availableLeave: remainingDays < 0 ? 0 : remainingDays,
+        );
+      }),
     );
   }
 
@@ -112,32 +114,36 @@ class LeaveScreen extends StatelessWidget {
     );
   }
 
-  // Builds leave history section
   Widget _buildLeaveHistory(){
-    return Container(
-      margin: EdgeInsets.all(18.0),
-      height: 280,
-      child: Obx(() {
-        if (controller.isLeaveLoading.value){
-          return Center(
-            child: CircularProgressIndicator(
-              strokeCap: StrokeCap.round,
-              color: kcPurple600,
-            ),
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18.0),
+        child: Obx(() {
+          if (controller.isLeaveLoading.value){
+            return Center(
+              child: CircularProgressIndicator(
+                strokeCap: StrokeCap.round,
+                color: kcPurple600,
+              ),
+            );
+          }
+          if (controller.filteredLeaves.isNotEmpty) {
+            return ListView.separated(
+              padding: const EdgeInsets.only(bottom: 80), // Prevents last item from being covered by the bottom button
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemCount: controller.filteredLeaves.length,
+              itemBuilder: (context, index) {
+                final leave = controller.filteredLeaves[index];
+                return LeaveHistoryCard(leave: leave);
+              },
+            );
+          }
+          return NoContent(
+            icon: kaNoLeave,
+            title: 'No Leave Submitted',
+            description: "Ready to catch some fresh air? Click “Submit Leave” and take that well-deserved break!",
           );
-        }
-        if (controller.filteredLeaves.isNotEmpty) {
-          return ListView.separated(
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemCount: controller.filteredLeaves.length,
-            itemBuilder: (context, index) {
-              final leave = controller.filteredLeaves[index];
-              return LeaveHistoryCard(leave: leave);
-            },
-          );
-        }
-        return NoContent(icon: kaNoLeave, title: 'No Leave Submitted', description: "Ready to catch some fresh air? Click “Submit Leave” and take that well-deserved break!",);
-      }
+        }),
       ),
     );
   }

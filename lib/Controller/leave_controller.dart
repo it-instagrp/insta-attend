@@ -145,4 +145,31 @@ class LeaveController extends GetxController {
         return [];
     }
   }
+  /// Helper method to calculate day difference from a Leave instance
+  int calculateLeaveDays(Leave leave) {
+    final String? startStr = leave.from;
+    final String? endStr = leave.to;
+
+    if (startStr == null || endStr == null || startStr.isEmpty || endStr.isEmpty) {
+      return 1;
+    }
+
+    try {
+      final DateTime start = DateTime.parse(startStr);
+      final DateTime end = DateTime.parse(endStr);
+
+      final int difference = end.difference(start).inDays + 1;
+      return difference > 0 ? difference : 1;
+    } catch (e) {
+      debugPrint("Error parsing leave dates: $e");
+      return 1;
+    }
+  }
+
+  /// Dynamic getter returning total approved days used by the user
+  int get totalApprovedLeaveDays {
+    return approvedLeaves.fold<int>(0, (sum, leave) {
+      return sum + calculateLeaveDays(leave);
+    });
+  }
 }

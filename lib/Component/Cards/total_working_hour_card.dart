@@ -96,7 +96,7 @@ class TotalWorkingHourCard extends StatelessWidget {
                           'Processing...',
                           style: TextStyle(
                             fontSize: 12,
-                            color: kcGrey500,
+                            color: kcGrey800,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
