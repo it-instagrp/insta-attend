@@ -19,23 +19,29 @@ class ApiClient extends GetxService {
   final int timeoutInSeconds = 40;
 
   String _token = "";
+  String _organizationId = "";
   late Map<String, String> _mainHeaders;
   bool _isRedirectingToLogin = false;
 
   ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
     _token = sharedPreferences.getString(token) ?? "";
+    _organizationId = sharedPreferences.getString("organization_id") ?? "";
     if (kDebugMode) {
-      debugPrint('ApiClient Initialized with Token: $_token');
+      debugPrint('ApiClient Initialized with Token: $_token | OrgID: $_organizationId');
     }
-    updateHeader(_token);
+    updateHeader(_token, organizationId: _organizationId );
   }
 
   /// Dynamically updates authorization headers when user logs in or refreshes token
-  void updateHeader(String newDynamicToken) {
+  void updateHeader(String newDynamicToken, {String? organizationId}) {
     _token = newDynamicToken;
+    if (organizationId != null ){
+      _organizationId = organizationId;
+    }
     _mainHeaders = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $_token',
+      if (_organizationId.isNotEmpty) 'X-Organization-Id': _organizationId,
     };
     if (kDebugMode) {
       log('Updated Headers: $_mainHeaders');

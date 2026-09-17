@@ -32,12 +32,14 @@ class AttendanceDetailsRecordDto {
   String? status;
   String? checkInTime;
   String? checkOutTime;
+  String? duration;
 
   AttendanceDetailsRecordDto({
     this.date,
     this.status,
     this.checkInTime,
     this.checkOutTime,
+    this.duration,
   });
 
   factory AttendanceDetailsRecordDto.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class AttendanceDetailsRecordDto {
       status: json['status'],
       checkInTime: json['checkInTime'],
       checkOutTime: json['checkOutTime'],
+      duration: json['duration'],
     );
   }
 }

@@ -10,9 +10,11 @@ class MainButton extends StatelessWidget {
   final VoidCallback onTap;
   final ButtonSize buttonSize;
   final ButtonType buttonType;
+  final List<Color>? gradientColors;
   const MainButton({
     super.key,
     this.buttonSize = ButtonSize.sm,
+    this.gradientColors,
     this.buttonType = ButtonType.normal,
     required this.label,
     required this.onTap,
@@ -34,6 +36,9 @@ class MainButton extends StatelessWidget {
   }
 
   List<Color> _getColors() {
+    if (gradientColors != null && gradientColors!.isNotEmpty){
+      return gradientColors!;
+    }
     switch (buttonType) {
       case ButtonType.disabled:
         return [Color(0xFFCAB3FF), Color(0xD06D3AF6)];

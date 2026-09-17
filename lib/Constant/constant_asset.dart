@@ -71,3 +71,4 @@ final String kaWarrantyIcon = "assets/svg/warrantyIcon.svg";
 final String kaAllottedDateIcon = "assets/svg/allottedDateIcon.svg";
 final String kaReturnDateIcon = "assets/svg/returnDateIcon.svg";
 final String kaLogoutTop = "assets/svg/logoutTop.svg";
+final String kaOrg = "assets/svg/org.svg";
